@@ -1,0 +1,44 @@
+Documentation
+
+* Download virtualenv
+* Make project directory
+* change to that directory
+* run $virtualenv venv
+This will make a folder called "venv" in your project directory that will contain everything you download for project environment.
+* run $. venv/bin/activate to activate the virtual environment (to deactivate run $deactivate)
+* install Flask in your venv environment
+* pip install --upgrade google-api-python-client
+* pip install Flask-Assets  ~~ to use js and bootstrap
+
+
+building web apps in flask tutorial:
+http://maximebf.com/blog/2012/10/building-websites-in-python-with-flask/#.V1r0uucrIy4
+
+
+
+check out
+
+https://developers.google.com/resources/api-libraries/documentation/youtube/v3/python/latest/
+https://developers.google.com/api-client-library/python/
+https://developers.google.com/api-client-library/python/apis/youtube/v3#sample
+http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms
+
+https://github.com/youtube/api-samples/tree/master/python
+
+learn about pyenv - https://github.com/yyuu/pyenv-virtualenv
+
+
+Use these to do from scratch:
+
+1. go through the example code and see if you see where everything is coming from
+2. try to use API in terminal? Like just try to get it to return a list of video names
+3. watch:
+
+ http://www.programmableweb.com/news/how-to-query-youtube-through-its-python-apis/how-to/2014/03/26
+
+ https://www.youtube.com/watch?v=-vH2eZAM30s
+
+ https://developers.google.com/youtube/v3/docs/search/list#parameters
+
+
+

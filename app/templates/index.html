@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+	<div class = "row" >
+		<form action = "#"" id="searchbar">
+			Enter keywords to find a song or album, here:<br>
+			<input type = "text" id="keywords" size = "75"><br><br>
+			<input type="submit" value="Submit">
+		</form>
+		<div id="results"></div>
+    </div>
+
+	<!--scripts-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>window.jQuery</script>
+	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/app.js') }}"></script> 	
+	<script src="https://apis.google.com/js/client.js?onload=init"></script>
+	<!--end scripts-->
+  
+{% endblock %}

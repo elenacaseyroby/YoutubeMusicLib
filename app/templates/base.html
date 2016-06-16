@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+  <head>
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title>Welcome to your Youtube Music Library</title>
+    {% endif %}
+  </head>
+  <body>
+    <div>Other pages:<a href="/index">Home</a></div>
+    <hr> 
+    {% block content %}{% endblock %} 
+  </body>
+</html>
