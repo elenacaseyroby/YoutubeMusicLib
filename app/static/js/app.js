@@ -78,6 +78,7 @@ function onYouTubeIframeAPIReady() {
 	  			height: '390',
 			  	width: '640',
 			  	videoId: item.id,
+			  	title: item.title,
 			  	events: {
 			    	'onReady': onPlayerReady,
 			    	'onStateChange': onPlayerStateChange
@@ -92,7 +93,7 @@ function onYouTubeIframeAPIReady() {
 
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
-event.target.playVideo();
+	event.target.playVideo();
 }
 
 // 5. The API calls this function when the player's state changes.
@@ -101,12 +102,16 @@ event.target.playVideo();
 var done = false;
 function onPlayerStateChange(event) {
 if (event.data == YT.PlayerState.PLAYING && !done) {
-  setTimeout(stopVideo, 6000);
-  done = true;
+	console.log(event);
+	setTimeout(recordPlay(event.target.a.outerHTML), 2000);
+	done = true;
 }
 }
-function stopVideo() {
-player.stopVideo();
+function recordPlay(iframe) {
+	//event
+	var $this = $(this);
+	$(iframe).appendTo("#record_plays");
+	//console.log();
 }
 function init(){
 	//test key:
