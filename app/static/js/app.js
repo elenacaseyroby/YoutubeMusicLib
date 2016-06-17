@@ -1,5 +1,16 @@
+/*
+bugs:
+- doesn't record multiple plays at top of page
+- sometimes takes two page loads to load iframe
+- all vids play on page load. has something to do with event.target.B = true.  should = false so it doesn't autoplay!
+
+
+
+
+*/
 var vid_info = [];
 var players = [];
+var counter = 0;
 
 $(function(){
 	$("#searchbar").on("submit", function(e) {
@@ -57,9 +68,6 @@ $('#searchbar').bind('search-done', function(e){
 //    after the API code downloads.
 
 function onYouTubeIframeAPIReady() {
-	console.log("made it!");
-	console.log(vid_info);
-	
 
 
 	if(vid_info.length > 0 && vid_info[0] != null){
@@ -94,6 +102,7 @@ function onYouTubeIframeAPIReady() {
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
 	event.target.playVideo();
+	console.log(players);
 }
 
 // 5. The API calls this function when the player's state changes.
@@ -101,16 +110,21 @@ function onPlayerReady(event) {
 //    the player should play for six seconds and then stop.
 var done = false;
 function onPlayerStateChange(event) {
-if (event.data == YT.PlayerState.PLAYING && !done) {
-	console.log(event);
-	setTimeout(recordPlay(event.target.a.outerHTML), 2000);
-	done = true;
-}
+	if (event.data == YT.PlayerState.PLAYING && !done) {
+		console.log(event);
+		setTimeout(recordPlay(event.target.a.outerHTML), 2000);
+		done = true;
+	}
+
+
 }
 function recordPlay(iframe) {
-	//event
-	var $this = $(this);
-	$(iframe).appendTo("#record_plays");
+	var name = counter.toString();
+
+	$("<div></div>").attr('id',name).appendTo('#record_plays');
+	var re = '(.*)title="YouTube(.*)" w(.*)';
+	var title = iframe.match(re);
+	$("#record_plays").append(title[2]);
 	//console.log();
 }
 function init(){
