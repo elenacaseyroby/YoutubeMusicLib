@@ -95,15 +95,23 @@ function onPlayerReady(event) {
 	//play first vid
 
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
-	iframe = event.target.a.outerHTML
+	/*
+	alt option: play iframe with the same title as the first item in vid_info list:
+	iframe = event.target.a.outerHTML;//could also do w 
 	var re = '(.*)title="YouTube (.*)" w(.*)';
 	var title = iframe.match(re);
-	console.log(vid_info[0].title);
-	console.log(title[2]);
 	if (vid_info[0].title == title[2]){
 		event.target.playVideo();
+	}*/
+
+	url = event.target.v.videoUrl;
+	var re = '(.*)?v=(.*)';
+	var id = url.match(re);
+	console.log(url);
+	if (vid_info[0].id == id[2]){
+		event.target.playVideo();
 	}
-	//console.log(event);
+	console.log(event);
 	//console.log(vid_info);
 
 	/*
@@ -149,7 +157,7 @@ function recordPlay(iframe) {
 	//$("<div></div>").attr('id',name).appendTo('#record_plays');
 	var re = '(.*)title="YouTube(.*)" w(.*)';
 	var title = iframe.match(re);
-	alert(title);
+	//alert(title);
 	$("#record_plays").append(title[2]).append("<br>");
 
 }
