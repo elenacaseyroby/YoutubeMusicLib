@@ -4,17 +4,15 @@ bugs:
 - sometimes takes two page loads to load iframe
 - all vids play on page load. has something to do with event.target.B = true.  should = false so it doesn't autoplay!
 
-
-
-
+find some way so if a vid is played all the other ytplayer instances are set to stop play
 */
 var vid_info = [];
 var players = [];
 var counter = 0;
 
 $(function(){
-	$("#searchbar").on("submit", function(e) {
-		e.preventDefault();
+	$("#searchbar").on("submit", function(event) {
+		event.preventDefault();
 		//prepare the request		
 		var request = gapi.client.youtube.search.list({
 			part: "snippet",
@@ -25,26 +23,18 @@ $(function(){
 		});
 		//execute the request
 		request.execute(function(response){
-			//console.log(response);
 			$("#results").empty();
 
 			var results = response.result;
 			i = 0;
 			$.each(results.items, function(index, item){
-				//ideally would pass vars into youtubeiframe.html and then append the 
-				//filled html onto the #results element in index.html
-				//$("#results").append('<div class="vid"><h2>'+item.snippet.title+'</h2><iframe class="video w100" width="640" height="360" src="//www.youtube.com/embed/'+item.id.videoId+'" frameborder="0" allowfullscreen></iframe></div>');
-				
 				//stores title and video in global array
 				vid_info [i] = {
 					title: item.snippet.title,
 					id: item.id.videoId
 
 				};
-				console.log(vid_info);
-
 				i++;
-
 			});
 		});
 		$("#searchbar").trigger("search-done");
@@ -54,11 +44,15 @@ $(function(){
 
 $('#searchbar').bind('search-done', function(e){
 	// 2. This code loads the IFrame Player API code asynchronously.
+
 	var tag = document.createElement('script');
 	tag.src = "https://www.youtube.com/iframe_api";
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 	console.log("triggered!");
+	//because this has already been done after first load, 
+	//the onYoutubeIframeAPIReady command isn't called for future searches
+	//$('search-done').trigger('load-iframes');
 
 });
 
@@ -69,14 +63,9 @@ $('#searchbar').bind('search-done', function(e){
 
 function onYouTubeIframeAPIReady() {
 
-
 	if(vid_info.length > 0 && vid_info[0] != null){
 		var i = 0;
 		$.each(vid_info, function(index, item){
-
-
-			console.log("vid info in for each -");
-			console.log(item.id);
 
 			var name = i.toString();
 
@@ -95,37 +84,74 @@ function onYouTubeIframeAPIReady() {
 		
 			i++;
 		});
-		console.log(players);
+
 	}
 }
 
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
-	event.target.playVideo();
-	console.log(players);
+//~*~*~INSTRUCTIONS HERE~*~*~//
+
+	//play first vid
+
+//~*~*~*~*~*~*~*~*~*~*~*~*~*~//
+	iframe = event.target.a.outerHTML
+	var re = '(.*)title="YouTube (.*)" w(.*)';
+	var title = iframe.match(re);
+	console.log(vid_info[0].title);
+	console.log(title[2]);
+	if (vid_info[0].title == title[2]){
+		event.target.playVideo();
+	}
+	//console.log(event);
+	//console.log(vid_info);
+
+	/*
+	console.log("id");
+	console.log(videoId);
+	console.log("info");
+	console.log(vid_info);
+	if (videoId == vid_info[0].id){
+		event.target.playVideo();
+	}*/
+
 }
 
 // 5. The API calls this function when the player's state changes.
 //    The function indicates that when playing a video (state=1),
-//    the player should play for six seconds and then stop.
-var done = false;
-function onPlayerStateChange(event) {
-	if (event.data == YT.PlayerState.PLAYING && !done) {
-		console.log(event);
+//    the player should play for two seconds and then record title 
+//	  at top of page.
+//var done = false;
+function onPlayerStateChange(event) { //stops listening after first play
+
+//~*~*~INSTRUCTIONS HERE~*~*~//
+
+	//if vid is played, set other vids to paused and record the play
+
+//~*~*~*~*~*~*~*~*~*~*~*~*~*~//
+	
+
+	//if (event.data == YT.PlayerState.PLAYING && !done) {
+		//console.log(event);
 		setTimeout(recordPlay(event.target.a.outerHTML), 2000);
-		done = true;
-	}
+		//done = true;
+	//}
 
 
 }
 function recordPlay(iframe) {
-	var name = counter.toString();
 
-	$("<div></div>").attr('id',name).appendTo('#record_plays');
+
+	//everytime you press play it goes here 3x and everytime you pause it goes here 1x
+	//var name = counter.toString();
+	//$(name).prepend("play_")
+
+	//$("<div></div>").attr('id',name).appendTo('#record_plays');
 	var re = '(.*)title="YouTube(.*)" w(.*)';
 	var title = iframe.match(re);
-	$("#record_plays").append(title[2]);
-	//console.log();
+	alert(title);
+	$("#record_plays").append(title[2]).append("<br>");
+
 }
 function init(){
 	//test key:
