@@ -42,7 +42,7 @@ $(function(){
 	
 });
 
-$('#searchbar').bind('search-done', function(e){
+$('#searchbar').bind('search-done', function(event){
 	// 2. This code loads the IFrame Player API code asynchronously.
 
 	var tag = document.createElement('script');
@@ -92,7 +92,7 @@ function onYouTubeIframeAPIReady() {
 function onPlayerReady(event) {
 //~*~*~INSTRUCTIONS HERE~*~*~//
 
-	//play first vid
+	//autoplay first vid
 
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
 	/*
@@ -111,17 +111,6 @@ function onPlayerReady(event) {
 	if (vid_info[0].id == id[2]){
 		event.target.playVideo();
 	}
-	console.log(event);
-	//console.log(vid_info);
-
-	/*
-	console.log("id");
-	console.log(videoId);
-	console.log("info");
-	console.log(vid_info);
-	if (videoId == vid_info[0].id){
-		event.target.playVideo();
-	}*/
 
 }
 
@@ -137,13 +126,11 @@ function onPlayerStateChange(event) { //stops listening after first play
 	//if vid is played, set other vids to paused and record the play
 
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
-	
+	//if vid is playing from first 10 secs, save to list after 10 seconds
+	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <=10.0){
+		setTimeout(recordPlay(event.target.a.outerHTML), 10000);
+	}
 
-	//if (event.data == YT.PlayerState.PLAYING && !done) {
-		//console.log(event);
-		setTimeout(recordPlay(event.target.a.outerHTML), 2000);
-		//done = true;
-	//}
 
 
 }
