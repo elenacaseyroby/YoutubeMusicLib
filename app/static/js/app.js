@@ -9,7 +9,7 @@ $(function(){
 		var request = gapi.client.youtube.search.list({
 			part: "snippet",
 			type: "video",
-			maxResults: 5,
+			maxResults: 3,
 			order: "relevance",
 			q: encodeURIComponent($("#keywords").val()).replace(/%20/g, "+")
 		});
@@ -24,30 +24,29 @@ $(function(){
 				vid_info [i] = {
 					title: item.snippet.title,
 					id: item.id.videoId
-
 				};
 				i++;
 			});
+			$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
 		});
-		$("#searchbar").trigger("search-done");
-	});
-	
+	});	
 });
 
 $('#searchbar').bind('search-done', function(event){
-	// 2. This code loads the IFrame Player API code asynchronously.
+	//load the IFrame Player API code asynchronously.
 	
 	var tag = document.createElement('script');
 	tag.src = "https://www.youtube.com/iframe_api";
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+	console.log("loaded iframe api code");
 
 });
 
-// 3. This function creates an <iframe> (and YouTube player)
-//    after the API code downloads.
-
+// create <iframe> (and YouTube player) for each vid_info.id
 function onYouTubeIframeAPIReady() {
+	console.log("enters onYouTubeIframeAPIReady");
+	console.log(vid_info);
 
 	if(vid_info.length > 0 && vid_info[0] != null){
 		var i = 0;
@@ -70,19 +69,27 @@ function onYouTubeIframeAPIReady() {
 		
 			i++;
 		});
+		console.log("instantiated player class for each vid");
 
 	}
 
 }
 
 
-// 4. The API will call this function when the video player is ready.
+//API calls this function when the video player is ready
 function onPlayerReady(event) {
 //~*~*~INSTRUCTIONS HERE~*~*~//
 
 	//autoplay first vid
 
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
+
+	url = event.target.v.videoUrl;
+	var re = '(.*)?v=(.*)';
+	var id = url.match(re);
+	if (vid_info[0].id == id[2]){
+		event.target.playVideo();
+	}
 	/*
 	alt option: play iframe with the same title as the first item in vid_info list:
 	iframe = event.target.a.outerHTML;//could also do w 
@@ -92,21 +99,9 @@ function onPlayerReady(event) {
 		event.target.playVideo();
 	}*/
 
-	url = event.target.v.videoUrl;
-	var re = '(.*)?v=(.*)';
-	var id = url.match(re);
-	console.log(url);
-	if (vid_info[0].id == id[2]){
-		event.target.playVideo();
-	}
-
 }
 
-// 5. The API calls this function when the player's state changes.
-//    The function indicates that when playing a video (state=1),
-//    the player should play for two seconds and then record title 
-//	  at top of page.
-//var done = false;
+// API calls this function when the player's state changes
 function onPlayerStateChange(event) { //stops listening after first play
 
 //~*~*~INSTRUCTIONS HERE~*~*~//
@@ -114,23 +109,17 @@ function onPlayerStateChange(event) { //stops listening after first play
 	//if vid is played, set other vids to paused and record the play
 
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
-	//if vid is playing from first 10 secs, save to list after 10 seconds
-	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <=10.0){
+	//if vid is playing from first 2 secs, save to list after 1 second
+	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
 		setTimeout(recordPlay(event.target.a.outerHTML), 10000);
 	}
 }
 
+//records play at top of page
 function recordPlay(iframe) {
 
-
-	//everytime you press play it goes here 3x and everytime you pause it goes here 1x
-	//var name = counter.toString();
-	//$(name).prepend("play_")
-
-	//$("<div></div>").attr('id',name).appendTo('#record_plays');
 	var re = '(.*)title="YouTube(.*)" w(.*)';
 	var title = iframe.match(re);
-	//alert(title);
 	$("#record_plays").append(title[2]).append("<br>");
 }
 
