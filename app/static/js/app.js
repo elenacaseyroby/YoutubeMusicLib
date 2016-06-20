@@ -1,11 +1,3 @@
-/*
-bugs:
-- doesn't record multiple plays at top of page
-- sometimes takes two page loads to load iframe
-- all vids play on page load. has something to do with event.target.B = true.  should = false so it doesn't autoplay!
-
-find some way so if a vid is played all the other ytplayer instances are set to stop play
-*/
 var vid_info = [];
 var players = [];
 var counter = 0;
@@ -44,19 +36,13 @@ $(function(){
 
 $('#searchbar').bind('search-done', function(event){
 	// 2. This code loads the IFrame Player API code asynchronously.
-
+	
 	var tag = document.createElement('script');
 	tag.src = "https://www.youtube.com/iframe_api";
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-	console.log("triggered!");
-	//because this has already been done after first load, 
-	//the onYoutubeIframeAPIReady command isn't called for future searches
-	//$('search-done').trigger('load-iframes');
 
 });
-
-
 
 // 3. This function creates an <iframe> (and YouTube player)
 //    after the API code downloads.
@@ -86,7 +72,9 @@ function onYouTubeIframeAPIReady() {
 		});
 
 	}
+
 }
+
 
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
@@ -130,10 +118,8 @@ function onPlayerStateChange(event) { //stops listening after first play
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <=10.0){
 		setTimeout(recordPlay(event.target.a.outerHTML), 10000);
 	}
-
-
-
 }
+
 function recordPlay(iframe) {
 
 
@@ -146,8 +132,8 @@ function recordPlay(iframe) {
 	var title = iframe.match(re);
 	//alert(title);
 	$("#record_plays").append(title[2]).append("<br>");
-
 }
+
 function init(){
 	//test key:
 	gapi.client.setApiKey("AIzaSyB8Myy78KEAuztudBxlM7ZwMbVnu7VQZpA");
