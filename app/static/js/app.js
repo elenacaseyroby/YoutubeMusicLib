@@ -1,13 +1,5 @@
-//tried to use loadVideoById(item.id), but for some reason you can't re-use the player 
-//instances without re-calling onYouTubeIframeAPIReady() 
-//if you do you get error TypeError: this.a.contentWindow is null or 
-// www-widgetapi.js:98 Uncaught TypeError: Cannot read property 'postMessage' of null
-//then tried to remove and re-add youtube iframe api script to trigger
-//but it didn't work. Now I'm going to try to reload the whole html page on second search
-
 var vid_info = [];
 var players = [];
-var counter = 0;
 var searches_per_page_load = 0;
 
 $(function(){
@@ -43,17 +35,8 @@ $(function(){
 				$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
 				searches_per_page_load++;
 
-			}else{//remove and re add javascript files so that it loads iframe api again to trigger onYouTubeIframeAPIReady
-				updateVidIDs(event);
-				/*
-				$('script').each(function() {
-				    //if ($(this).attr('src') != '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js' && $(this).attr('src') != 'https://apis.google.com/js/client.js?onload=init') {
-				        console.log("GOT HERE");//goes through for each script
-				        var old_src = $(this).attr('src');
-				        $(this).attr('src', '');
-				        setTimeout(function(){ $(this).attr('src', old_src + '?'+new Date()); }, 10);
-				    //}
-				});*/
+			}else{
+				updateVidIDs();
 			}
 		});	
 	});	
@@ -67,13 +50,6 @@ $('#searchbar').bind('search-done', function(event){
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 	console.log("loaded iframe api code");
-	if (searches_per_page_load < 1){
-
-		searches_per_page_load++;
-
-	}else{
-		updateVidIDs();
-	}
 
 });
 
@@ -113,17 +89,8 @@ function onYouTubeIframeAPIReady() {
 
 }
 
-function updateVidIDs(event){
-
-	var player_counter = 0;
-	$.each(vid_info, function(index, item){
-		console.log("player");
-		console.log(players);
-		console.log(event);
-		//players[player_counter].loadVideoById({videoId: item.id});
-		players[player_counter].loadVideoById(item.id);
-		player_counter++;
-	});
+function updateVidIDs(){
+	onYouTubeIframeAPIReady()
 }
 
 
@@ -141,15 +108,6 @@ function onPlayerReady(event) {
 	if (vid_info[0].id == id[2]){
 		event.target.playVideo();
 	}
-	/*
-	alt option: play iframe with the same title as the first item in vid_info list:
-	iframe = event.target.a.outerHTML;//could also do w 
-	var re = '(.*)title="YouTube (.*)" w(.*)';
-	var title = iframe.match(re);
-	if (vid_info[0].title == title[2]){
-		event.target.playVideo();
-	}*/
-
 }
 
 // API calls this function when the player's state changes
@@ -162,7 +120,7 @@ function onPlayerStateChange(event) { //stops listening after first play
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
 	//if vid is playing from first 2 secs, save to list after 1 second
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
-		setTimeout(recordPlay(event.target.a.outerHTML), 10000);
+		setTimeout(recordPlay(event.target.a.outerHTML), 1000);
 	}
 }
 
