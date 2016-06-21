@@ -101,13 +101,13 @@ function onPlayerReady(event) {
 	//autoplay first vid
 
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
-
+/*
 	url = event.target.v.videoUrl;
 	var re = '(.*)?v=(.*)';
 	var id = url.match(re);
 	if (vid_info[0].id == id[2]){
 		event.target.playVideo();
-	}
+	}*/
 }
 
 // API calls this function when the player's state changes
