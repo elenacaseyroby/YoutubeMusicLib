@@ -9,6 +9,11 @@ from app import app
 def index():
 	return render_template('index.html')
 
+@app.route('/confirmplays')
+
+def cleandata():
+	return render_template('cleandata.html')
+
 		
 
 
