@@ -1,10 +1,21 @@
+//tried to use loadVideoById(item.id), but for some reason you can't re-use the player 
+//instances without re-calling onYouTubeIframeAPIReady() 
+//if you do you get error TypeError: this.a.contentWindow is null or 
+// www-widgetapi.js:98 Uncaught TypeError: Cannot read property 'postMessage' of null
+//then tried to remove and re-add youtube iframe api script to trigger
+//but it didn't work. Now I'm going to try to reload the whole html page on second search
+
 var vid_info = [];
 var players = [];
 var counter = 0;
+var searches_per_page_load = 0;
 
 $(function(){
 	$("#searchbar").on("submit", function(event) {
 		event.preventDefault();
+		console.log(searches_per_page_load);
+		console.log(players);
+		console.log("made it to search");
 		//prepare the request		
 		var request = gapi.client.youtube.search.list({
 			part: "snippet",
@@ -27,8 +38,24 @@ $(function(){
 				};
 				i++;
 			});
-			$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
-		});
+			if (searches_per_page_load < 1){
+				console.log("made it in if");
+				$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
+				searches_per_page_load++;
+
+			}else{//remove and re add javascript files so that it loads iframe api again to trigger onYouTubeIframeAPIReady
+				updateVidIDs(event);
+				/*
+				$('script').each(function() {
+				    //if ($(this).attr('src') != '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js' && $(this).attr('src') != 'https://apis.google.com/js/client.js?onload=init') {
+				        console.log("GOT HERE");//goes through for each script
+				        var old_src = $(this).attr('src');
+				        $(this).attr('src', '');
+				        setTimeout(function(){ $(this).attr('src', old_src + '?'+new Date()); }, 10);
+				    //}
+				});*/
+			}
+		});	
 	});	
 });
 
@@ -40,11 +67,21 @@ $('#searchbar').bind('search-done', function(event){
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 	console.log("loaded iframe api code");
+	if (searches_per_page_load < 1){
+
+		searches_per_page_load++;
+
+	}else{
+		updateVidIDs();
+	}
 
 });
 
 // create <iframe> (and YouTube player) for each vid_info.id
 function onYouTubeIframeAPIReady() {
+
+//error is related to using the player objects without callthing this function again
+
 	console.log("enters onYouTubeIframeAPIReady");
 	console.log(vid_info);
 
@@ -70,9 +107,23 @@ function onYouTubeIframeAPIReady() {
 			i++;
 		});
 		console.log("instantiated player class for each vid");
+		console.log(players);
 
 	}
 
+}
+
+function updateVidIDs(event){
+
+	var player_counter = 0;
+	$.each(vid_info, function(index, item){
+		console.log("player");
+		console.log(players);
+		console.log(event);
+		//players[player_counter].loadVideoById({videoId: item.id});
+		players[player_counter].loadVideoById(item.id);
+		player_counter++;
+	});
 }
 
 
@@ -132,4 +183,5 @@ function init(){
 	gapi.client.load("youtube","v3", function(){
 		//youtube api is ready
 	});
+
 }
