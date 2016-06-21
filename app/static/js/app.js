@@ -1,10 +1,13 @@
 var vid_info = [];
 var players = [];
-var counter = 0;
+var searches_per_page_load = 0;
 
 $(function(){
 	$("#searchbar").on("submit", function(event) {
 		event.preventDefault();
+		console.log(searches_per_page_load);
+		console.log(players);
+		console.log("made it to search");
 		//prepare the request		
 		var request = gapi.client.youtube.search.list({
 			part: "snippet",
@@ -27,8 +30,15 @@ $(function(){
 				};
 				i++;
 			});
-			$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
-		});
+			if (searches_per_page_load < 1){
+				console.log("made it in if");
+				$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
+				searches_per_page_load++;
+
+			}else{
+				updateVidIDs();
+			}
+		});	
 	});	
 });
 
@@ -45,6 +55,9 @@ $('#searchbar').bind('search-done', function(event){
 
 // create <iframe> (and YouTube player) for each vid_info.id
 function onYouTubeIframeAPIReady() {
+
+//error is related to using the player objects without callthing this function again
+
 	console.log("enters onYouTubeIframeAPIReady");
 	console.log(vid_info);
 
@@ -70,9 +83,14 @@ function onYouTubeIframeAPIReady() {
 			i++;
 		});
 		console.log("instantiated player class for each vid");
+		console.log(players);
 
 	}
 
+}
+
+function updateVidIDs(){
+	onYouTubeIframeAPIReady()
 }
 
 
@@ -90,15 +108,6 @@ function onPlayerReady(event) {
 	if (vid_info[0].id == id[2]){
 		event.target.playVideo();
 	}
-	/*
-	alt option: play iframe with the same title as the first item in vid_info list:
-	iframe = event.target.a.outerHTML;//could also do w 
-	var re = '(.*)title="YouTube (.*)" w(.*)';
-	var title = iframe.match(re);
-	if (vid_info[0].title == title[2]){
-		event.target.playVideo();
-	}*/
-
 }
 
 // API calls this function when the player's state changes
@@ -111,7 +120,7 @@ function onPlayerStateChange(event) { //stops listening after first play
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
 	//if vid is playing from first 2 secs, save to list after 1 second
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
-		setTimeout(recordPlay(event.target.a.outerHTML), 10000);
+		setTimeout(recordPlay(event.target.a.outerHTML), 1000);
 	}
 }
 
@@ -132,4 +141,5 @@ function init(){
 	gapi.client.load("youtube","v3", function(){
 		//youtube api is ready
 	});
+
 }
