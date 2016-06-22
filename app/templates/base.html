@@ -7,8 +7,20 @@
     {% endif %}
   </head>
   <body>
-    <div>Other pages:  <a href="/index">Home</a> | <a href="/confirmplays">Confirm Plays</a></div>
+    <div>Other pages:  <a href="/index">Home</a> | <a href="/confirmplays">Confirm Plays</a> | <a href="/login">Login</a></div>
     <hr> 
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li>{{ message }} </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    
+
     {% block content %}{% endblock %} 
   </body>
 </html>
