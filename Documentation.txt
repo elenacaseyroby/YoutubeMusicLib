@@ -15,8 +15,9 @@ How to install Flask:
 http://flask.pocoo.org/docs/0.11/installation/
 
 How to properly structure and write a flask app:
-http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
-
+ * http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
+ * https://realpython.com/blog/python/python-web-applications-with-flask-part-ii/
+ 
 How to use the Youtube API w Javascript:
 https://www.youtube.com/watch?v=-vH2eZAM30s
 
