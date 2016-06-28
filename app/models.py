@@ -1,36 +1,47 @@
-
-
 #!/usr/bin/python
 # -*- mode: python -*-
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, backref
 
-engine = create_engine('mysql+pymysql://casey:crystal@localhost/youtubelib', convert_unicode=True, echo=False)
+engine = create_engine('mysql://casey:crystal@127.0.0.1:3306/youtubelib', convert_unicode=True, echo=False)
 Base = declarative_base()
 Base.metadata.reflect(engine)
 
+class Album(Base):
+	__table__ = Base.metadata.tables['albums']
 
-from sqlalchemy.orm import relationship, backref
+class Artist(Base):
+	__table__ = Base.metadata.tables['artists']
+
+class City(Base):
+	__table__ = Base.metadata.tables['cities']
+
+class Country(Base):
+	__table__ = Base.metadata.tables['countries']
+
+class Genre(Base):
+	__table__ = Base.metadata.tables['genres']
+
+class Listen(Base):
+	__table__ = Base.metadata.tables['listens']
+
+class Rating(Base):
+	__table__ = Base.metadata.tables['ratings']
+
+class SavedVid(Base):
+	__table__ = Base.metadata.tables['saved_vids']
+
+class SimilarArtists(Base):
+	__table__ = Base.metadata.tables['similar_artists']
 
 class User(Base):
     __table__ = Base.metadata.tables['users']
 
+class Video(Base):
+	__table__ = Base.metadata.tables['videos']
 
-if __name__ == '__main__':
-    from sqlalchemy.orm import scoped_session, sessionmaker, Query
-    db_session = scoped_session(sessionmaker(bind=engine))
-    for item in db_session.query(Users.id, Users.name):
-        print item
+class VidsGenres(Base):
+	__table__ = Base.metadata.tables['vids_genres']
 
-"""
-from app import db
-
-class users(db.Model):
-	id = db.Column(db.Integer, primary_key = True)
-	email = db.Column(db.String(150), index = True, unique = True)
-	first_name = db.Column(db.String(100), index = True, unique = True)
-	last_name = db.Column(db.String(100), index = True, unique = True)
-
-	def __repr__(self):
-		return '<User %r>' % (self.email) #how do I return more than one column?"""
