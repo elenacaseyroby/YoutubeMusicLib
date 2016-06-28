@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.13)
 # Database: youtubelib
-# Generation Time: 2016-06-28 19:08:36 +0000
+# Generation Time: 2016-06-28 21:36:41 +0000
 # ************************************************************
 
 
@@ -27,11 +27,11 @@ DROP TABLE IF EXISTS `albums`;
 
 CREATE TABLE `albums` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vid_id` int(100) DEFAULT NULL,
+  `youtube_id` varchar(200) DEFAULT NULL,
   `track_num` int(5) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `vid_id` (`vid_id`),
-  CONSTRAINT `albums_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`)
+  KEY `youtube_id` (`youtube_id`),
+  CONSTRAINT `albums_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -103,14 +103,14 @@ DROP TABLE IF EXISTS `listens`;
 
 CREATE TABLE `listens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vid_id` int(100) DEFAULT NULL,
+  `youtube_id` varchar(200) DEFAULT NULL,
   `user_id` int(100) DEFAULT NULL,
   `start_time` datetime DEFAULT NULL,
   `end_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `vid_id` (`vid_id`),
+  KEY `youtube_id` (`youtube_id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `listens_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
+  CONSTRAINT `listens_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
   CONSTRAINT `listens_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -136,13 +136,14 @@ CREATE TABLE `migrate_version` (
 DROP TABLE IF EXISTS `ratings`;
 
 CREATE TABLE `ratings` (
-  `user_id` int(11),
-  `vid_id` int(11),
+  `user_id` int(11) NOT NULL,
+  `youtube_id` varchar(200) NOT NULL,
   `rating` float(10,10) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`youtube_id`),
+  KEY `youtube_id` (`youtube_id`),
   CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
-  PRIMARY KEY (`user_id`, `vid_id`)
+  CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -153,12 +154,13 @@ CREATE TABLE `ratings` (
 DROP TABLE IF EXISTS `saved_vids`;
 
 CREATE TABLE `saved_vids` (
-  `vid_id` int(11),
-  `user_id` int(11),
+  `youtube_id` varchar(200) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `date_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT `saved_vids_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `saved_vids_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  PRIMARY KEY (`vid_id`,`user_id`)
+  PRIMARY KEY (`youtube_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `saved_vids_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
+  CONSTRAINT `saved_vids_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -169,12 +171,13 @@ CREATE TABLE `saved_vids` (
 DROP TABLE IF EXISTS `similar_artists`;
 
 CREATE TABLE `similar_artists` (
-  `artist_id1` int(11),
-  `artist_id2` int(11),
+  `artist_id1` int(11) NOT NULL,
+  `artist_id2` int(11) NOT NULL,
   `verification_level` int(11) DEFAULT NULL,
+  PRIMARY KEY (`artist_id1`,`artist_id2`),
+  KEY `artist_id2` (`artist_id2`),
   CONSTRAINT `similar_artists_ibfk_1` FOREIGN KEY (`artist_id1`) REFERENCES `artists` (`id`),
-  CONSTRAINT `similar_artists_ibfk_2` FOREIGN KEY (`artist_id2`) REFERENCES `artists` (`id`),
-  PRIMARY KEY (`artist_id1`,`artist_id2`)
+  CONSTRAINT `similar_artists_ibfk_2` FOREIGN KEY (`artist_id2`) REFERENCES `artists` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -201,12 +204,12 @@ CREATE TABLE `users` (
 DROP TABLE IF EXISTS `videos`;
 
 CREATE TABLE `videos` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `youtube_id` varchar(200) NOT NULL,
   `artist_id` int(100) DEFAULT NULL,
   `album_id` int(100) DEFAULT NULL,
   `title` varchar(150) DEFAULT NULL,
   `release_date` date DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -217,12 +220,13 @@ CREATE TABLE `videos` (
 DROP TABLE IF EXISTS `vids_genres`;
 
 CREATE TABLE `vids_genres` (
-  `vid_id` int(11),
-  `genre_id` int(11),
+  `youtube_id` varchar(200) NOT NULL,
+  `genre_id` int(11) NOT NULL,
   `verification_level` int(11) DEFAULT NULL,
-  CONSTRAINT `vids_genres_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `vids_genres_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`id`),
-  PRIMARY KEY (`vid_id`,`genre_id`)
+  PRIMARY KEY (`youtube_id`,`genre_id`),
+  KEY `genre_id` (`genre_id`),
+  CONSTRAINT `vids_genres_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
+  CONSTRAINT `vids_genres_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
