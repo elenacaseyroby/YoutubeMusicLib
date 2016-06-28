@@ -120,12 +120,22 @@ function onPlayerStateChange(event) { //stops listening after first play
 //~*~*~*~*~*~*~*~*~*~*~*~*~*~//
 	//if vid is playing from first 2 secs, save to list after 1 second
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
-		setTimeout(recordPlay(event.target.a.outerHTML), 1000);
+		setTimeout(savePlay(event), 1000);
 	}
 }
 
 //records play at top of page
-function recordPlay(iframe) {
+function savePlay(event) {
+	iframe = event.target.a.outerHTML;
+	//player.v.currentTime
+	//event.target.getCurrentTime()
+
+	//pass data to view.py as json
+	/*
+	$.post({
+      url: "/listens",
+      data: {user_id: "1", title: "", youtube_id:, time_start = "", time_end = ""}
+    });*/
 
 	var re = '(.*)title="YouTube(.*)" w(.*)';
 	var title = iframe.match(re);

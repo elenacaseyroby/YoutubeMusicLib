@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from flask import render_template, flash, redirect
-from app import app
+from app import app, models
 from .forms import LoginForm
 
 #use namespaces to pull controllers and models
@@ -11,6 +11,23 @@ from .forms import LoginForm
 
 def index():
 	return render_template('index.html')
+
+
+@app.route('/listens', methods=['POST'])
+def postlistens():
+  #do stuff with json data here! ;)
+  """
+  print request.form["user_id"]
+  print request.form["youtube_id"]
+    # # also imaginary:
+    # new_listen = User(name=request.form["user_id"],
+    #                 status=request.form["youtube_id"])
+    # db.session.add(new_listen)
+    # db.session.commit()
+    return "success"
+
+
+  """
 
 @app.route('/confirmplays')
 
