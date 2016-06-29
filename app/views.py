@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from flask import render_template, flash, redirect
+from flask import render_template, flash, redirect, request
 from app import app, models
 from .forms import LoginForm
 
@@ -13,7 +13,7 @@ def index():
 	return render_template('index.html')
 
 
-@app.route('/listens', methods=['POST'])
+@app.route('/postlistens', methods=['POST'])
 def postlistens():
   #do stuff with json data here! ;)
   """

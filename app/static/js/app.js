@@ -133,7 +133,7 @@ function savePlay(event) {
 	//pass data to view.py as json
 	/*
 	$.post({
-      url: "/listens",
+      url: "/postlistens",
       data: {user_id: "1", title: "", youtube_id:, time_start = "", time_end = ""}
     });*/
 
