@@ -5,9 +5,6 @@ var searches_per_page_load = 0;
 $(function(){
 	$("#searchbar").on("submit", function(event) {
 		event.preventDefault();
-		console.log(searches_per_page_load);
-		console.log(players);
-		console.log("made it to search");
 		//prepare the request		
 		var request = gapi.client.youtube.search.list({
 			part: "snippet",
@@ -31,7 +28,6 @@ $(function(){
 				i++;
 			});
 			if (searches_per_page_load < 1){
-				console.log("made it in if");
 				$("#searchbar").trigger("search-done");//inside request to trigger AFTER youtube api returns data
 				searches_per_page_load++;
 
@@ -49,17 +45,12 @@ $('#searchbar').bind('search-done', function(event){
 	tag.src = "https://www.youtube.com/iframe_api";
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-	console.log("loaded iframe api code");
+
 
 });
 
 // create <iframe> (and YouTube player) for each vid_info.id
 function onYouTubeIframeAPIReady() {
-
-//error is related to using the player objects without callthing this function again
-
-	console.log("enters onYouTubeIframeAPIReady");
-	console.log(vid_info);
 
 	if(vid_info.length > 0 && vid_info[0] != null){
 		var i = 0;
@@ -82,11 +73,7 @@ function onYouTubeIframeAPIReady() {
 		
 			i++;
 		});
-		console.log("instantiated player class for each vid");
-		console.log(players);
-
 	}
-
 }
 
 function updateVidIDs(){
@@ -126,20 +113,32 @@ function onPlayerStateChange(event) { //stops listening after first play
 
 //records play at top of page
 function savePlay(event) {
-	iframe = event.target.a.outerHTML;
-	//player.v.currentTime
-	//event.target.getCurrentTime()
-
-	//pass data to view.py as json
+	//would make it save stop time, but since mult vids can play at once, that 
+	//will have to be a later feature.
+	
+	title = event.target.v.videoData.title;
+	title = title.toString();
+	youtube_id = event.target.v.videoData.video_id;
+	youtube_id = youtube_id.toString();
+	time_start = event.target.getCurrentTime();
+	time_start = time_start.toFixed(5);
+	time_end = 100.50.toFixed(5);
 	/*
-	$.post({
-      url: "/postlistens",
-      data: {user_id: "1", title: "", youtube_id:, time_start = "", time_end = ""}
-    });*/
+	console.log(time_start);
+	console.log(time_end);
+	console.log(title);
+	console.log(youtube_id);*/
+	
+	$.ajax({
+		type: "POST",
+	    url: '/postlistens',
+	    data: {user_id: "1", title: title, youtube_id: youtube_id, time_start: time_start, time_end: time_end}
+    });
 
-	var re = '(.*)title="YouTube(.*)" w(.*)';
-	var title = iframe.match(re);
-	$("#record_plays").append(title[2]).append("<br>");
+	//iframe = event.target.a.outerHTML;
+	//var re = '(.*)title="YouTube(.*)" w(.*)';
+	//var title = iframe.match(re);
+	$("#record_plays").append(title).append("<br>");
 }
 
 function init(){

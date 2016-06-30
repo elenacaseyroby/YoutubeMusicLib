@@ -3,11 +3,23 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, sessionmaker
+
+
+
+print "~~~~~~ model! ~~~~~~"
 
 engine = create_engine('mysql+pymysql://casey:crystal@127.0.0.1:3306/youtubelib', convert_unicode=True, echo=False)
 Base = declarative_base()
 Base.metadata.reflect(engine)
+print "~~~~~~~~~~ Base ~~~~~~~~~"
+print Base
+"""
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine) 
+session = Session()"""
+"""session.rollback()"""
+
 
 class Album(Base):
 	__table__ = Base.metadata.tables['albums']
@@ -25,6 +37,7 @@ class Genre(Base):
 	__table__ = Base.metadata.tables['genres']
 
 class Listen(Base):
+	print "~~~~~~~~ listens! ~~~~~~~~"
 	__table__ = Base.metadata.tables['listens']
 
 class Rating(Base):
