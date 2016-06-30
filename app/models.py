@@ -25,7 +25,6 @@ class Genre(Base):
 	__table__ = Base.metadata.tables['genres']
 
 class Listen(Base):
-	print "~~~~~~~~ listens! ~~~~~~~~"
 	__table__ = Base.metadata.tables['listens']
 
 class Rating(Base):

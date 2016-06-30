@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 from flask import render_template, flash, redirect, request, Flask
-from app import db, app, models
+from app import app, models, session #,db
 from .forms import LoginForm
-from sqlalchemy.orm import sessionmaker
+
 
 
 @app.route('/')
@@ -15,10 +15,7 @@ def index():
 @app.route('/postlistens', methods=['POST'])
 
 def postlistens():
-    #start session
-    Session = sessionmaker(bind=models.engine)
-    Session.configure(bind=models.engine) 
-    session = Session()
+
     #post video
     new_video = models.Video(youtube_id=request.form["youtube_id"],
                   title=request.form["title"])#edit so it only adds vid info if it doesn't already exist
