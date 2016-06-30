@@ -5,9 +5,6 @@ app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-print "*********** start ***********"
-
-
 from app import views, models #imports views.py from the app package
 
 

@@ -116,6 +116,7 @@ function savePlay(event) {
 	//would make it save stop time, but since mult vids can play at once, that 
 	//will have to be a later feature.
 	
+	//get data to fil db
 	title = event.target.v.videoData.title;
 	title = title.toString();
 	youtube_id = event.target.v.videoData.video_id;
@@ -123,12 +124,8 @@ function savePlay(event) {
 	time_start = event.target.getCurrentTime();
 	time_start = time_start.toFixed(5);
 	time_end = 100.50.toFixed(5);
-	/*
-	console.log(time_start);
-	console.log(time_end);
-	console.log(title);
-	console.log(youtube_id);*/
-	
+
+	//send data to view.py
 	$.ajax({
 		type: "POST",
 	    url: '/postlistens',

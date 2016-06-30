@@ -3,8 +3,8 @@
 from flask import render_template, flash, redirect, request, Flask
 from app import db, app, models
 from .forms import LoginForm
+from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy.engine import reflection
 
 @app.route('/')
 @app.route('/index')
@@ -15,31 +15,25 @@ def index():
 @app.route('/postlistens', methods=['POST'])
 
 def postlistens():
-    print "~~~~~~~~~~  postlistens  ~~~~~~~~~"
-    #db.session.rollback()
-    print "models.engine"
-    print models.engine
-    insp = reflection.Inspector.from_engine(models.engine)
-    print "~~~~~~~~~~ table names ~~~~~~~~~~~"
-    print(insp.get_table_names())
-    #connected to db!
-
+    #start session
+    Session = sessionmaker(bind=models.engine)
+    Session.configure(bind=models.engine) 
+    session = Session()
+    #post video
+    new_video = models.Video(youtube_id=request.form["youtube_id"],
+                  title=request.form["title"])#edit so it only adds vid info if it doesn't already exist
+    session.add(new_video)
+    session.commit()
+    #post listen
     new_listen = models.Listen(user_id=request.form["user_id"],
                   youtube_id=request.form["youtube_id"],
                   time_start=request.form["time_start"],
                   time_end= request.form["time_end"])
-    print "~~~~~~~~~~ new listen ! ~~~~~~~~~~~~"
-    print new_listen.youtube_id
-    print db.engine
-    print db.session
-    db.session.add(new_listen)
-    db.session.commit()
-    new_video = models.Video(youtube_id=request.form["youtube_id"],
-                  title=request.form["title"])#edit so it only adds vid info if it doesn't already exist
-    db.session.add(new_video)
-    db.session.commit()
-    print "~~~~~~~~~~ sent data! ~~~~~~~~~~~~"
+    session.add(new_listen)
+    session.commit()
 
+    return "success"
+    
 @app.route('/confirmplays')
 
 def cleandata():
