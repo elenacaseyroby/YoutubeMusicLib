@@ -1,10 +1,7 @@
 #!/usr/bin/python
-
 from flask import render_template, flash, redirect, request, Flask
 from app import app, models, session #,db
 from .forms import LoginForm
-
-
 
 @app.route('/')
 @app.route('/index')
@@ -15,8 +12,8 @@ def index():
 @app.route('/postlistens', methods=['POST'])
 
 def postlistens():
-
     #post video
+    session.rollback();
     new_video = models.Video(youtube_id=request.form["youtube_id"],
                   title=request.form["title"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_video)
@@ -35,7 +32,6 @@ def postlistens():
 
 def cleandata():
 	return render_template('cleandata.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 
