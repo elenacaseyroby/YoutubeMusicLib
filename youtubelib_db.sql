@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.13)
 # Database: youtubelib
-# Generation Time: 2016-06-28 19:08:36 +0000
+# Generation Time: 2016-07-03 17:07:56 +0000
 # ************************************************************
 
 
@@ -27,11 +27,11 @@ DROP TABLE IF EXISTS `albums`;
 
 CREATE TABLE `albums` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vid_id` int(100) DEFAULT NULL,
+  `youtube_id` varchar(200) DEFAULT NULL,
   `track_num` int(5) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `vid_id` (`vid_id`),
-  CONSTRAINT `albums_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`)
+  KEY `youtube_id` (`youtube_id`),
+  CONSTRAINT `albums_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -103,17 +103,34 @@ DROP TABLE IF EXISTS `listens`;
 
 CREATE TABLE `listens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vid_id` int(100) DEFAULT NULL,
+  `youtube_id` varchar(200) DEFAULT NULL,
   `user_id` int(100) DEFAULT NULL,
-  `start_time` datetime DEFAULT NULL,
-  `end_time` datetime DEFAULT NULL,
+  `time_start` double(100,5) DEFAULT NULL,
+  `time_end` double(100,5) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `vid_id` (`vid_id`),
+  KEY `youtube_id` (`youtube_id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `listens_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
+  CONSTRAINT `listens_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
   CONSTRAINT `listens_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+LOCK TABLES `listens` WRITE;
+/*!40000 ALTER TABLE `listens` DISABLE KEYS */;
+
+INSERT INTO `listens` (`id`, `youtube_id`, `user_id`, `time_start`, `time_end`)
+VALUES
+  (3,'ohxcgnJTiPI',1,0.00000,100.50000),
+  (4,'98T3lkkdKqk',1,0.00000,100.50000),
+  (5,'YIdcDL64KCE',1,0.00000,100.50000),
+  (6,'MadlqMKwWB8',1,0.00000,100.50000),
+  (7,'QxsmWxxouIM',1,0.00000,100.50000),
+  (8,'xw49UgKoZnQ',1,0.00000,100.50000),
+  (9,'x81VNgPXRaw',1,0.00000,100.50000),
+  (10,'Ja2PEFD6t-c',1,0.00000,100.50000),
+  (11,'ojuhqUA5_o8',1,0.00281,100.50000);
+
+/*!40000 ALTER TABLE `listens` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table migrate_version
@@ -136,13 +153,14 @@ CREATE TABLE `migrate_version` (
 DROP TABLE IF EXISTS `ratings`;
 
 CREATE TABLE `ratings` (
-  `user_id` int(11),
-  `vid_id` int(11),
+  `user_id` int(11) NOT NULL,
+  `youtube_id` varchar(200) NOT NULL,
   `rating` float(10,10) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`youtube_id`),
+  KEY `youtube_id` (`youtube_id`),
   CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
-  PRIMARY KEY (`user_id`, `vid_id`)
+  CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -153,12 +171,13 @@ CREATE TABLE `ratings` (
 DROP TABLE IF EXISTS `saved_vids`;
 
 CREATE TABLE `saved_vids` (
-  `vid_id` int(11),
-  `user_id` int(11),
+  `youtube_id` varchar(200) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `date_saved` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT `saved_vids_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `saved_vids_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  PRIMARY KEY (`vid_id`,`user_id`)
+  PRIMARY KEY (`youtube_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `saved_vids_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
+  CONSTRAINT `saved_vids_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -169,12 +188,13 @@ CREATE TABLE `saved_vids` (
 DROP TABLE IF EXISTS `similar_artists`;
 
 CREATE TABLE `similar_artists` (
-  `artist_id1` int(11),
-  `artist_id2` int(11),
+  `artist_id1` int(11) NOT NULL,
+  `artist_id2` int(11) NOT NULL,
   `verification_level` int(11) DEFAULT NULL,
+  PRIMARY KEY (`artist_id1`,`artist_id2`),
+  KEY `artist_id2` (`artist_id2`),
   CONSTRAINT `similar_artists_ibfk_1` FOREIGN KEY (`artist_id1`) REFERENCES `artists` (`id`),
-  CONSTRAINT `similar_artists_ibfk_2` FOREIGN KEY (`artist_id2`) REFERENCES `artists` (`id`),
-  PRIMARY KEY (`artist_id1`,`artist_id2`)
+  CONSTRAINT `similar_artists_ibfk_2` FOREIGN KEY (`artist_id2`) REFERENCES `artists` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -193,6 +213,15 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+
+INSERT INTO `users` (`id`, `verification_level`, `email`, `first_name`, `last_name`)
+VALUES
+  (1,100,'elenacaseyroby@gmail.com','Casey','Roby');
+
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table videos
@@ -201,14 +230,31 @@ CREATE TABLE `users` (
 DROP TABLE IF EXISTS `videos`;
 
 CREATE TABLE `videos` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `youtube_id` varchar(200) NOT NULL,
   `artist_id` int(100) DEFAULT NULL,
   `album_id` int(100) DEFAULT NULL,
   `title` varchar(150) DEFAULT NULL,
   `release_date` date DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+LOCK TABLES `videos` WRITE;
+/*!40000 ALTER TABLE `videos` DISABLE KEYS */;
+
+INSERT INTO `videos` (`youtube_id`, `artist_id`, `album_id`, `title`, `release_date`)
+VALUES
+  ('98T3lkkdKqk',NULL,NULL,'Teenage Fanclub - Bandwagonesque - Full Album - 1991',NULL),
+  ('Ja2PEFD6t-c',NULL,NULL,'ANTONIA - Gresesc | Videoclip Oficial',NULL),
+  ('MadlqMKwWB8',NULL,NULL,'Crazy Spirit - S/T LP (full)',NULL),
+  ('ohxcgnJTiPI',NULL,NULL,'Teenage Fanclub - Compilation Best Of (Full Album)',NULL),
+  ('ojuhqUA5_o8',NULL,NULL,'Marc Antona . Soundwall Podcast 065 . 26 SEP 2011.',NULL),
+  ('QxsmWxxouIM',NULL,NULL,'Beyoncé - Sorry',NULL),
+  ('x81VNgPXRaw',NULL,NULL,'Teenage Fanclub - Grand Prix - Full Album',NULL),
+  ('xw49UgKoZnQ',NULL,NULL,'Teenage Fanclub - Star Sign',NULL),
+  ('YIdcDL64KCE',NULL,NULL,'Crass - Big A Little A',NULL);
+
+/*!40000 ALTER TABLE `videos` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table vids_genres
@@ -217,12 +263,13 @@ CREATE TABLE `videos` (
 DROP TABLE IF EXISTS `vids_genres`;
 
 CREATE TABLE `vids_genres` (
-  `vid_id` int(11),
-  `genre_id` int(11),
+  `youtube_id` varchar(200) NOT NULL,
+  `genre_id` int(11) NOT NULL,
   `verification_level` int(11) DEFAULT NULL,
-  CONSTRAINT `vids_genres_ibfk_1` FOREIGN KEY (`vid_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `vids_genres_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`id`),
-  PRIMARY KEY (`vid_id`,`genre_id`)
+  PRIMARY KEY (`youtube_id`,`genre_id`),
+  KEY `genre_id` (`genre_id`),
+  CONSTRAINT `vids_genres_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
+  CONSTRAINT `vids_genres_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
