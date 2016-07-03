@@ -98,13 +98,7 @@ function onPlayerReady(event) {
 }
 
 // API calls this function when the player's state changes
-function onPlayerStateChange(event) { //stops listening after first play
-
-//~*~*~INSTRUCTIONS HERE~*~*~//
-
-	//if vid is played, set other vids to paused and record the play
-
-//~*~*~*~*~*~*~*~*~*~*~*~*~*~//
+function onPlayerStateChange(event) { 
 	//if vid is playing from first 2 secs, save to list after 1 second
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
 		setTimeout(savePlay(event), 1000);
@@ -116,7 +110,7 @@ function savePlay(event) {
 	//would make it save stop time, but since mult vids can play at once, that 
 	//will have to be a later feature.
 	
-	//get data to fil db
+	//get data to fill db
 	title = event.target.v.videoData.title;
 	title = title.toString();
 	youtube_id = event.target.v.videoData.video_id;
@@ -132,9 +126,6 @@ function savePlay(event) {
 	    data: {user_id: "1", title: title, youtube_id: youtube_id, time_start: time_start, time_end: time_end}
     });
 
-	//iframe = event.target.a.outerHTML;
-	//var re = '(.*)title="YouTube(.*)" w(.*)';
-	//var title = iframe.match(re);
 	$("#record_plays").append(title).append("<br>");
 }
 
