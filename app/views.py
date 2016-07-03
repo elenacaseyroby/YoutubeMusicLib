@@ -1,17 +1,33 @@
 #!/usr/bin/python
-
-from flask import render_template, flash, redirect
-from app import app
+from flask import render_template, flash, redirect, request, Flask
+from app import app, models, session #,db
 from .forms import LoginForm
-
-#use namespaces to pull controllers and models
 
 @app.route('/')
 @app.route('/index')
 
 def index():
-	return render_template('index.html')
+  return render_template('index.html')
 
+@app.route('/postlistens', methods=['POST'])
+
+def postlistens():
+    #post video
+    session.rollback();
+    new_video = models.Video(youtube_id=request.form["youtube_id"],
+                  title=request.form["title"])#edit so it only adds vid info if it doesn't already exist
+    session.add(new_video)
+    session.commit()
+    #post listen
+    new_listen = models.Listen(user_id=request.form["user_id"],
+                  youtube_id=request.form["youtube_id"],
+                  time_start=request.form["time_start"],
+                  time_end= request.form["time_end"])
+    session.add(new_listen)
+    session.commit()
+
+    return "success"
+    
 @app.route('/confirmplays')
 
 def cleandata():
@@ -29,6 +45,9 @@ def login():
                            title='Sign In',
                            form=form,
                            providers=app.config['OPENID_PROVIDERS'])
+
+
+
 
 
 
