@@ -9,6 +9,11 @@ from .forms import LoginForm
 def index():
   return render_template('index.html')
 
+@app.route('/play')
+
+def playMusic():
+  return render_template('play.html')
+
 @app.route('/postlistens', methods=['POST'])
 
 def postlistens():
@@ -30,7 +35,7 @@ def postlistens():
 
     return "success"
     
-@app.route('/confirmplays')
+@app.route('/listens')
 
 def cleandata():
 	return render_template('cleandata.html')
