@@ -80,23 +80,6 @@ function updateVidIDs(){
 	onYouTubeIframeAPIReady()
 }
 
-
-//API calls this function when the video player is ready
-function onPlayerReady(event) {
-//~*~*~INSTRUCTIONS HERE~*~*~//
-
-	//autoplay first vid
-
-//~*~*~*~*~*~*~*~*~*~*~*~*~*~//
-/*
-	url = event.target.v.videoUrl;
-	var re = '(.*)?v=(.*)';
-	var id = url.match(re);
-	if (vid_info[0].id == id[2]){
-		event.target.playVideo();
-	}*/
-}
-
 // API calls this function when the player's state changes
 function onPlayerStateChange(event) { 
 	//if vid is playing from first 2 secs, save to list after 1 second
