@@ -10,14 +10,23 @@
 			<input type = "text" id="keywords" size = "75"><br><br>
 			<input type="submit" value="Submit">
 		</form>
-		<div id="results"></div>
+		<div id="iframe"></div>
+		<div id="selectedvideos"></div>
+		{% if vid_info %}
+			<ul>
+			{% for vid in vid_info %}
+			<li>vid['title']</li>
+			{% endfor %}
+			</ul>
+		{% endif %}
     </div>
 
 	<!--scripts-->
 	<script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script>window.jQuery</script>
-	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/play.js') }}"></script> 	
+	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/search.js') }}"></script> 
+	<!--<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/play.js') }}"></script>-->
 	<script src="https://apis.google.com/js/client.js?onload=init"></script>
 	<!--end scripts-->
   
