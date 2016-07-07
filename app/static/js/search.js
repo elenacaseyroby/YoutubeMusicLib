@@ -4,7 +4,8 @@ function YoutubeVideo(id, title){
 	this.id = id;
 	this.title = title;
 }
-var vid_info = [];
+var selected_videos = [];
+var related_videos = [];
 play = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
 
 $(function(){
@@ -23,26 +24,25 @@ $(function(){
 			$("#selectedvideos").empty();
 
 			var results = response.result;
+			console.log("result");
+			console.log(results);
+			
 			i = 0;
 			$.each(results.items, function(index, item){
 				//stores title and video in global array
-				vid_info [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
-				id = vid_info[i].id.toString();
-				title = vid_info[i].title.toString();
-				numbering = (i+1).toString();
-				play_button = "<br>"+numbering+". "+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
-				$("#selectedvideos").append(play_button);
+				selected_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
 				i++;
 			});
+			renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'));
 			/*
 			//pass to views.py
-			console.log(vid_info[0]);
+			console.log(selected_videos[0]);
 			$.ajax({
 				type: "POST",
 			    url: '/printplaylist',
-			    data: {vid1: JSON.stringify({id: vid_info[0].id, title: vid_info[0].title}),
-						vid2: JSON.stringify({id: vid_info[1].id, title: vid_info[1].title}),
-						vid3: JSON.stringify({id: vid_info[2].id, title: vid_info[2].title})}
+			    data: {vid1: JSON.stringify({id: selected_videos[0].id, title: selected_videos[0].title}),
+						vid2: JSON.stringify({id: selected_videos[1].id, title: selected_videos[1].title}),
+						vid3: JSON.stringify({id: selected_videos[2].id, title: selected_videos[2].title})}
 		    });
 			*/
 		});	
@@ -77,6 +77,13 @@ function onYouTubeIframeAPIReady() {
 	  	}
 	});
 	number_of_plays++;
+
+	related_videos = getRelatedVideos(play.id); //setting variable before api can populated data
+	//have to find some way to make it wait for data to be returned before setting variable
+	console.log("~~~~~~meow~~~~~~~");
+	console.log(related_videos);
+
+	renderList(related_videos, $('#relatedvideos'));
 		
 }
 
@@ -109,6 +116,54 @@ function savePlay(event) {
     });
 
 	$("#record_plays").append(title).append("<br>");
+}
+
+function getRelatedVideos(youtube_id){
+	console.log("~~~~~youtube id~~~~~~");
+	console.log(youtube_id);
+	var request = gapi.client.youtube.search.list({
+			part: "snippet",
+			type: "video",
+			relatedToVideoId: youtube_id,
+			maxResults: 3
+			
+	});
+	//execute the request
+
+	request.execute(function(response){
+		
+		var results = response.result;
+		console.log("~~~~~~~results~~~~~~~~");
+		console.log(results);
+
+
+		i = 0;
+		$.each(results.items, function(index, item){
+			//stores title and video in global array
+			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
+			i++;
+		});
+		console.log("~~~~~~~related_videos~~~~~~~~");
+		console.log(related_videos);
+		
+	});
+
+	
+}
+
+function renderList(vid_list = selected_videos, $element_object = $('#selectedvideos')){
+	$element_object.empty();
+
+	i = 1;
+	length = vid_list.length;
+	$.each(vid_list, function(length, vid){
+		id = vid.id.toString();
+		title = vid.title.toString();
+		numbering = (i).toString();
+		play_button = "<br>"+numbering+". "+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
+		$element_object.append(play_button);
+	});
+	i++;
 }
 
 function init(){
