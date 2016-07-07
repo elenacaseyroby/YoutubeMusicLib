@@ -2,6 +2,9 @@
 from flask import render_template, flash, redirect, request, Flask
 from app import app, models, session #,db
 from .forms import LoginForm
+from json import loads
+
+
 
 @app.route('/')
 @app.route('/index')
@@ -9,13 +12,31 @@ from .forms import LoginForm
 def index():
   return render_template('index.html')
 
+@app.route('/play')
+
+def playMusic():
+  return render_template('play.html')
+
+@app.route('/printplaylist', methods=['POST'])
+
+def printPlayList():
+  """
+  #get info from post request
+  vid_info = [];
+  print "~~~~~~ vid info ~~~~~~~"
+  vid_info = [loads(request.form["vid1"]), 
+              loads(request.form["vid2"]),
+              loads(request.form["vid3"])]
+  print vid_info[0]['id']"""
+  return render_template('play.html')
+
 @app.route('/postlistens', methods=['POST'])
 
 def postlistens():
-    session.rollback();
+    session.rollback()
     #if new vid post to db
-    video_exists_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-    if not video_exists_in_db:
+    video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+    if not video_in_db:
       new_video = models.Video(youtube_id=request.form["youtube_id"],
                     title=request.form["title"])#edit so it only adds vid info if it doesn't already exist
       session.add(new_video)
@@ -30,7 +51,7 @@ def postlistens():
 
     return "success"
     
-@app.route('/confirmplays')
+@app.route('/listens')
 
 def cleandata():
 	return render_template('cleandata.html')
