@@ -2,11 +2,6 @@ var vid_info = [];
 var players = [];
 var searches_per_page_load = 0;
 
-function YoutubeVideo(id, title){
-	this.id = id;
-	this.title = title;
-}
-
 $(function(){
 	$("#searchbar").on("submit", function(event) {
 		event.preventDefault();
@@ -26,7 +21,10 @@ $(function(){
 			i = 0;
 			$.each(results.items, function(index, item){
 				//stores title and video in global array
-				vid_info [i] = new YoutubeVideo(item.snippet.title, item.id.videoId);
+				vid_info [i] = {
+					title: item.snippet.title,
+					id: item.id.videoId
+				};
 				i++;
 			});
 			if (searches_per_page_load < 1){
@@ -34,7 +32,7 @@ $(function(){
 				searches_per_page_load++;
 
 			}else{
-				onYouTubeIframeAPIReady();
+				updateVidIDs();
 			}
 		});	
 	});	
@@ -76,6 +74,27 @@ function onYouTubeIframeAPIReady() {
 			i++;
 		});
 	}
+}
+
+function updateVidIDs(){
+	onYouTubeIframeAPIReady()
+}
+
+
+//API calls this function when the video player is ready
+function onPlayerReady(event) {
+//~*~*~INSTRUCTIONS HERE~*~*~//
+
+	//autoplay first vid
+
+//~*~*~*~*~*~*~*~*~*~*~*~*~*~//
+/*
+	url = event.target.v.videoUrl;
+	var re = '(.*)?v=(.*)';
+	var id = url.match(re);
+	if (vid_info[0].id == id[2]){
+		event.target.playVideo();
+	}*/
 }
 
 // API calls this function when the player's state changes

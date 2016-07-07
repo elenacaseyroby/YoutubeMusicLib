@@ -23,7 +23,7 @@ $(function(){
 		});
 		//execute the request
 		request.execute(function(response){
-			$("#results").empty();
+			$("#selectedvideos").empty();
 
 			var results = response.result;
 			i = 0;
@@ -32,7 +32,7 @@ $(function(){
 				vid_info [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
 				id = vid_info[i].id.toString();
 				title = vid_info[i].title.toString();
-				play_button = "<br>"+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick='playVideo('"+id+"','"+title+"')'> Play </button><br>";
+				play_button = "<br>"+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
 				$("#selectedvideos").append(play_button);
 				i++;
 			});
@@ -51,9 +51,10 @@ $(function(){
 	});	
 });
 
-/*
 
-$().onClick(function (){
+/* taken care of in button
+$().click(function (){
+	console.log($(this).val());
 	console.log("hi!");
 	//load iframe api scripts
 	var tag = document.createElement('script');
@@ -61,7 +62,7 @@ $().onClick(function (){
 	var firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-	console.log($(this).attr('value'));
+	//console.log($(this).attr('value'));
 });*/
 
 function playVideo(id, title) {
@@ -72,14 +73,19 @@ function playVideo(id, title) {
 
 	play.id = id;
 	play.title = title;
+	console.log("play vid!");
 }
 
 function onYouTubeIframeAPIReady() {
 
+	console.log("vid info");
+	console.log(play.id);
+	console.log(play.title);
+
 	$("<div></div>").attr('id','rendered_iframe').appendTo('#iframe');
 
 	player = new YT.Player('rendered_iframe', {
-			height: '390',
+		height: '390',
 	  	width: '640',
 	  	videoId: play.id,
 	  	title: play.title,
@@ -91,6 +97,41 @@ function onYouTubeIframeAPIReady() {
 		
 }
 
+function onPlayerReady(event) {
+
+}
+
+// API calls this function when the player's state changes
+function onPlayerStateChange(event) { 
+	//if vid is playing from first 2 secs, save to list after 1 second
+	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
+		setTimeout(savePlay(event), 1000);
+	}
+}
+
+//records play at top of page
+function savePlay(event) {
+	//would make it save stop time, but since mult vids can play at once, that 
+	//will have to be a later feature.
+	
+	//get data to fill db
+	title = event.target.v.videoData.title;
+	title = title.toString();
+	youtube_id = event.target.v.videoData.video_id;
+	youtube_id = youtube_id.toString();
+	time_start = event.target.getCurrentTime();
+	time_start = time_start.toFixed(5);
+	time_end = 100.50.toFixed(5);
+
+	//send data to view.py
+	$.ajax({
+		type: "POST",
+	    url: '/postlistens',
+	    data: {user_id: "1", title: title, youtube_id: youtube_id, time_start: time_start, time_end: time_end}
+    });
+
+	$("#record_plays").append(title).append("<br>");
+}
 
 function init(){
 	//test key:
