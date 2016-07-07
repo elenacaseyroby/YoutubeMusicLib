@@ -1,7 +1,4 @@
-//errors: 
-//onclick = playVideo is triggering syntax error (dropped ;)
-//don't think it's going in onYouTubeIframeAPIReady() ~~ no iframe rendered
-
+number_of_plays = 0;
 
 function YoutubeVideo(id, title){
 	this.id = id;
@@ -32,7 +29,8 @@ $(function(){
 				vid_info [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
 				id = vid_info[i].id.toString();
 				title = vid_info[i].title.toString();
-				play_button = "<br>"+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
+				numbering = (i+1).toString();
+				play_button = "<br>"+numbering+". "+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
 				$("#selectedvideos").append(play_button);
 				i++;
 			});
@@ -51,36 +49,21 @@ $(function(){
 	});	
 });
 
-
-/* taken care of in button
-$().click(function (){
-	console.log($(this).val());
-	console.log("hi!");
-	//load iframe api scripts
-	var tag = document.createElement('script');
-	tag.src = "https://www.youtube.com/iframe_api";
-	var firstScriptTag = document.getElementsByTagName('script')[0];
-	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-	//console.log($(this).attr('value'));
-});*/
-
 function playVideo(id, title) {
-	var tag = document.createElement('script');
-	tag.src = "https://www.youtube.com/iframe_api";
-	var firstScriptTag = document.getElementsByTagName('script')[0];
-	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
 	play.id = id;
 	play.title = title;
-	console.log("play vid!");
+	if(number_of_plays<1){
+		var tag = document.createElement('script');
+		tag.src = "https://www.youtube.com/iframe_api";
+		var firstScriptTag = document.getElementsByTagName('script')[0];
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+	}else{
+		onYouTubeIframeAPIReady()
+	}
 }
 
 function onYouTubeIframeAPIReady() {
-
-	console.log("vid info");
-	console.log(play.id);
-	console.log(play.title);
+	$("#iframe").empty();
 
 	$("<div></div>").attr('id','rendered_iframe').appendTo('#iframe');
 
@@ -90,18 +73,13 @@ function onYouTubeIframeAPIReady() {
 	  	videoId: play.id,
 	  	title: play.title,
 	  	events: {
-	    	'onReady': onPlayerReady,
 	    	'onStateChange': onPlayerStateChange
 	  	}
 	});
+	number_of_plays++;
 		
 }
 
-function onPlayerReady(event) {
-
-}
-
-// API calls this function when the player's state changes
 function onPlayerStateChange(event) { 
 	//if vid is playing from first 2 secs, save to list after 1 second
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
@@ -111,9 +89,9 @@ function onPlayerStateChange(event) {
 
 //records play at top of page
 function savePlay(event) {
-	//would make it save stop time, but since mult vids can play at once, that 
-	//will have to be a later feature.
-	
+	//todo
+	//save stop time
+
 	//get data to fill db
 	title = event.target.v.videoData.title;
 	title = title.toString();

@@ -3,6 +3,7 @@
 {% block content %}
 
 	<div class = "row" >
+		<center><div id="iframe"></div></center>
 		<h5> You have played: </h5>
 		<div id="record_plays"></div>
 		<form action = "#"" id="searchbar">
@@ -10,7 +11,6 @@
 			<input type = "text" id="keywords" size = "75"><br><br>
 			<input type="submit" value="Submit">
 		</form>
-		<div id="iframe"></div>
 		<div id="selectedvideos"></div>
 		{% if vid_info %}
 			<ul>
