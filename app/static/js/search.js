@@ -110,11 +110,14 @@ function playNextVidInList(){
 			}
 			i++;
 		});
+		//if vid is in list, play vid after it
+		//else play random vid from list
 		if(place_in_list > -1){
 			place_in_list = place_in_list+1;
 			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title);
 		}else{
-			playVideo(vids_up_next[0].id, vids_up_next[0].title);
+			place_in_list = Math.floor(Math.random() * length); 
+			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title);
 		}
 }
 
