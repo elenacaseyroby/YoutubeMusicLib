@@ -83,6 +83,7 @@ function onYouTubeIframeAPIReady() {
 	//have to find some way to make it wait for data to be returned before setting variable
 	console.log("~~~~~~meow~~~~~~~");
 	console.log(related_videos);
+	getRelatedVideos(play.id);
 	//related_videos = getRelatedVideos(play.id);	
 	//renderList(vid_list = related_videos, $element_object = $('#selectedvideos'), empty_element = false);
 }
