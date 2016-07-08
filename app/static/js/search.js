@@ -9,6 +9,9 @@ current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwag
 
 var selected_videos = [];
 
+var search_page = true;//eventually python should send this value if its a search page and false if its a playlist page
+var vids_up_next = [];
+
 $(function(){
 	$("#searchbar").on("submit", function(event) {
 		event.preventDefault();
@@ -93,7 +96,29 @@ function onPlayerStateChange(event) {
 	}
 	if(event.data == YT.PlayerState.ENDED){
 		savePlay(event, end = true);
+		playNextVidInList();
 	}
+}
+
+function playNextVidInList(){
+	place_in_list = -1;
+		length = vids_up_next.length;
+		i=0;
+		$.each(vids_up_next, function(length, vid){
+			if(vid.id == current_iframe_video.id){
+				place_in_list = i;
+			}
+			i++;
+		});
+		//if vid is in list, play vid after it
+		//else play random vid from list
+		if(place_in_list > -1){
+			place_in_list = place_in_list+1;
+			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title);
+		}else{
+			place_in_list = Math.floor(Math.random() * length); 
+			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title);
+		}
 }
 
 //records play at top of page
@@ -124,6 +149,7 @@ function savePlay(event, end = false) {
 //get and render related videos
 function getRelatedVideos(youtube_id){
 	var related_videos = [];
+
 	var request = gapi.client.youtube.search.list({
 			part: "snippet",
 			type: "video",
@@ -139,7 +165,10 @@ function getRelatedVideos(youtube_id){
 			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
 			i++;
 		});
-		renderList(related_videos, $('#relatedvideos'), false);		
+		renderList(related_videos, $('#relatedvideos'), false);	
+		if(search_page == true){
+			vids_up_next = related_videos;
+		}
 	});
 }
 
