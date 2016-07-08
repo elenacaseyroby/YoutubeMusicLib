@@ -73,18 +73,23 @@ function onYouTubeIframeAPIReady() {
 	  	videoId: play.id,
 	  	title: play.title,
 	  	events: {
+	  		'onReady' : onPlayerReady,
 	    	'onStateChange': onPlayerStateChange
 	  	}
 	});
 	number_of_plays++;
 
-	related_videos = getRelatedVideos(play.id); //setting variable before api can populated data
+	//setting variable before api can populated data
 	//have to find some way to make it wait for data to be returned before setting variable
 	console.log("~~~~~~meow~~~~~~~");
 	console.log(related_videos);
+	//related_videos = getRelatedVideos(play.id);	
+	//renderList(vid_list = related_videos, $element_object = $('#selectedvideos'), empty_element = false);
+}
 
-	renderList(related_videos, $('#relatedvideos'));
-		
+//play on iframe load
+function onPlayerReady(event){
+	event.target.playVideo();
 }
 
 function onPlayerStateChange(event) { 
@@ -145,25 +150,26 @@ function getRelatedVideos(youtube_id){
 		});
 		console.log("~~~~~~~related_videos~~~~~~~~");
 		console.log(related_videos);
+
+		renderList(related_videos, $('#relatedvideos'), false);//this will work but is bad
 		
 	});
-
-	
 }
 
-function renderList(vid_list = selected_videos, $element_object = $('#selectedvideos')){
-	$element_object.empty();
-
-	i = 1;
+function renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'), empty_element = true){
+	if(empty_element){
+		$element_object.empty();
+	}
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
-		id = vid.id.toString();
-		title = vid.title.toString();
-		numbering = (i).toString();
-		play_button = "<br>"+numbering+". "+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
-		$element_object.append(play_button);
+		play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"')\"> Play </button></li><br>";
+		if(empty_element){
+			$element_object.append(play_button);
+		}else{
+			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain size
+		}
 	});
-	i++;
+	
 }
 
 function init(){
