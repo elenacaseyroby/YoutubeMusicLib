@@ -32,7 +32,9 @@ def printPlayList():
 
 @app.route('/postlistens', methods=['POST'])
 
+
 def postlistens():
+  #move into model
     session.rollback()
     #if new vid post to db
     video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
@@ -44,8 +46,7 @@ def postlistens():
     #post listen
     new_listen = models.Listen(user_id=request.form["user_id"],
                   youtube_id=request.form["youtube_id"],
-                  time_start=request.form["time_start"],
-                  time_end= request.form["time_end"])
+                  listened_to_end=request.form["listened_to_end"])
     session.add(new_listen)
     session.commit()
 

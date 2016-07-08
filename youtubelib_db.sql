@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.13)
 # Database: youtubelib
-# Generation Time: 2016-07-03 17:07:56 +0000
+# Generation Time: 2016-07-08 19:42:35 +0000
 # ************************************************************
 
 
@@ -107,30 +107,15 @@ CREATE TABLE `listens` (
   `user_id` int(100) DEFAULT NULL,
   `time_start` double(100,5) DEFAULT NULL,
   `time_end` double(100,5) DEFAULT NULL,
+  `time_of_listen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `listened_to_end` int(2) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `youtube_id` (`youtube_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `listens_ibfk_1` FOREIGN KEY (`youtube_id`) REFERENCES `videos` (`youtube_id`),
   CONSTRAINT `listens_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8;
 
-LOCK TABLES `listens` WRITE;
-/*!40000 ALTER TABLE `listens` DISABLE KEYS */;
-
-INSERT INTO `listens` (`id`, `youtube_id`, `user_id`, `time_start`, `time_end`)
-VALUES
-  (3,'ohxcgnJTiPI',1,0.00000,100.50000),
-  (4,'98T3lkkdKqk',1,0.00000,100.50000),
-  (5,'YIdcDL64KCE',1,0.00000,100.50000),
-  (6,'MadlqMKwWB8',1,0.00000,100.50000),
-  (7,'QxsmWxxouIM',1,0.00000,100.50000),
-  (8,'xw49UgKoZnQ',1,0.00000,100.50000),
-  (9,'x81VNgPXRaw',1,0.00000,100.50000),
-  (10,'Ja2PEFD6t-c',1,0.00000,100.50000),
-  (11,'ojuhqUA5_o8',1,0.00281,100.50000);
-
-/*!40000 ALTER TABLE `listens` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 # Dump of table migrate_version
@@ -211,17 +196,8 @@ CREATE TABLE `users` (
   `first_name` varchar(100) DEFAULT NULL,
   `last_name` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-
-INSERT INTO `users` (`id`, `verification_level`, `email`, `first_name`, `last_name`)
-VALUES
-  (1,100,'elenacaseyroby@gmail.com','Casey','Roby');
-
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 # Dump of table videos
@@ -235,26 +211,10 @@ CREATE TABLE `videos` (
   `album_id` int(100) DEFAULT NULL,
   `title` varchar(150) DEFAULT NULL,
   `release_date` date DEFAULT NULL,
+  `music` int(2) DEFAULT NULL,
   PRIMARY KEY (`youtube_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-LOCK TABLES `videos` WRITE;
-/*!40000 ALTER TABLE `videos` DISABLE KEYS */;
-
-INSERT INTO `videos` (`youtube_id`, `artist_id`, `album_id`, `title`, `release_date`)
-VALUES
-  ('98T3lkkdKqk',NULL,NULL,'Teenage Fanclub - Bandwagonesque - Full Album - 1991',NULL),
-  ('Ja2PEFD6t-c',NULL,NULL,'ANTONIA - Gresesc | Videoclip Oficial',NULL),
-  ('MadlqMKwWB8',NULL,NULL,'Crazy Spirit - S/T LP (full)',NULL),
-  ('ohxcgnJTiPI',NULL,NULL,'Teenage Fanclub - Compilation Best Of (Full Album)',NULL),
-  ('ojuhqUA5_o8',NULL,NULL,'Marc Antona . Soundwall Podcast 065 . 26 SEP 2011.',NULL),
-  ('QxsmWxxouIM',NULL,NULL,'Beyoncé - Sorry',NULL),
-  ('x81VNgPXRaw',NULL,NULL,'Teenage Fanclub - Grand Prix - Full Album',NULL),
-  ('xw49UgKoZnQ',NULL,NULL,'Teenage Fanclub - Star Sign',NULL),
-  ('YIdcDL64KCE',NULL,NULL,'Crass - Big A Little A',NULL);
-
-/*!40000 ALTER TABLE `videos` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 # Dump of table vids_genres

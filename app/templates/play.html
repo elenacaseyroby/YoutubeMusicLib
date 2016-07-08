@@ -11,7 +11,14 @@
 			<input type = "text" id="keywords" size = "75"><br><br>
 			<input type="submit" value="Submit">
 		</form>
+		<div class="column1">
+		<h3>Selected Videos:</h3>
 		<div id="selectedvideos"></div>
+		</div>
+		<div class="column2">
+		<h3>Related Videos:</h3>
+		<div id="relatedvideos"></div>
+		</div>
 		{% if vid_info %}
 			<ul>
 			{% for vid in vid_info %}

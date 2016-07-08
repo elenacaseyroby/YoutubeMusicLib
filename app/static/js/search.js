@@ -4,8 +4,10 @@ function YoutubeVideo(id, title){
 	this.id = id;
 	this.title = title;
 }
-var vid_info = [];
-play = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
+
+current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
+
+var selected_videos = [];
 
 $(function(){
 	$("#searchbar").on("submit", function(event) {
@@ -26,33 +28,31 @@ $(function(){
 			i = 0;
 			$.each(results.items, function(index, item){
 				//stores title and video in global array
-				vid_info [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
-				id = vid_info[i].id.toString();
-				title = vid_info[i].title.toString();
-				numbering = (i+1).toString();
-				play_button = "<br>"+numbering+". "+title+"<button type='button' id='"+id+"' value='"+id+","+title+"' onclick=\"playVideo('"+id+"','"+title+"')\"> Play </button><br>";
-				$("#selectedvideos").append(play_button);
+				selected_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
 				i++;
 			});
+			renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'));
 			/*
 			//pass to views.py
-			console.log(vid_info[0]);
+			console.log(selected_videos[0]);
 			$.ajax({
 				type: "POST",
 			    url: '/printplaylist',
-			    data: {vid1: JSON.stringify({id: vid_info[0].id, title: vid_info[0].title}),
-						vid2: JSON.stringify({id: vid_info[1].id, title: vid_info[1].title}),
-						vid3: JSON.stringify({id: vid_info[2].id, title: vid_info[2].title})}
+			    data: {vid1: JSON.stringify({id: selected_videos[0].id, title: selected_videos[0].title}),
+						vid2: JSON.stringify({id: selected_videos[1].id, title: selected_videos[1].title}),
+						vid3: JSON.stringify({id: selected_videos[2].id, title: selected_videos[2].title})}
 		    });
 			*/
 		});	
 	});	
 });
 
+//loads iframe api scripts on first play and calls iframe api directly on additional plays
 function playVideo(id, title) {
-	play.id = id;
-	play.title = title;
+	current_iframe_video.id = id;
+	current_iframe_video.title = title;
 	if(number_of_plays<1){
+		//scripts trigger onYouTubeIframeAPIReady()
 		var tag = document.createElement('script');
 		tag.src = "https://www.youtube.com/iframe_api";
 		var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -70,45 +70,96 @@ function onYouTubeIframeAPIReady() {
 	player = new YT.Player('rendered_iframe', {
 		height: '390',
 	  	width: '640',
-	  	videoId: play.id,
-	  	title: play.title,
+	  	videoId: current_iframe_video.id,
+	  	title: current_iframe_video.title,
 	  	events: {
+	  		'onReady' : onPlayerReady,
 	    	'onStateChange': onPlayerStateChange
 	  	}
 	});
 	number_of_plays++;
-		
+	getRelatedVideos(current_iframe_video.id);
+}
+
+//play on iframe load
+function onPlayerReady(event){
+	event.target.playVideo();
 }
 
 function onPlayerStateChange(event) { 
-	//if vid is playing from first 2 secs, save to list after 1 second
+	//if vid is playing from first 2 secs, save to list after 1 second this avoids tracking pauses
 	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
 		setTimeout(savePlay(event), 1000);
+	}
+	if(event.data == YT.PlayerState.ENDED){
+		savePlay(event, end = true);
 	}
 }
 
 //records play at top of page
-function savePlay(event) {
-	//todo
-	//save stop time
-
-	//get data to fill db
+function savePlay(event, end = false) {
+	
 	title = event.target.v.videoData.title;
 	title = title.toString();
 	youtube_id = event.target.v.videoData.video_id;
 	youtube_id = youtube_id.toString();
-	time_start = event.target.getCurrentTime();
-	time_start = time_start.toFixed(5);
-	time_end = 100.50.toFixed(5);
+	//time_start = event.target.getCurrentTime();
+	//time_end = event.target.getCurrentTime();
+	listened_to_end = 0;
+	if(end){
+		listened_to_end = 1;
+	}
 
 	//send data to view.py
 	$.ajax({
 		type: "POST",
 	    url: '/postlistens',
-	    data: {user_id: "1", title: title, youtube_id: youtube_id, time_start: time_start, time_end: time_end}
+	    data: {user_id: "1", title: title, youtube_id: youtube_id, listened_to_end: listened_to_end}
     });
+	if(!end){
+		$("#record_plays").append(title).append("<br>");
+	}
+}
 
-	$("#record_plays").append(title).append("<br>");
+//get and render related videos
+function getRelatedVideos(youtube_id){
+	var related_videos = [];
+	var request = gapi.client.youtube.search.list({
+			part: "snippet",
+			type: "video",
+			relatedToVideoId: youtube_id,
+			maxResults: 3
+			
+	});
+	request.execute(function(response){
+		
+		var results = response.result;
+		i = 0;
+		$.each(results.items, function(index, item){
+			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
+			i++;
+		});
+		renderList(related_videos, $('#relatedvideos'), false);		
+	});
+}
+
+//takes array of YoutubeVideo objects and an element 
+//object and appends a playable list of 
+//youtube videos to the specified element
+function renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'), empty_element = true){
+	if(empty_element){
+		$element_object.empty();
+	}
+	length = vid_list.length;
+	$.each(vid_list, function(length, vid){
+		play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"')\"> Play </button></li><br>";
+		if(empty_element){
+			$element_object.append(play_button);
+		}else{
+			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain size
+		}
+	});
+	
 }
 
 function init(){
