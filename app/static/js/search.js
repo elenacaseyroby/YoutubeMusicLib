@@ -139,7 +139,7 @@ function savePlay(event, end = false) {
 	$.ajax({
 		type: "POST",
 	    url: '/postlistens',
-	    data: {user_id: "1", title: title, youtube_id: youtube_id, listened_to_end: listened_to_end}
+	    data: {user_id: "1", youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end}
     });
 	if(!end){
 		$("#record_plays").append(title).append("<br>");
