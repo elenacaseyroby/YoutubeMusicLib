@@ -64,6 +64,9 @@ def listens():
 @app.route('/getlistensdata')
 def getlistensdata():
   limit = 3
+  listens = list()
+  start_date = '2016-07-05 19:12:18' 
+  end_date = '2016-07-10 19:12:18' 
   saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if not saved_vids:
     sql = text("""SELECT listens.youtube_id
@@ -103,8 +106,8 @@ def getlistensdata():
    JOIN cities ON artists.city_id = cities.id
    JOIN saved_vids ON saved_vids.user_id = listens.user_id
    WHERE listens.user_id = """+str(user_id)+"""
-   AND listens.time_of_listen > '2016-07-05 19:12:18' 
-   AND listens.time_of_listen < '2016-07-10 19:12:18'
+   AND listens.time_of_listen > '"""+str(start_date)+"""'
+   AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.youtube_id != saved_vids.youtube_id
    AND listens.listened_to_end != 1 
    ORDER BY listens.time_of_listen DESC
@@ -112,8 +115,8 @@ def getlistensdata():
 
   results = models.engine.execute(sql)
   for result in results:
-    print result
-  return result #for now
+    listens.append(result)
+  return listens #for now
 
 
 @app.route('/getgenres')

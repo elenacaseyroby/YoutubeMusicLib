@@ -3,8 +3,9 @@
 {% block content %}
 	<h3>Recent Listens:</h3>
 	<ol>
-	
-		<li>Title: <input type="textbox" id=title value="{{listens_vid_data[2]}}"> Artist: <input type="textbox" id="artist" value="{{listens_vid_data[7]}}"> Album<input type="textbox" id="album" value="{{listens_vid_data[8]}}"></li>
+		{%for vid in listens_vid_data%}
+		<li>Title: <input type="textbox" id=title value="{{vid[2]}}"> Artist: <input type="textbox" id="artist" value="{{vid[7]}}"> Album<input type="textbox" id="album" value="{{vid[8]}}"></li>
+		{%endfor%}
 	
 	</ol>
 	<input type="submit" value="Submit">
