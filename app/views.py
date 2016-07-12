@@ -63,7 +63,7 @@ def listens():
 
 @app.route('/getlistensdata')
 def getlistensdata():
-  limit = 3
+  limit = 15
   listens = list()
   start_date = '2016-07-05 19:12:18' 
   end_date = '2016-07-10 19:12:18' 
@@ -89,7 +89,7 @@ def getlistensdata():
    AND listens.time_of_listen < '2016-07-10 19:12:18'
    AND listens.listened_to_end != 1 
    ORDER BY listens.time_of_listen DESC
-   LIMIT """+limit+";""")
+   LIMIT """+str(limit)+";""")
   else:
     sql = text("""SELECT listens.youtube_id
    , listens.time_of_listen
@@ -113,7 +113,7 @@ def getlistensdata():
    AND listens.youtube_id != saved_vids.youtube_id
    AND listens.listened_to_end != 1 
    ORDER BY listens.time_of_listen DESC
-   LIMIT 3;""")
+   LIMIT """+str(limit)+";""")
 
   results = models.engine.execute(sql)
   for result in results:

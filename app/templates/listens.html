@@ -2,15 +2,38 @@
 
 {% block content %}
 	<h3>Recent Listens:</h3>
-	<ol>
-		{%for vid in listens_vid_data%}
-		<li>Play:<input type = "checkbox" id = "play" value = "{{vid[0]}}">Add To Library: <input type = "checkbox" id = "library">Title: <input type="textbox" id="title" value="{{vid[2]}}"> Artist: <input type="textbox" id="artist" value="{{vid[7]}}"> Album<input type="textbox" id="album" value="{{vid[8]}}">Track Number:<select><option value = 0 />Full Album</option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select> Release Date: <input type="text" class="datepicker" value = "{{vid[4] if vid[4]}}"></li>
-		{%endfor%}
+	<form action ="" method="POST">
+	<table style="width:100%">
+  <tr>
+    <th>Time</th>
+    <th>Play</th> 
+    <th>Add to Library</th>
+    <th>Title</th>
+    <th>Artist</th> 
+    <th>Album</th>
+    <th>Track Number</th>
+    <th>Release Date</th> 
+  </tr>
 	
-	</ol>
+	{%for vid in listens_vid_data%}
+	<tr>
+		<td>{{vid[1].strftime('%a %I:%M %p')}}</td> 
+		<td><input type = "checkbox" id = "play" value = "{{vid[0]}}"></td>
+		<td><input type = "checkbox" id = "library"></td> 
+		<td><input type="textbox" id="title" value="{{vid[2]}}"></td> 
+		<td><input type="textbox" id="artist" value="{{vid[7]}}"></td> 
+		<td><input type="textbox" id="album" value="{{vid[8]}}"></td> 
+		<td><select><option value = 0 /></option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select></td> 
+		<td><input type="text" class="datepicker" value = "{{vid[4] if vid[4]}}"></td>
+	</tr>
+	{%endfor%}
+	</table>
+
 	<input type="submit" value="Submit Updates"> <input type="submit" value="Play Videos & Submit Updates">
+	</form>
 
 	<!--scripts-->
+	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/table.css') }}">
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
   	<link rel="stylesheet" href="/resources/demos/style.css">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
