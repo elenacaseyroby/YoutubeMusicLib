@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h3>Recent Listens:</h3>
+	<ol>
+	
+		<li>Title: <input type="textbox" id=title value="{{listens_vid_data[2]}}"> Artist: <input type="textbox" id="artist" value="{{listens_vid_data[7]}}"> Album<input type="textbox" id="album" value="{{listens_vid_data[8]}}"></li>
+	
+	</ol>
+	<input type="submit" value="Submit">
+	<input type="submit" value="Play & Submit">
+
+	<!--scripts-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<!--end scripts-->
+  
+{% endblock %}
