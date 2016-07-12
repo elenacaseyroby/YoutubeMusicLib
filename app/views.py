@@ -77,7 +77,8 @@ def getlistensdata():
    , videos.release_date
    , artists.artist_name as artist
    , cities.name
-   , albums.name
+   , albums.name as album
+   , albums.track_num
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -99,6 +100,7 @@ def getlistensdata():
    , artists.artist_name as artist
    , cities.name
    , albums.name as album
+   , albums.track_num
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id

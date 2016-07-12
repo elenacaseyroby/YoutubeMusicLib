@@ -4,15 +4,16 @@
 	<h3>Recent Listens:</h3>
 	<ol>
 		{%for vid in listens_vid_data%}
-		<li>Title: <input type="textbox" id=title value="{{vid[2]}}"> Artist: <input type="textbox" id="artist" value="{{vid[7]}}"> Album<input type="textbox" id="album" value="{{vid[8]}}"></li>
+		<li>Play:<input type = "checkbox" id = "play" value = "{{vid[0]}}">Add To Library: <input type = "checkbox" id = "library">Title: <input type="textbox" id="title" value="{{vid[2]}}"> Artist: <input type="textbox" id="artist" value="{{vid[7]}}"> Album<input type="textbox" id="album" value="{{vid[8]}}">Track Number:<select><option value = 0 />Full Album</option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select></li>
 		{%endfor%}
 	
 	</ol>
-	<input type="submit" value="Submit">
-	<input type="submit" value="Play & Submit">
+	<input type="submit" value="Submit Updates"> <input type="submit" value="Play Videos & Submit Updates">
 
 	<!--scripts-->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/submitlistens.js') }}"></script> 	
 	<!--end scripts-->
+
   
 {% endblock %}
