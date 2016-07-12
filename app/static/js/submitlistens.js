@@ -1,16 +1,27 @@
 $(function(){
 	$( ".datepicker" ).datepicker();
-	$("#searchbar").on("submit", function(event) {
+	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
-/* 
-		var play 
-
-		$.ajax({
-			type: "POST",
-		    url: '/postlistens',
-		    data: {user_id: "1", youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end}
-	    });
-		$("#title").val()*/
-	});	
+		index = 15;
+		
+		$.each($(".row"), function(index, listen){
+			console.log(listen);
+			$.ajax({
+				type: "POST",
+			    url: '/updatelistens',
+			    data: {youtube_id: $("#youtube_id")
+			    , play: $("#play")
+			    , library: $("#library")
+			    , music: $("#music")
+			    , youtube_title: $("#title")
+			    , artist: $("#artist")
+			    , album: $("#album")
+			    , track_num: $("#track_num")
+				, release_date: $("#release_date")
+				, artist_id: $("#artist_id")
+				, album_id: $("#album_id")}
+		    });
+		});
+	});
+		
 });
-

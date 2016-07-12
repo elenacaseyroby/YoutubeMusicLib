@@ -3,7 +3,7 @@ from flask import render_template, flash, redirect, request, Flask
 from app import app, models, session #,db
 from .forms import LoginForm
 from json import loads
-from sqlalchemy import text
+from sqlalchemy import text, update
 
 user_id = 1;
 
@@ -32,8 +32,6 @@ def printPlayList():
   return render_template('play.html')
 
 @app.route('/postlistens', methods=['POST'])
-
-
 def postlistens():
   #move into model
     session.rollback()
@@ -53,13 +51,61 @@ def postlistens():
     session.commit()
 
     return "success"
+
+
+@app.route('/updatelistens', methods = ['POST'])
+def updatelistens():
+  print "made it to update listens!"
+  
+  session.rollback()
+  artistid_in_db = session.query(models.Artist).filter_by(id = request.form["artist_id"]).first()
+  artistname_in_db = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+
+  albumid_in_db = session.query(models.Album).filter_by(id = request.form["album_id"]).first()
+  albumname_in_db = session.query(models.Album).filter_by(name = request.form["album"]).first()
+
+  if artistid_in_db:
+    session.update(models.Artist).where(id = request.form["artist_id"]).values(artist_name=request.form["artist"])
+      
+  elif artistname_in_db:
+    artist = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+    print "~~~~~~artist~~~~~~"
+    print artist
+    artist_id = artist.id
+    #post artist_id at bottom in videos table
+  else:
+    new_artist = models.Artist(id=request.form["artist_id"],
+                    artist_name=request.form["artist"])#edit so it only adds vid info if it doesn't already exist
+    session.add(new_artist)
+    session.commit()
+      
+      
+  if albumid_in_db:
+    session.update(models.Album).where(id = request.form["album_id"]).values(name=request.form["album"])
+  elif artistname_in_db:
+    album = session.query(models.Artist).filter_by(name= request.form["album"]).first()
+    print "~~~~~~album~~~~~~"
+    print album
+    #post album_id at bottom at bottom in videos table
+  else:
+    new_artist = models.Artist(id=request.form["album_id"],
+                    name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
+    session.add(new_album)
+    session.commit()
+    
+
+  session.update(models.Video).where(youtube_id = request.form["youtube_id"]).values(title=request.form["title"], music=request.form["music"], artist_id=request.form["artist_id"], album_id=request.form["album_id"], track_num=request.form["track_num"], release_date=request.form["release_date"] )
+  
+  return "success"
+
+
     
 @app.route('/listens')
 def listens():
   listens_vid_data = getlistensdata() #should be able to access in template now
-  print "listens vid data"
-  print listens_vid_data
   return render_template('listens.html', listens_vid_data = listens_vid_data)
+
+
 
 @app.route('/getlistensdata')
 def getlistensdata():
@@ -79,6 +125,8 @@ def getlistensdata():
    , cities.name
    , albums.name as album
    , albums.track_num
+   , artists.id as artist_id
+   , albums.id as album_id
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -94,6 +142,7 @@ def getlistensdata():
     sql = text("""SELECT listens.youtube_id
    , listens.time_of_listen
    , videos.youtube_title
+   , videos.music
    , videos.title
    , videos.release_date
    , videos.music
@@ -101,6 +150,8 @@ def getlistensdata():
    , cities.name
    , albums.name as album
    , albums.track_num
+   , artists.id as artist_id
+   , albums.id as album_id
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -117,8 +168,6 @@ def getlistensdata():
 
   results = models.engine.execute(sql)
   for result in results:
-    
-    print result[1]
     listens.append(result)
   return listens #for now
 
