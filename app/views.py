@@ -117,6 +117,8 @@ def getlistensdata():
 
   results = models.engine.execute(sql)
   for result in results:
+    
+    print result[1]
     listens.append(result)
   return listens #for now
 

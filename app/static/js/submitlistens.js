@@ -1,4 +1,5 @@
 $(function(){
+	$( ".datepicker" ).datepicker();
 	$("#searchbar").on("submit", function(event) {
 		event.preventDefault();
 /* 
@@ -12,3 +13,4 @@ $(function(){
 		$("#title").val()*/
 	});	
 });
+
