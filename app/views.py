@@ -57,9 +57,6 @@ def postlistens():
 def updatelistens():
   #error: not updating middle row of 3 like the other two
   print "~~~~~~~~~new post!! ~~~~~~~~~~~~~"
-
-  #maybe have it look for changes and only update those?
-  print "made it to update listens!"
   print request.form["youtube_id"]
   print request.form["title"]
   session.rollback()
@@ -72,44 +69,69 @@ def updatelistens():
   artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
 
   album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
+  
+  print "album from form"
+  print request.form["album"]
+  print album_by_name.name # good by here
+  print album_by_name.id
 
-  session.rollback()
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-  if artist_by_name:
+  if artist_by_name and artist_by_name.artist_name != "undefined":
+    artist_id = artist_by_name.id
+    """
     if artist_by_name.id != request.form["artist_id"]:
       artist_id = int(artist_by_name.id)
     else:
       artist_id = int(request.form["artist_id"]) #keep old id
+      """
+
   else:#if artist name doesn't exist in db, add new row to artists table
+   #NOT WORKING
+    session.rollback()
     new_artist = models.Artist(artist_name=request.form["artist"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_artist)
     session.commit()
-    artist = session.query(models.Artist).filter_by(artist_name = new_artist.artist_name).first()
-    artist_id = int(artist.id)
+    new_artist_id = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+    artist_id = int(new_artist_id.id)
+  
   session.rollback()
   if album_by_name:
-    if album_by_name.id != request.form["album_id"]:
-      album_id = int(album_by_name.id)
-    else:
-      album_id = int(request.form["album_id"])
-  else:
+    if album_by_name.name != "undefined":
+      print "album from form in ifelse"
+      print album_by_name.name # good by here
+      print album_by_name.id
+      album_id = album_by_name.id
+      """
+      if album_by_name.id != request.form["album_id"]:
+        album_id = int(album_by_name.id)
+      else:
+        album_id = int(request.form["album_id"])
+      """
+  else: #NOT WORKING
+    session.rollback()
     new_album = models.Album(name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_album)
     session.commit()
-    album = session.query(models.Album).filter_by(name = new_album.name).first()
-    album_id = int(album.id)
-
+    new_album_id = session.query(models.Album).filter_by(name = request.form["album"]).first()
+    album_id = int(new_album_id.id)
+  
   session.rollback()
   video_update = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-  video_update.title = request.form["title"]
+  
+  video_update.title=request.form["title"]
+  
   video_update.music=request.form["music"]
-  video_update.artist_id=artist_id
-  video_update.album_id=album_id
-  video_update.track_num=request.form["track_num"]
-  release_date=request.form["release_date"]
 
-  session.commit()
+  video_update.artist_id=int(artist_id)
+  video_update.album_id=int(album_id)
+  #video_update.release_date=request.form["release_date"]
+
+  session.commit() 
   return "success"
+
+  
+
+
 """
 print request.form["youtube_id"]
 session.rollback()

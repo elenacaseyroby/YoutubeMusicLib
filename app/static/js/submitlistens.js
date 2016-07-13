@@ -6,9 +6,7 @@ $(function(){
 		index = 15;
 
 		i = 0;
-		console.log("num rows");
-		console.log($("#numrows").attr("value"));
-		//while (i <= $("#numrows").attr("value")){
+
 		$.each($(".row"), function(index, listen){
 
 			console.log("~~~~~~~~~~ POST !~~~~~~~~~~~~~")
@@ -22,7 +20,7 @@ $(function(){
 			}else{
 				music_value = 0;
 			}
-			console.log($("#youtube_id" + i).attr("value")); //this is right!
+			console.log($("#youtube_id" + i).attr("value")); //this is right
 			$.ajax({
 				type: "POST",
 			    url: '/updatelistens',
