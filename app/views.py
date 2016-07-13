@@ -55,6 +55,7 @@ def postlistens():
 
 @app.route('/updatelistens', methods = ['POST'])
 def updatelistens():
+  #error: not updating middle row of 3 like the other two
   print "~~~~~~~~~new post!! ~~~~~~~~~~~~~"
 
   #maybe have it look for changes and only update those?
@@ -62,37 +63,41 @@ def updatelistens():
   print request.form["youtube_id"]
   print request.form["title"]
   session.rollback()
+  """
   artistname_in_db = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
 
   albumname_in_db = session.query(models.Album).filter_by(name = request.form["album"]).first()
   artist_id = request.form["artist_id"]
-  album_id = request.form["album_id"]
+  album_id = request.form["album_id"]"""
+  artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+
+  album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
 
   session.rollback()
-  if artistname_in_db:
-    artist = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
-    print "~~~~~~artist~~~~~~"
-    artist_id = int(artist.id)
-  else:
+  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
+  if artist_by_name:
+    if artist_by_name.id != request.form["artist_id"]:
+      artist_id = int(artist_by_name.id)
+    else:
+      artist_id = int(request.form["artist_id"]) #keep old id
+  else:#if artist name doesn't exist in db, add new row to artists table
     new_artist = models.Artist(artist_name=request.form["artist"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_artist)
     session.commit()
     artist = session.query(models.Artist).filter_by(artist_name = new_artist.artist_name).first()
     artist_id = int(artist.id)
   session.rollback()
-  if albumname_in_db:
-    album = session.query(models.Album).filter_by(name= request.form["album"]).first()
-    album_id = int(album.id)
+  if album_by_name:
+    if album_by_name.id != request.form["album_id"]:
+      album_id = int(album_by_name.id)
+    else:
+      album_id = int(request.form["album_id"])
   else:
     new_album = models.Album(name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_album)
     session.commit()
     album = session.query(models.Album).filter_by(name = new_album.name).first()
     album_id = int(album.id)
-
-  print " before the final commit"
-  print artist_id
-  print album_id
 
   session.rollback()
   video_update = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
@@ -103,8 +108,6 @@ def updatelistens():
   video_update.track_num=request.form["track_num"]
   release_date=request.form["release_date"]
 
-  print "~~~~release date~~~~~~"
-  print video_update
   session.commit()
   return "success"
 """
@@ -140,7 +143,7 @@ def listens():
 @app.route('/getlistensdata')
 def getlistensdata():
   session.rollback()
-  limit = 3
+  limit = 5
   listens = list()
   start_date = '2016-07-10 19:12:18' 
   end_date = '2016-07-12 19:12:18' 
@@ -164,11 +167,11 @@ def getlistensdata():
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
    WHERE listens.user_id = """+str(user_id)+"""
-   AND listens.time_of_listen > '2016-07-05 19:12:18'
-   AND listens.time_of_listen < '2016-07-10 19:12:18'
+   AND listens.time_of_listen > '"""+str(start_date)+"""'
+   AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 
    ORDER BY listens.time_of_listen DESC
-   LIMIT """+str(limit)+";""")
+   LIMIT """++str(limit)+";""")
   else:
     sql = text("""SELECT listens.youtube_id
    , listens.time_of_listen
@@ -196,6 +199,8 @@ def getlistensdata():
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
 
+  print "sql = "
+  print sql
   results = models.engine.execute(sql)
   for result in results:
     listens.append(result)

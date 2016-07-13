@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<!--updates:
+make all textbox be search dropdown that fills with db table elements to make it harder to write one band name a million ways-->
 	<h3>Recent Listens:</h3>
 	<form id="updatelistens" action="#">
 		<table style="width:100%">
@@ -24,7 +27,7 @@
 				<td><input type = "checkbox" id = "library"></td> 
 				<td><input type = "checkbox" id = "music" {{"checked" if vid[4]}}></td> 
 				<td><input type="textbox" id="title" value="{{vid[3]}}"></td> 
-				<td><input type="textbox" id="artist" value="{{vid[7]}}"></td> 
+				<td><input type="textbox" id="artist" value="{{vid[6]}}"></td> 
 				<td><input type="textbox" id="album" value="{{vid[8]}}"></td> 
 				<td><select id="track_num"><option value ="null" />Select</option><option value = 0 />Full Album</option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select></td> 
 				<td><input type="text" class="datepicker" id="release_date" value = "{{vid[5] if vid[5]}}"></td>
