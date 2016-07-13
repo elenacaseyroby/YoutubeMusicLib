@@ -18,24 +18,30 @@ make all textbox be search dropdown that fills with db table elements to make it
 		    <th>Track Number</th>
 		    <th>Release Date</th> 
 		  </tr>
-			
+			{%set i = 0%}
 			{%for vid in listens_vid_data%}
-			<div class="row">
-			<tr>
-				<td>{{vid[1].strftime('%a %I:%M %p')}}</td> 
-				<td><input type = "checkbox" id = "play" ></td>
-				<td><input type = "checkbox" id = "library"></td> 
-				<td><input type = "checkbox" id = "music" {{"checked" if vid[4]}}></td> 
-				<td><input type="textbox" id="title" value="{{vid[3]}}"></td> 
-				<td><input type="textbox" id="artist" value="{{vid[6]}}"></td> 
-				<td><input type="textbox" id="album" value="{{vid[8]}}"></td> 
-				<td><select id="track_num"><option value ="null" />Select</option><option value = 0 />Full Album</option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select></td> 
-				<td><input type="text" class="datepicker" id="release_date" value = "{{vid[5] if vid[5]}}"></td>
-			</tr>
-			<hidden id="youtube_id" value="{{vid[0]}}"></hidden>
-			<hidden id="artist_id" value="{{vid[10]}}"></hidden>
-			<hidden id="album_id" value="{{vid[11]}}"></hidden>
-			</div>
+				<div class="row">
+					
+					<div class="{{vid[0]}}">
+					<tr>
+						<td>{{vid[2].strftime('%a %I:%M %p')}}</td> 
+						<td><input type = "checkbox" id = "play{{i | string}}" ></td>
+						<td><input type = "checkbox" id = "library{{i | string}}"></td> 
+						<td><input type = "checkbox" id = "music{{i | string}}" {{"checked" if vid[5]}}></td> 
+						<td><input type="textbox" id="title{{i | string}}" value="{{vid[4]}}"></td> 
+						<td><input type="textbox" id="artist{{i | string}}" value="{{vid[7]}}"></td> 
+						<td><input type="textbox" id="album{{i | string}}" value="{{vid[9]}}"></td> 
+						<td><input type="text" class="datepicker" id="release_date{{i | string}}" value = "{{vid[6] if vid[6]}}"></td>
+					</tr>
+					<hidden id="youtube_id{{i | string}}" value="{{vid[1]}}"></hidden>
+					<hidden id="artist_id{{i | string}}" value="{{vid[11]}}"></hidden>
+					<hidden id="album_id{{i | string}}" value="{{vid[12]}}"></hidden>
+					</div>
+					
+				</div>
+				{%set i = i + 1%}
+				{{"i = " + i | string}}
+				
 			{%endfor%}
 		</table>
 

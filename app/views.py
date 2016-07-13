@@ -149,7 +149,8 @@ def getlistensdata():
   end_date = '2016-07-12 19:12:18' 
   saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if not saved_vids:
-    sql = text("""SELECT listens.youtube_id
+    sql = text("""SELECT listens.id
+   , listens.youtube_id
    , listens.time_of_listen
    , videos.youtube_title
    , videos.title
@@ -173,7 +174,8 @@ def getlistensdata():
    ORDER BY listens.time_of_listen DESC
    LIMIT """++str(limit)+";""")
   else:
-    sql = text("""SELECT listens.youtube_id
+    sql = text("""SELECT listens.id
+   , listens.youtube_id
    , listens.time_of_listen
    , videos.youtube_title
    , videos.title
@@ -202,6 +204,7 @@ def getlistensdata():
   print "sql = "
   print sql
   results = models.engine.execute(sql)
+  
   for result in results:
     listens.append(result)
   return listens #for now
