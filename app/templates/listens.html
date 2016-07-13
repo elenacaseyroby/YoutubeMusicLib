@@ -2,38 +2,38 @@
 
 {% block content %}
 	<h3>Recent Listens:</h3>
-	<form class="updatelistens" action="#">
+	<form id="updatelistens" action="#">
 		<table style="width:100%">
-	  <tr>
-	    <th>Time</th>
-	    <th>Play</th> 
-	    <th>Add to Library</th>
-	    <th>Check if Music</th>
-	    <th>Title</th>
-	    <th>Artist</th> 
-	    <th>Album</th>
-	    <th>Track Number</th>
-	    <th>Release Date</th> 
-	  </tr>
-		
-		{%for vid in listens_vid_data%}
-		<div class="row">
-		<tr>
-			<td>{{vid[1].strftime('%a %I:%M %p')}}</td> 
-			<td><input type = "checkbox" id = "play" value = "{{vid[0]}}"></td>
-			<td><input type = "checkbox" id = "library"></td> 
-			<td><input type = "checkbox" id = "music" value = "{{vid[4]}}"></td> 
-			<td><input type="textbox" id="title" value="{{vid[2]}}"></td> 
-			<td><input type="textbox" id="artist" value="{{vid[7]}}"></td> 
-			<td><input type="textbox" id="album" value="{{vid[8]}}"></td> 
-			<td><select id="track_num"><option value ="null" />Select</option><option value = 0 />Full Album</option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select></td> 
-			<td><input type="text" class="datepicker" id="release_date" value = "{{vid[5] if vid[5]}}"></td>
-		</tr>
-		<hidden id="youtube_id" value="{{vid[0]}}"></hidden>
-		<hidden id="artist_id" value="{{vid[10]}}"></hidden>
-		<hidden id="album_id" value="{{vid[11]}}"></hidden>
-		</div>
-		{%endfor%}
+		  <tr>
+		    <th>Time</th>
+		    <th>Play</th> 
+		    <th>Add to Library</th>
+		    <th>Check if Music</th>
+		    <th>Title</th>
+		    <th>Artist</th> 
+		    <th>Album</th>
+		    <th>Track Number</th>
+		    <th>Release Date</th> 
+		  </tr>
+			
+			{%for vid in listens_vid_data%}
+			<div class="row">
+			<tr>
+				<td>{{vid[1].strftime('%a %I:%M %p')}}</td> 
+				<td><input type = "checkbox" id = "play" ></td>
+				<td><input type = "checkbox" id = "library"></td> 
+				<td><input type = "checkbox" id = "music" {{"checked" if vid[4]}}></td> 
+				<td><input type="textbox" id="title" value="{{vid[3]}}"></td> 
+				<td><input type="textbox" id="artist" value="{{vid[7]}}"></td> 
+				<td><input type="textbox" id="album" value="{{vid[8]}}"></td> 
+				<td><select id="track_num"><option value ="null" />Select</option><option value = 0 />Full Album</option><option value =1 />1</option><option value =2 />2</option><option value =3 />3</option><option value = 4 />4</option><option value = 5 />5</option><option value = 6 />6</option><option value = 7 />7</option><option value = 8 />8</option><option value = 8/>8</option><option value = 9 />9</option><option value = 10 />10</option></select></td> 
+				<td><input type="text" class="datepicker" id="release_date" value = "{{vid[5] if vid[5]}}"></td>
+			</tr>
+			<hidden id="youtube_id" value="{{vid[0]}}"></hidden>
+			<hidden id="artist_id" value="{{vid[10]}}"></hidden>
+			<hidden id="album_id" value="{{vid[11]}}"></hidden>
+			</div>
+			{%endfor%}
 		</table>
 
 		<input type="submit" value="Play Videos & Submit Updates">
