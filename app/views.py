@@ -5,30 +5,28 @@ from .forms import LoginForm
 from json import loads
 from sqlalchemy import text, update
 
+
+class display_update_row_object:
+    def __init__(self, time_of_listen, play, library, music, title, artist, album, release_date):
+        self.time_of_listen = time_of_listen
+        self.play = play
+        self.library = library
+        self.music = music
+        self.title = title
+        self.artist = artist
+        self.album = album
+        self.release_date = release_date
+
+    #def method(self):
+        #action
+
 user_id = 1;
 
 @app.route('/')
 @app.route('/index')
-
-def index():
-  return render_template('index.html')
-
 @app.route('/play')
 
 def playMusic():
-  return render_template('play.html')
-
-@app.route('/printplaylist', methods=['POST'])
-
-def printPlayList():
-  """
-  #get info from post request
-  vid_info = [];
-  print "~~~~~~ vid info ~~~~~~~"
-  vid_info = [loads(request.form["vid1"]), 
-              loads(request.form["vid2"]),
-              loads(request.form["vid3"])]
-  print vid_info[0]['id']"""
   return render_template('play.html')
 
 @app.route('/postlistens', methods=['POST'])
@@ -53,7 +51,7 @@ def postlistens():
     return "success"
 
 
-@app.route('/updatelistens', methods = ['POST'])
+@app.route('/updatedata', methods = ['POST'])
 def updatelistens():
   album_id = 2
   artist_id = 1
@@ -100,17 +98,17 @@ def updatelistens():
 @app.route('/listens')
 def listens():
   listens_vid_data = getlistensdata() #should be able to access in template now
-  return render_template('listens.html', listens_vid_data = listens_vid_data)
+  return render_template('displayupdate_data.html', display_update_rows = listens_vid_data)
 
 
 
-@app.route('/getlistensdata')
+#@app.route('/getlistensdata')
 def getlistensdata():
   session.rollback()
   limit = 30
   listens = list()
   start_date = '2016-07-10 19:12:18' 
-  end_date = '2016-07-12 19:12:18' 
+  end_date = '2016-07-14 19:12:18' 
   saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if not saved_vids:
     sql = text("""SELECT listens.id
@@ -172,7 +170,7 @@ def getlistensdata():
   return listens #for now
 
 
-@app.route('/getgenres')
+#@app.route('/getgenres')
 def getgenres(youtube_id):
   sql = text("""SELECT 
 genres.name
@@ -189,7 +187,7 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   return result
 
 
-@app.route('/getsimilarartists')
+#@app.route('/getsimilarartists')
 def getsimilarartists(youtube_id):
   sql = text("""SELECT 
 a1.artist_name
