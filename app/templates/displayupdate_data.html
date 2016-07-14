@@ -2,6 +2,10 @@
 
 {% block content %}
 
+	<form id="searchdates" action="/listens" method="get">
+	View Listens Between <input name="search_start_date" id="search_start_date" type="text" class="datepicker" value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="text" class="datepicker" value="{{search_end_date}}"><br>
+	<input type="submit" value="Search Dates">
+	</form>
 <!--updates:
 make all textbox be search dropdown that fills with db table elements to make it harder to write one band name a million ways-->
 	<h3>Recent Listens:</h3>

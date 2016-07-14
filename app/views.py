@@ -4,7 +4,7 @@ from app import app, models, session #,db
 from .forms import LoginForm
 from json import loads
 from sqlalchemy import text, update
-
+import datetime
 
 class displayupdate_page_row_object:
     def __init__(self, time_of_listen, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
@@ -108,20 +108,38 @@ def updatelistens():
   return "success"
 
     
-@app.route('/listens')
+@app.route('/listens', methods = ['GET'])
 def listens():
-  listens = getlistensdata() #should be able to access in template now
-  return render_template('displayupdate_data.html', display_update_rows = listens)
+  #set dates from form submission 
+  #if those are empty set default dates
+  now = datetime.datetime.now()
+  today = now.strftime("%Y-%m-%d %H:%M:%S") #'2016-07-10 19:12:18'
+  oneweekago = datetime.date.today() - datetime.timedelta(days=7)
+  oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
+
+  if not request.args.get("search_start_date"):
+    search_start_date = oneweekago
+  else:
+    search_start_date = datetime.datetime.strptime(request.args.get("search_start_date"),"%Y-%m-%d %H:%M:%S")
+  if not request.args.get("search_end_date"):
+    search_end_date = today
+  else:
+    search_end_date = datetime.datetime.strptime(request.args.get("search_end_date"),"%Y-%m-%d %H:%M:%S")
+  print search_end_date
+  print search_start_date
+  #pull listens between given dates
+  listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) #should be able to access in template now
+  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date)
 
 
 
 #@app.route('/getlistensdata')
-def getlistensdata():
+def getlistensdata(search_start_date, search_end_date):
   session.rollback()
   limit = 30
   listens = list()
-  start_date = '2016-07-10 19:12:18' 
-  end_date = '2016-07-14 19:12:18' 
+  start_date = search_start_date
+  end_date = search_end_date
   saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if not saved_vids:
     sql = text("""SELECT listens.id
@@ -175,7 +193,7 @@ def getlistensdata():
    AND listens.listened_to_end != 1 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
-
+  print sql
   results = models.engine.execute(sql)
   for result in results:
     listen = displayupdate_page_row_object(time_of_listen = result[2]
@@ -188,7 +206,8 @@ def getlistensdata():
                             , release_date = result[6]
                             , youtube_id = result[1]
                             , artist_id = result[11]
-                            , album_id = result[12])
+                            , album_id = result[12]
+                            )
     listens.append(listen)
 
   return listens 
