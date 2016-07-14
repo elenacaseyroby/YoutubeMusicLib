@@ -107,7 +107,7 @@ def listens():
 @app.route('/getlistensdata')
 def getlistensdata():
   session.rollback()
-  limit = 5
+  limit = 30
   listens = list()
   start_date = '2016-07-10 19:12:18' 
   end_date = '2016-07-12 19:12:18' 
