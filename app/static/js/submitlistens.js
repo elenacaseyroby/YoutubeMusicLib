@@ -3,13 +3,10 @@ $(function(){
 
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
-		index = 15;
-
+		index = 100;
 		i = 0;
 
 		$.each($(".row"), function(index, listen){
-
-			console.log("~~~~~~~~~~ POST !~~~~~~~~~~~~~")
 			if($("#library" + i.toString()).is(':checked')){
 				library_value = 1
 			}else{
@@ -20,7 +17,6 @@ $(function(){
 			}else{
 				music_value = 0;
 			}
-			console.log($("#youtube_id" + i).attr("value")); //this is right
 			$.ajax({
 				type: "POST",
 			    url: '/updatelistens',
@@ -37,10 +33,7 @@ $(function(){
 				, album_id: $("#album_id" + i.toString()).attr("value")}
 		    });
 		    i++;
-		//}
 		});
-	});
-		
+	});	
 });
 
-//http://stackoverflow.com/questions/5891840/how-to-use-javascript-variables-in-jquery-selectors

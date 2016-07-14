@@ -58,35 +58,16 @@ def updatelistens():
   album_id = 2
   artist_id = 1
   #error: not updating middle row of 3 like the other two
-  print "~~~~~~~~~new post!! ~~~~~~~~~~~~~"
-  print request.form["youtube_id"]
-  print request.form["title"]
-  print request.form["album"]
-  print request.form["artist"]
+
   session.rollback()
-  """
-  artistname_in_db = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
-
-  albumname_in_db = session.query(models.Album).filter_by(name = request.form["album"]).first()
-  artist_id = request.form["artist_id"]
-  album_id = request.form["album_id"]"""
   artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
-
   album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
 
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
   if artist_by_name:
     artist_id = artist_by_name.id
-    """
-    if artist_by_name.id != request.form["artist_id"]:
-      artist_id = int(artist_by_name.id)
-    else:
-      artist_id = int(request.form["artist_id"]) #keep old id
-      """
 
   else:#if artist name doesn't exist in db, add new row to artists table
-   #NOT WORKING
-    print "Else artist"
     session.rollback()
     new_artist = models.Artist(artist_name=request.form["artist"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_artist)
@@ -96,17 +77,8 @@ def updatelistens():
   
   session.rollback()
   if album_by_name:
-    print "album from form in ifelse"
-    print album_by_name.id
     album_id = album_by_name.id
-    """
-    if album_by_name.id != request.form["album_id"]:
-      album_id = int(album_by_name.id)
-    else:
-      album_id = int(request.form["album_id"])
-    """
-  else: #NOT WORKING
-    print "else album"
+  else: 
     session.rollback()
     new_album = models.Album(name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_album)
@@ -116,42 +88,13 @@ def updatelistens():
   
   session.rollback()
   video_update = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-  
   video_update.title=request.form["title"]
-  
   video_update.music=request.form["music"]
-
   video_update.artist_id=int(artist_id)
   video_update.album_id=int(album_id)
-  #video_update.release_date=request.form["release_date"]
-
   session.commit() 
+
   return "success"
-
-  
-
-
-"""
-print request.form["youtube_id"]
-session.rollback()
-video = models.Video.where(youtube_id = request.form["youtube_id"]).values(title=request.form["title"]
-                                  , music=request.form["music"]
-                                  , artist_id=request.form["artist_id"]
-                                  , album_id=request.form["album_id"]
-                                  , track_num=request.form["track_num"]
-                                  , release_date=request.form["release_date"] )
-session.update(video)"""
-
-"""update(models.Video).where(youtube_id = request.form["youtube_id"]).values(title=request.form["title"]
-                                  , music=request.form["music"]
-                                  , artist_id=request.form["artist_id"]
-                                  , album_id=request.form["album_id"]
-                                  , track_num=request.form["track_num"]
-                                  , release_date=request.form["release_date"] )
-session.commit()"""
-
- 
-
 
     
 @app.route('/listens')
@@ -222,12 +165,10 @@ def getlistensdata():
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
 
-  print "sql = "
-  print sql
   results = models.engine.execute(sql)
-  
   for result in results:
     listens.append(result)
+
   return listens #for now
 
 
