@@ -1,21 +1,5 @@
 $(function(){
 	$( ".datepicker" ).datepicker();
-	/*
-	$("#searchdates").on("submit", function(event) {
-		event.preventDefault();
-		console.log ($("#search_start_date").attr("value"));
-		console.log($("#search_end_date").attr("value"));
-		console.log($("#search_start_date").val());
-		console.log($("#search_end_date").val());
-
-		$.ajax({
-				type: "GET",
-			    url: '/listens',
-			    data: {search_start_date: $("#search_start_date").val()
-			    , search_end_date: $("#search_end_date").val()} //returns true or false
-		    });
-	});*/
-
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = 100;

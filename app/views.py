@@ -117,14 +117,15 @@ def listens():
   oneweekago = datetime.date.today() - datetime.timedelta(days=7)
   oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
 
+
   if not request.args.get("search_start_date"):
     search_start_date = oneweekago
   else:
-    search_start_date = datetime.datetime.strptime(request.args.get("search_start_date"),"%Y-%m-%d %H:%M:%S")
+    search_start_date = request.args.get("search_start_date"); #datetime.datetime.strptime(request.args.get("search_start_date"),"%Y-%m-%d %H:%M:%S")
   if not request.args.get("search_end_date"):
     search_end_date = today
   else:
-    search_end_date = datetime.datetime.strptime(request.args.get("search_end_date"),"%Y-%m-%d %H:%M:%S")
+    search_end_date = request.args.get("search_end_date");#datetime.datetime.strptime(request.args.get("search_end_date"),"%Y-%m-%d %H:%M:%S")
   print search_end_date
   print search_start_date
   #pull listens between given dates
