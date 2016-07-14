@@ -6,8 +6,8 @@ from json import loads
 from sqlalchemy import text, update
 
 
-class display_update_row_object:
-    def __init__(self, time_of_listen, play, library, music, title, artist, album, release_date):
+class displayupdate_page_row_object:
+    def __init__(self, time_of_listen, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
         self.time_of_listen = time_of_listen
         self.play = play
         self.library = library
@@ -16,9 +16,22 @@ class display_update_row_object:
         self.artist = artist
         self.album = album
         self.release_date = release_date
+        self.youtube_id = youtube_id
+        self.artist_id = artist_id
+        self.album_id = album_id
 
-    #def method(self):
-        #action
+    def __getitem__ (self, time_of_listen, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
+        return self.time_of_listen 
+        return self.play 
+        return self.library 
+        return self.music 
+        return self.title 
+        return self.artist 
+        return self.album 
+        return self.release_date 
+        return self.youtube_id 
+        return self.artist_id 
+        return self.album_id 
 
 user_id = 1;
 
@@ -97,8 +110,8 @@ def updatelistens():
     
 @app.route('/listens')
 def listens():
-  listens_vid_data = getlistensdata() #should be able to access in template now
-  return render_template('displayupdate_data.html', display_update_rows = listens_vid_data)
+  listens = getlistensdata() #should be able to access in template now
+  return render_template('displayupdate_data.html', display_update_rows = listens)
 
 
 
@@ -165,9 +178,20 @@ def getlistensdata():
 
   results = models.engine.execute(sql)
   for result in results:
-    listens.append(result)
+    listen = displayupdate_page_row_object(time_of_listen = result[2]
+                            , play = 0
+                            , library = 0
+                            , music= result[5]
+                            , title= result[4]
+                            , artist = result[7]
+                            , album = result[9]
+                            , release_date = result[6]
+                            , youtube_id = result[1]
+                            , artist_id = result[11]
+                            , album_id = result[12])
+    listens.append(listen)
 
-  return listens #for now
+  return listens 
 
 
 #@app.route('/getgenres')
