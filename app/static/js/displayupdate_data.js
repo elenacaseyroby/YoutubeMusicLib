@@ -1,6 +1,5 @@
 $(function(){
 	$( ".datepicker" ).datepicker();
-
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = 100;
@@ -19,7 +18,7 @@ $(function(){
 			}
 			$.ajax({
 				type: "POST",
-			    url: '/updatelistens',
+			    url: '/updatedata',
 			    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")
 			    , play: $("#play" + i.toString()).is(':checked') //returns true or false
 			    , library: library_value
