@@ -7,8 +7,8 @@ from sqlalchemy import text, update
 import datetime
 
 class displayupdate_page_row_object:
-    def __init__(self, time_of_listen, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
-        self.time_of_listen = time_of_listen
+    def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
+        self.index = index
         self.play = play
         self.library = library
         self.music = music
@@ -20,8 +20,8 @@ class displayupdate_page_row_object:
         self.artist_id = artist_id
         self.album_id = album_id
 
-    def __getitem__ (self, time_of_listen, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
-        return self.time_of_listen 
+    def __getitem__ (self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
+        return self.index 
         return self.play 
         return self.library 
         return self.music 
@@ -41,6 +41,18 @@ user_id = 1;
 
 def playMusic():
   return render_template('play.html')
+
+@app.route('/library')
+
+def library():
+  library = list()
+  library = getlibrary(user_id)
+  if not library:
+    return render_template('nolibrarymessage.html')
+  else:
+    return render_template('displayupdate_data.html', display_update_rows = library, islistens = "false")
+
+
 
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
@@ -130,8 +142,7 @@ def listens():
   print search_start_date
   #pull listens between given dates
   listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) #should be able to access in template now
-  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date)
-
+  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
 
 
 #@app.route('/getlistensdata')
@@ -166,7 +177,7 @@ def getlistensdata(search_start_date, search_end_date):
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 
    ORDER BY listens.time_of_listen DESC
-   LIMIT """++str(limit)+";""")
+   LIMIT """+str(limit)+";""")
   else:
     sql = text("""SELECT listens.id
    , listens.youtube_id
@@ -197,7 +208,7 @@ def getlistensdata(search_start_date, search_end_date):
   print sql
   results = models.engine.execute(sql)
   for result in results:
-    listen = displayupdate_page_row_object(time_of_listen = result[2]
+    listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
                             , play = 0
                             , library = 0
                             , music= result[5]
@@ -210,6 +221,49 @@ def getlistensdata(search_start_date, search_end_date):
                             , album_id = result[12]
                             )
     listens.append(listen)
+
+  return listens 
+
+def getlibrary(user_id):
+  session.rollback()
+  listens = list()
+  saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
+  if saved_vids:
+    sql = text("""SELECT videos.youtube_id
+   , videos.youtube_title
+   , videos.title
+   , videos.music
+   , videos.release_date
+   , artists.artist_name as artist
+   , cities.name
+   , albums.name as album
+   , albums.track_num
+   , artists.id as artist_id
+   , albums.id as album_id
+   FROM saved_vids
+   JOIN videos ON saved_vids.youtube_id = videos.youtube_id
+   JOIN albums ON videos.album_id = albums.id
+   JOIN artists ON videos.artist_id = artists.id
+   JOIN cities ON artists.city_id = cities.id
+   WHERE saved_vids.user_id = """+str(user_id)+"""
+   ORDER BY videos.title DESC;""")
+
+    results = models.engine.execute(sql)
+    for result in results:
+
+      listen = displayupdate_page_row_object( index = ""
+                              , play = 0
+                              , library = 1
+                              , music= result[3]
+                              , title= result[2]
+                              , artist = result[5]
+                              , album = result[7]
+                              , release_date = result[4]
+                              , youtube_id = result[0]
+                              , artist_id = result[9]
+                              , album_id = result[10]
+                              )
+      listens.append(listen)
 
   return listens 
 
