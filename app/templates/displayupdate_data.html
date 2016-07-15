@@ -17,9 +17,11 @@ make all textbox be search dropdown that fills with db table elements to make it
 	<form id="updatelistens" action="#">
 		<table style="width:100%">
 		  <tr>
+		  	{% if islistens == "true"%}
 		    <th>Time</th>
-		    <th>Play</th> 
 		    <th>Add to Library</th>
+		    {%endif%}
+		    <th>Play</th> 
 		    <th>Check if Music</th>
 		    <th>Title</th>
 		    <th>Artist</th> 
@@ -31,9 +33,11 @@ make all textbox be search dropdown that fills with db table elements to make it
 			{%for vid in display_update_rows%}
 				<div class="row">
 					<tr>
+						{% if islistens == "true"%}
 						<td>{{vid.index}}</td>
-						<td><input type = "checkbox" id = "play{{i | string}}" ></td>
 						<td><input type = "checkbox" id = "library{{i | string}}"></td> 
+						{%endif%}
+						<td><input type = "checkbox" id = "play{{i | string}}" ></td>
 						<td><input type = "checkbox" id = "music{{i | string}}" {{"checked" if vid.music}}></td> 
 						<td><input type="textbox" id="title{{i | string}}" value="{{vid.title}}"></td> 
 						<td><input type="textbox" id="artist{{i | string}}" value="{{vid.artist}}"></td> 

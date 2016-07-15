@@ -117,6 +117,21 @@ def updatelistens():
   video_update.album_id=int(album_id)
   session.commit() 
 
+  session.rollback()
+  if request.form['library'] == "1": 
+  #onlyupdates if add to library was checked. 
+  #this is good because as it is it pulls up 
+  #vids that have been added to the library and 
+  #leaves the box unchecked.  this would lead to 
+  #clearing the user's library if it also updated 
+  #when add to lib =0
+    saved_vids = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
+    if not saved_vids:
+      new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
+                                     , user_id = user_id)#edit so it only adds vid info if it doesn't already exist
+      session.add(new_saved_vid)
+      session.commit()
+
   return "success"
 
     
@@ -176,6 +191,7 @@ def getlistensdata(search_start_date, search_end_date):
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 
+   GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
   else:
@@ -203,6 +219,7 @@ def getlistensdata(search_start_date, search_end_date):
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.youtube_id != saved_vids.youtube_id
    AND listens.listened_to_end != 1 
+   GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
   print sql
