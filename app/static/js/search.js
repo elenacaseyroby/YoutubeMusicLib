@@ -1,4 +1,4 @@
-number_of_plays = 0;
+number_of_plays = 0; 
 
 function YoutubeVideo(id, title){
 	this.id = id;
@@ -91,7 +91,7 @@ function onPlayerReady(event){
 
 function onPlayerStateChange(event) { 
 	//if vid is playing from first 2 secs, save to list after 1 second this avoids tracking pauses
-	if(event.data == YT.PlayerState.PLAYING && event.target.v.currentTime <= 2.0){
+	if(event.data == YT.PlayerState.PLAYING && event.target.j.currentTime <= 2.0){
 		setTimeout(savePlay(event), 1000);
 	}
 	if(event.data == YT.PlayerState.ENDED){
@@ -123,10 +123,9 @@ function playNextVidInList(){
 
 //records play at top of page
 function savePlay(event, end = false) {
-	
-	title = event.target.v.videoData.title;
+	title = event.target.j.videoData.title;
 	title = title.toString();
-	youtube_id = event.target.v.videoData.video_id;
+	youtube_id = event.target.j.videoData.video_id;
 	youtube_id = youtube_id.toString();
 	//time_start = event.target.getCurrentTime();
 	//time_end = event.target.getCurrentTime();
@@ -134,7 +133,6 @@ function savePlay(event, end = false) {
 	if(end){
 		listened_to_end = 1;
 	}
-
 	//send data to view.py
 	$.ajax({
 		type: "POST",
@@ -144,6 +142,7 @@ function savePlay(event, end = false) {
 	if(!end){
 		$("#record_plays").append(title).append("<br>");
 	}
+
 }
 
 //get and render related videos

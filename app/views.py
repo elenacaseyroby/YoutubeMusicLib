@@ -57,23 +57,22 @@ def library():
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
   #move into model
-    session.rollback()
-    #if new vid post to db
-    video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-    if not video_in_db:
-      new_video = models.Video(youtube_id=request.form["youtube_id"],
-                    youtube_title=request.form["youtube_title"],
-                    title = request.form["youtube_title"])#edit so it only adds vid info if it doesn't already exist
-      session.add(new_video)
-      session.commit()
-    #post listen
-    new_listen = models.Listen(user_id=request.form["user_id"],
-                  youtube_id=request.form["youtube_id"],
-                  listened_to_end=request.form["listened_to_end"])
-    session.add(new_listen)
+  session.rollback()
+  #if new vid post to db
+  video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+  if not video_in_db:
+    new_video = models.Video(youtube_id=request.form["youtube_id"],
+                  youtube_title=request.form["youtube_title"],
+                  title = request.form["youtube_title"])#edit so it only adds vid info if it doesn't already exist
+    session.add(new_video)
     session.commit()
-
-    return "success"
+  #post listen
+  new_listen = models.Listen(user_id=request.form["user_id"],
+                youtube_id=request.form["youtube_id"],
+                listened_to_end=request.form["listened_to_end"])
+  session.add(new_listen)
+  session.commit()
+  return "success"
 
 
 @app.route('/updatedata', methods = ['POST'])
@@ -223,8 +222,13 @@ def getlistensdata(search_start_date, search_end_date):
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
   print sql
+
+  #create list of user's saved vids (youtube_id) using getlibrary()
+
   results = models.engine.execute(sql)
   for result in results:
+    #if result[1] (youtube_id) is in list of user's saved vids, then 
+    # var library = 1, else = 0 
     listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
                             , play = 0
                             , library = 0
