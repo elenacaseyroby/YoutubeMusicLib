@@ -6,6 +6,9 @@ from json import loads
 from sqlalchemy import text, update
 import datetime
 
+#will update once logins have been implemented
+user_id = 1;
+
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
         self.index = index
@@ -33,14 +36,36 @@ class displayupdate_page_row_object:
         return self.artist_id 
         return self.album_id 
 
-user_id = 1;
-
 @app.route('/')
 @app.route('/index')
 @app.route('/play')
 
 def playMusic():
   return render_template('play.html')
+
+@app.route('/listens', methods = ['GET'])
+def listens():
+  #set dates from form submission 
+  #if those are empty set default dates
+  now = datetime.datetime.now()
+  today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
+  oneweekago = datetime.date.today() - datetime.timedelta(days=7)
+  oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
+
+
+  if not request.args.get("search_start_date"):
+    search_start_date = oneweekago
+  else:
+    search_start_date = request.args.get("search_start_date");
+  if not request.args.get("search_end_date"):
+    search_end_date = today
+  else:
+    search_end_date = request.args.get("search_end_date");
+  print search_end_date
+  print search_start_date
+  listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) 
+  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
+
 
 @app.route('/library')
 
@@ -53,7 +78,20 @@ def library():
     return render_template('displayupdate_data.html', display_update_rows = library, islistens = "false")
 
 
+@app.route('/login', methods=['GET', 'POST'])
 
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        flash('Login requested for OpenID="%s", remember_me=%s' %
+              (form.openid.data, str(form.remember_me.data)))
+        return redirect('/index')
+    return render_template('login.html', 
+                           title='Sign In',
+                           form=form,
+                           providers=app.config['OPENID_PROVIDERS'])
+
+# post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
   #move into model
@@ -74,9 +112,63 @@ def postlistens():
   session.commit()
   return "success"
 
+#get listens data for listens page
+def getlistensdata(search_start_date, search_end_date):
+  session.rollback()
+  limit = 30
+  listens = list()
+  start_date = search_start_date
+  end_date = search_end_date
 
+  sql = text("""SELECT listens.id
+   , listens.youtube_id
+   , listens.time_of_listen
+   , videos.youtube_title
+   , videos.title
+   , videos.music
+   , videos.release_date
+   , artists.artist_name as artist
+   , cities.name
+   , albums.name as album
+   , albums.track_num
+   , artists.id as artist_id
+   , albums.id as album_id
+   FROM listens
+   JOIN videos ON listens.youtube_id = videos.youtube_id
+   JOIN albums ON videos.album_id = albums.id
+   JOIN artists ON videos.artist_id = artists.id
+   JOIN cities ON artists.city_id = cities.id
+   WHERE listens.user_id = """+str(user_id)+"""
+   AND listens.time_of_listen > '"""+str(start_date)+"""'
+   AND listens.time_of_listen < '"""+str(end_date)+"""'
+   AND listens.listened_to_end != 1 
+   GROUP BY listens.id 
+   ORDER BY listens.time_of_listen DESC
+   LIMIT """+str(limit)+";""")
+
+  results = models.engine.execute(sql)
+  for result in results:
+    #if result[1] (youtube_id) is in list of user's saved vids, then 
+    # var library = 1, else = 0 
+    listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
+                            , play = 0
+                            , library = 0
+                            , music= result[5]
+                            , title= result[4]
+                            , artist = result[7]
+                            , album = result[9]
+                            , release_date = result[6]
+                            , youtube_id = result[1]
+                            , artist_id = result[11]
+                            , album_id = result[12]
+                            )
+    listens.append(listen)
+
+  return listens 
+
+#update data from listens and library pages
 @app.route('/updatedata', methods = ['POST'])
-def updatelistens():
+def updatedata():
   album_id = 2
   artist_id = 1
   #error: not updating middle row of 3 like the other two
@@ -118,133 +210,18 @@ def updatelistens():
 
   session.rollback()
   if request.form['library'] == "1": 
-  #onlyupdates if add to library was checked. 
-  #this is good because as it is it pulls up 
-  #vids that have been added to the library and 
-  #leaves the box unchecked.  this would lead to 
-  #clearing the user's library if it also updated 
-  #when add to lib =0
+  #only updates if add to library was checked,
+  #since unchecked is default right now.
     saved_vids = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
-                                     , user_id = user_id)#edit so it only adds vid info if it doesn't already exist
+                                     , user_id = user_id)
       session.add(new_saved_vid)
       session.commit()
 
   return "success"
 
-    
-@app.route('/listens', methods = ['GET'])
-def listens():
-  #set dates from form submission 
-  #if those are empty set default dates
-  now = datetime.datetime.now()
-  today = now.strftime("%Y-%m-%d %H:%M:%S") #'2016-07-10 19:12:18'
-  oneweekago = datetime.date.today() - datetime.timedelta(days=7)
-  oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
-
-
-  if not request.args.get("search_start_date"):
-    search_start_date = oneweekago
-  else:
-    search_start_date = request.args.get("search_start_date"); #datetime.datetime.strptime(request.args.get("search_start_date"),"%Y-%m-%d %H:%M:%S")
-  if not request.args.get("search_end_date"):
-    search_end_date = today
-  else:
-    search_end_date = request.args.get("search_end_date");#datetime.datetime.strptime(request.args.get("search_end_date"),"%Y-%m-%d %H:%M:%S")
-  print search_end_date
-  print search_start_date
-  #pull listens between given dates
-  listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) #should be able to access in template now
-  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
-
-
-#@app.route('/getlistensdata')
-def getlistensdata(search_start_date, search_end_date):
-  session.rollback()
-  limit = 30
-  listens = list()
-  start_date = search_start_date
-  end_date = search_end_date
-  saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
-  if not saved_vids:
-    sql = text("""SELECT listens.id
-   , listens.youtube_id
-   , listens.time_of_listen
-   , videos.youtube_title
-   , videos.title
-   , videos.music
-   , videos.release_date
-   , artists.artist_name as artist
-   , cities.name
-   , albums.name as album
-   , albums.track_num
-   , artists.id as artist_id
-   , albums.id as album_id
-   FROM listens
-   JOIN videos ON listens.youtube_id = videos.youtube_id
-   JOIN albums ON videos.album_id = albums.id
-   JOIN artists ON videos.artist_id = artists.id
-   JOIN cities ON artists.city_id = cities.id
-   WHERE listens.user_id = """+str(user_id)+"""
-   AND listens.time_of_listen > '"""+str(start_date)+"""'
-   AND listens.time_of_listen < '"""+str(end_date)+"""'
-   AND listens.listened_to_end != 1 
-   GROUP BY listens.id 
-   ORDER BY listens.time_of_listen DESC
-   LIMIT """+str(limit)+";""")
-  else:
-    sql = text("""SELECT listens.id
-   , listens.youtube_id
-   , listens.time_of_listen
-   , videos.youtube_title
-   , videos.title
-   , videos.music
-   , videos.release_date
-   , artists.artist_name as artist
-   , cities.name
-   , albums.name as album
-   , albums.track_num
-   , artists.id as artist_id
-   , albums.id as album_id
-   FROM listens
-   JOIN videos ON listens.youtube_id = videos.youtube_id
-   JOIN albums ON videos.album_id = albums.id
-   JOIN artists ON videos.artist_id = artists.id
-   JOIN cities ON artists.city_id = cities.id
-   JOIN saved_vids ON saved_vids.user_id = listens.user_id
-   WHERE listens.user_id = """+str(user_id)+"""
-   AND listens.time_of_listen > '"""+str(start_date)+"""'
-   AND listens.time_of_listen < '"""+str(end_date)+"""'
-   AND listens.youtube_id != saved_vids.youtube_id
-   AND listens.listened_to_end != 1 
-   GROUP BY listens.id 
-   ORDER BY listens.time_of_listen DESC
-   LIMIT """+str(limit)+";""")
-  print sql
-
-  #create list of user's saved vids (youtube_id) using getlibrary()
-
-  results = models.engine.execute(sql)
-  for result in results:
-    #if result[1] (youtube_id) is in list of user's saved vids, then 
-    # var library = 1, else = 0 
-    listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
-                            , play = 0
-                            , library = 0
-                            , music= result[5]
-                            , title= result[4]
-                            , artist = result[7]
-                            , album = result[9]
-                            , release_date = result[6]
-                            , youtube_id = result[1]
-                            , artist_id = result[11]
-                            , album_id = result[12]
-                            )
-    listens.append(listen)
-
-  return listens 
-
+#pulls data for library page
 def getlibrary(user_id):
   session.rollback()
   listens = list()
@@ -289,7 +266,7 @@ def getlibrary(user_id):
   return listens 
 
 
-#@app.route('/getgenres')
+#query not in use yet
 def getgenres(youtube_id):
   sql = text("""SELECT 
 genres.name
@@ -305,8 +282,7 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-
-#@app.route('/getsimilarartists')
+#query not in use yet
 def getsimilarartists(youtube_id):
   sql = text("""SELECT 
 a1.artist_name
@@ -333,16 +309,5 @@ WHERE videos.youtube_id = '"""+youtube_id+"""';""")
   #result = list(set(result)) #remove redundancies
   return "success"
 
-@app.route('/login', methods=['GET', 'POST'])
 
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        flash('Login requested for OpenID="%s", remember_me=%s' %
-              (form.openid.data, str(form.remember_me.data)))
-        return redirect('/index')
-    return render_template('login.html', 
-                           title='Sign In',
-                           form=form,
-                           providers=app.config['OPENID_PROVIDERS'])
 
