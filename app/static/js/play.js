@@ -123,6 +123,7 @@ function playNextVidInList(){
 
 //records play at top of page
 function savePlay(event, end = false) {
+	console.log(event);
 	title = event.target.j.videoData.title;
 	title = title.toString();
 	youtube_id = event.target.j.videoData.video_id;
