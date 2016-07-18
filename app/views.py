@@ -168,7 +168,7 @@ def getlistensdata(search_start_date, search_end_date):
 
 #update data from listens and library pages
 @app.route('/updatedata', methods = ['POST'])
-def updatelistens():
+def updatedata():
   album_id = 2
   artist_id = 1
   #error: not updating middle row of 3 like the other two
