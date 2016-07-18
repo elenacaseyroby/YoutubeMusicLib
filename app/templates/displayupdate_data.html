@@ -1,20 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-	<form id="searchdates" action="/listens" method="get">
-	View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
-	<input type="submit" value="Search Dates">
-	</form>
+	{% if islistens == "true" %}
+		<form id="searchdates" action="/listens" method="get">
+		View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
+		<input type="submit" value="Search Dates">
+		</form>
+	<h3>Recent Listens:</h3>
+	{%endif%}
+	{% if islistens == "false" %}
+	<h3>Your Library:</h3>
+	{%endif%}
 <!--updates:
 make all textbox be search dropdown that fills with db table elements to make it harder to write one band name a million ways-->
-	<h3>Recent Listens:</h3>
+	
 	<form id="updatelistens" action="#">
 		<table style="width:100%">
 		  <tr>
+		  	{% if islistens == "true"%}
 		    <th>Time</th>
-		    <th>Play</th> 
 		    <th>Add to Library</th>
+		    {%endif%}
+		    <th>Play</th> 
 		    <th>Check if Music</th>
 		    <th>Title</th>
 		    <th>Artist</th> 
@@ -26,9 +33,11 @@ make all textbox be search dropdown that fills with db table elements to make it
 			{%for vid in display_update_rows%}
 				<div class="row">
 					<tr>
-						<td>{{vid.time_of_listen.strftime('%a %I:%M %p')}}</td> 
-						<td><input type = "checkbox" id = "play{{i | string}}" ></td>
+						{% if islistens == "true"%}
+						<td>{{vid.index}}</td>
 						<td><input type = "checkbox" id = "library{{i | string}}"></td> 
+						{%endif%}
+						<td><input type = "checkbox" id = "play{{i | string}}" ></td>
 						<td><input type = "checkbox" id = "music{{i | string}}" {{"checked" if vid.music}}></td> 
 						<td><input type="textbox" id="title{{i | string}}" value="{{vid.title}}"></td> 
 						<td><input type="textbox" id="artist{{i | string}}" value="{{vid.artist}}"></td> 
