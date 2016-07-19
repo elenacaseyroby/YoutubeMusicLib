@@ -5,7 +5,7 @@ from .forms import LoginForm
 from json import loads
 from sqlalchemy import text, update
 import datetime
-
+ 
 #will update once logins have been implemented
 user_id = 1;
 
@@ -96,7 +96,7 @@ def login():
 def postlistens():
   #move into model
   session.rollback()
-  #if new vid post to db
+  #if new vid post to video_in_db
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
     new_video = models.Video(youtube_id=request.form["youtube_id"],
