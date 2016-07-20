@@ -14,6 +14,8 @@ elif 'MYSQL_DATABASE_URL' in os.environ:
 else:
     db_url = 'pymysql://root:@127.0.0.1:3306/youtubelib'
 
+print db_url
+
 engine = create_engine(db_url, convert_unicode=True, echo=False)
 Base = declarative_base()
 Base.metadata.reflect(engine)
