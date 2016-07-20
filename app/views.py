@@ -94,14 +94,40 @@ def login():
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
-  #move into model
+
+  #split youtube title into title and artist
+  youtube_title = request.form["youtube_title"]
+  if '-' in youtube_title:
+    splitter = '-'
+  else: splitter = ':'
+  split_youtube_title = youtube_title.split(splitter, 1)
+  artist_artist_name = split_youtube_title[0]
+  artist_artist_name = artist_artist_name.strip()
+  videos_title = split_youtube_title[1]
+  videos_title = videos_title.lstrip('-').strip()
+  print artist_artist_name+" - "+videos_title
+
+  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
   session.rollback()
+  artist_by_name = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+  if artist_by_name:
+    artist_id = artist_by_name.id
+  #if artist name doesn't exist in db, add new row to artists table
+  else:
+    session.rollback()
+    new_artist = models.Artist(artist_name = artist_artist_name)
+    session.add(new_artist)
+    session.commit()
+    new_artist_id = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+    artist_id = int(new_artist_id.id)
   #if new vid post to db
+  session.rollback()
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
     new_video = models.Video(youtube_id=request.form["youtube_id"],
                   youtube_title=request.form["youtube_title"],
-                  title = request.form["youtube_title"])#edit so it only adds vid info if it doesn't already exist
+                  title = videos_title,
+                  artist_id = artist_id)
     session.add(new_video)
     session.commit()
   #post listen
