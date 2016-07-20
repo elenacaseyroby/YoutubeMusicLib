@@ -131,19 +131,6 @@ function playNextVidInList(){
 
 //records play at top of page
 function savePlay(event, end = false) {
-	/*console.log("selected_videos");
-	console.log(selected_videos);*/
-
-	// console.log(event);
-	// title = event.target.j.videoData.title;
-	// title = title.toString();
-	// youtube_id = event.target.j.videoData.video_id;
-	// youtube_id = youtube_id.toString();
-	// channel_id = event.target.j.videoData.channel_id;
-	// channel_id = channel_id.toString();
-	// description = event.target.j.videoData.description;
-	// description = description.toString();
-
 	title = event.target.b.c.title;
 	title = title.toString();
 	youtube_id = event.target.b.c.videoId;
