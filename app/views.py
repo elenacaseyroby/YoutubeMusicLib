@@ -5,7 +5,7 @@ from .forms import LoginForm
 from json import loads
 from sqlalchemy import text, update
 import datetime
-
+ 
 #will update once logins have been implemented
 user_id = 1;
 
@@ -94,6 +94,10 @@ def login():
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
+  print "~~~~~~~~~~channel_id~~~~~~~~~~"
+  print request.form["channel_id"]
+  print "~~~~~~~~~~description~~~~~~~~~~"
+  print request.form["description"]
 
   #split youtube title into title and artist
   youtube_title = request.form["youtube_title"]
@@ -110,12 +114,15 @@ def postlistens():
   artist_id = updateartist(artist_artist_name)
   #if new vid post to db
   session.rollback()
+
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
     new_video = models.Video(youtube_id=request.form["youtube_id"],
                   youtube_title=request.form["youtube_title"],
                   title = videos_title,
-                  artist_id = artist_id)
+                  artist_id = artist_id,
+                  channel_id = request.form["channel_id"],
+                  description = request.form["description"])
     session.add(new_video)
     session.commit()
   #post listen
