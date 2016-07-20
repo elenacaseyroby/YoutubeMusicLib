@@ -1,4 +1,5 @@
 {
   "name": "Youtube Music Lib",
-  "repository": "https://github.com/elenacaseyroby/YoutubeMusicLib"
+  "repository": "https://github.com/elenacaseyroby/YoutubeMusicLib",
+  "addons": ["cleardb"]
 }
