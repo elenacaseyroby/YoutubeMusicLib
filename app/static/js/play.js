@@ -1,11 +1,14 @@
 number_of_plays = 0; 
+var user_id = 1;
 
-function YoutubeVideo(id, title){
+function YoutubeVideo(id, title, channel_id, description){
 	this.id = id;
 	this.title = title;
+	this.channel_id = channel_id;
+	this.description = description;
 }
 
-current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
+current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991", null, null);
 
 var selected_videos = [];
 
@@ -31,7 +34,7 @@ $(function(){
 			i = 0;
 			$.each(results.items, function(index, item){
 				//stores title and video in global array
-				selected_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
+				selected_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title, item.snippet.channelId, item.snippet.description);
 				i++;
 			});
 			renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'));
@@ -51,9 +54,12 @@ $(function(){
 });
 
 //loads iframe api scripts on first play and calls iframe api directly on additional plays
-function playVideo(id, title) {
+function playVideo(id, title, channel_id, description) {
+	console.log("made it");
 	current_iframe_video.id = id;
 	current_iframe_video.title = title;
+	current_iframe_video.channel_id = channel_id;
+	current_iframe_video.description = description;
 	if(number_of_plays<1){
 		//scripts trigger onYouTubeIframeAPIReady()
 		var tag = document.createElement('script');
@@ -75,6 +81,9 @@ function onYouTubeIframeAPIReady() {
 	  	width: '640',
 	  	videoId: current_iframe_video.id,
 	  	title: current_iframe_video.title,
+	  	channel_id: current_iframe_video.channel_id,
+	  	description: current_iframe_video.description,
+
 	  	events: {
 	  		'onReady' : onPlayerReady,
 	    	'onStateChange': onPlayerStateChange
@@ -114,20 +123,28 @@ function playNextVidInList(){
 		//else play random vid from list
 		if(place_in_list > -1){
 			place_in_list = place_in_list+1;
-			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title);
+			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title, vids_up_next[place_in_list].channel_id, vids_up_next[place_in_list].description);
 		}else{
 			place_in_list = Math.floor(Math.random() * length); 
-			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title);
+			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title, vids_up_next[place_in_list].channel_id, vids_up_next[place_in_list].description);
 		}
 }
 
 //records play at top of page
 function savePlay(event, end = false) {
-	console.log(event);
-	title = event.target.j.videoData.title;
+	title = event.target.b.c.title;
 	title = title.toString();
-	youtube_id = event.target.j.videoData.video_id;
+	youtube_id = event.target.b.c.videoId;
 	youtube_id = youtube_id.toString();
+	channel_id = event.target.b.c.channel_id;
+	channel_id = channel_id.toString();
+	description = event.target.b.c.description;
+	description = description.toString();
+
+	console.log("channel_id and description test /" );
+	console.log(channel_id);
+	console.log(description);
+
 	//time_start = event.target.getCurrentTime();
 	//time_end = event.target.getCurrentTime();
 	listened_to_end = 0;
@@ -138,7 +155,7 @@ function savePlay(event, end = false) {
 	$.ajax({
 		type: "POST",
 	    url: '/postlistens',
-	    data: {user_id: "1", youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end}
+	    data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description}
     });
 	if(!end){
 		$("#record_plays").append(title).append("<br>");
@@ -162,7 +179,7 @@ function getRelatedVideos(youtube_id){
 		var results = response.result;
 		i = 0;
 		$.each(results.items, function(index, item){
-			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title);
+			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title, item.snippet.channelId, item.snippet.description);
 			i++;
 		});
 		renderList(related_videos, $('#relatedvideos'), false);	
@@ -181,11 +198,13 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	}
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
-		play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"')\"> Play </button></li><br>";
+		//play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"', '"+vid.channel_id+"', '"+vid.description+"')\"> Play </button></li><br>";
+		play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'" onclick=\'playVideo("'+vid.id+'","'+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'", "'+vid.channel_id+'", "'+vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'")\'> Play </button></li><br>';
+		console.log(play_button);
 		if(empty_element){
 			$element_object.append(play_button);
 		}else{
-			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain size
+			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain sizes
 		}
 	});
 	
