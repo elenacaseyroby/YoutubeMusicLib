@@ -6,8 +6,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref 
 
 """ DO NOT COMMIT CHANGES TO THIS FILE!! """
-
-engine = create_engine('mysql+pymysql://casey:crystal@127.0.0.1:3306/youtubelib', convert_unicode=True, echo=False)
+db_url = os.environ['CLEARDB_DATABASE_URL']
+if db_url is "":
+    db_url = os.environ['MYSQL_DATABASE_URL']
+if db_url is "":
+    db_url = 'mysql+pymysql://root:@127.0.0.1:3306/youtubelib'
+engine = create_engine(db_url, convert_unicode=True, echo=False)
 Base = declarative_base()
 Base.metadata.reflect(engine)
 
