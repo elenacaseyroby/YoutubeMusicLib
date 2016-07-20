@@ -7,11 +7,13 @@ from sqlalchemy.orm import relationship, backref
 import os
 
 """ DO NOT COMMIT CHANGES TO THIS FILE!! """
-db_url = os.environ['CLEARDB_DATABASE_URL']
-if db_url is "":
+if 'CLEARDB_DATABASE_URL' in os.environ:
+    db_url = os.environ['CLEARDB_DATABASE_URL']
+elif 'MYSQL_DATABASE_URL' in os.environ:
     db_url = os.environ['MYSQL_DATABASE_URL']
-if db_url is "":
-    db_url = 'mysql+pymysql://root:@127.0.0.1:3306/youtubelib'
+else:
+    db_url = 'pymysql://root:@127.0.0.1:3306/youtubelib'
+
 engine = create_engine(db_url, convert_unicode=True, echo=False)
 Base = declarative_base()
 Base.metadata.reflect(engine)
