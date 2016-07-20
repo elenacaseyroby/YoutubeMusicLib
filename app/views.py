@@ -101,7 +101,9 @@ def postlistens():
   if not video_in_db:
     new_video = models.Video(youtube_id=request.form["youtube_id"],
                   youtube_title=request.form["youtube_title"],
-                  title = request.form["youtube_title"])#edit so it only adds vid info if it doesn't already exist
+                  title = request.form["youtube_title"],
+                  channel_id = request.form["channel_id"],
+                  description = request.form["description"])#edit so it only adds vid info if it doesn't already exist
     session.add(new_video)
     session.commit()
   #post listen
