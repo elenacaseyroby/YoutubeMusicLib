@@ -133,13 +133,13 @@ function playNextVidInList(){
 //records play at top of page
 function savePlay(event, end = false) {
 	title = event.target.b.c.title;
-	title = decodeURIComponent(title.toString());
+	title = decodeURIComponent(title.toString()).replace("&apos;", "'").replace('&quot;', '"');
 	youtube_id = event.target.b.c.videoId;
 	youtube_id = youtube_id.toString();
 	channel_id = event.target.b.c.channel_id;
 	channel_id = channel_id.toString();
 	description = event.target.b.c.description;
-	description = decodeURIComponent(description.toString());
+	description = decodeURIComponent(description.toString()).replace("&apos;", "'").replace('&quot;', '"');
 
 	console.log("channel_id and description test /" );
 	console.log(channel_id);
