@@ -133,13 +133,13 @@ function playNextVidInList(){
 //records play at top of page
 function savePlay(event, end = false) {
 	title = event.target.b.c.title;
-	title = title.toString();
+	title = decodeURIComponent(title.toString());
 	youtube_id = event.target.b.c.videoId;
 	youtube_id = youtube_id.toString();
 	channel_id = event.target.b.c.channel_id;
 	channel_id = channel_id.toString();
 	description = event.target.b.c.description;
-	description = description.toString();
+	description = decodeURIComponent(description.toString());
 
 	console.log("channel_id and description test /" );
 	console.log(channel_id);
@@ -198,10 +198,6 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	}
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
-		//play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"', '"+vid.channel_id+"', '"+vid.description+"')\"> Play </button></li><br>";
-		//play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'" onclick=\'playVideo("'+vid.id+'","'+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'", "'+vid.channel_id+'", "'+vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'")\'> Play </button></li><br>';
-		//play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title).replace(/'/g, "\\'")+'" onclick=\"playVideo("'+vid.id+'","'+encodeURIComponent(vid.title).replace(/'/g, "\\'")+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description).replace(/'/g, "\\'")+'")\"> Play </button></li><br>';
-		//play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title)+'" onclick=\"playVideo("'+vid.id+'","'+encodeURIComponent(vid.title)+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description)+'")\"> Play </button></li><br>';
 		play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> Play </button></li><br>';
 		console.log(play_button);
 		if(empty_element){
