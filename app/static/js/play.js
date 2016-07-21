@@ -55,6 +55,7 @@ $(function(){
 
 //loads iframe api scripts on first play and calls iframe api directly on additional plays
 function playVideo(id, title, channel_id, description) {
+	console.log("made it");
 	current_iframe_video.id = id;
 	current_iframe_video.title = title;
 	current_iframe_video.channel_id = channel_id;
@@ -132,13 +133,17 @@ function playNextVidInList(){
 //records play at top of page
 function savePlay(event, end = false) {
 	title = event.target.b.c.title;
-	title = title.toString();
+	title = decodeURIComponent(title.toString());
 	youtube_id = event.target.b.c.videoId;
 	youtube_id = youtube_id.toString();
 	channel_id = event.target.b.c.channel_id;
 	channel_id = channel_id.toString();
 	description = event.target.b.c.description;
-	description = description.toString();
+	description = decodeURIComponent(description.toString());
+
+	console.log("channel_id and description test /" );
+	console.log(channel_id);
+	console.log(description);
 
 	//time_start = event.target.getCurrentTime();
 	//time_end = event.target.getCurrentTime();
@@ -193,12 +198,16 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	}
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
-		play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"', '"+vid.channel_id+"', '"+vid.description+"')\"> Play </button></li><br>";
+		play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> Play </button></li><br>';
+		console.log(play_button);
 		if(empty_element){
 			$element_object.append(play_button);
 		}else{
-			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain size
+			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain sizes
 		}
+		//can post descriptions with quotes to db and 
+		//can play most vids with single quotes in title but 
+		//double quotes in title prevent plays
 	});
 	
 }

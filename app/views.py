@@ -94,16 +94,35 @@ def login():
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
-  #move into model
+  print "~~~~~~~~~~channel_id~~~~~~~~~~"
+  print request.form["channel_id"]
+  print "~~~~~~~~~~description~~~~~~~~~~"
+  print request.form["description"]
+
+  #split youtube title into title and artist
+  youtube_title = request.form["youtube_title"]
+  if '-' in youtube_title:
+    splitter = '-'
+  else: splitter = ':'
+  split_youtube_title = youtube_title.split(splitter, 1)
+  artist_artist_name = split_youtube_title[0]
+  artist_artist_name = artist_artist_name.strip()
+  videos_title = split_youtube_title[1]
+  videos_title = videos_title.lstrip('-').strip()
+  print artist_artist_name+" - "+videos_title
+
+  artist_id = updateartist(artist_artist_name)
+  #if new vid post to db
   session.rollback()
-  #if new vid post to video_in_db
+
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
     new_video = models.Video(youtube_id=request.form["youtube_id"],
                   youtube_title=request.form["youtube_title"],
-                  title = request.form["youtube_title"],
+                  title = videos_title,
+                  artist_id = artist_id,
                   channel_id = request.form["channel_id"],
-                  description = request.form["description"])#edit so it only adds vid info if it doesn't already exist
+                  description = request.form["description"])
     session.add(new_video)
     session.commit()
   #post listen
@@ -179,17 +198,7 @@ def updatedata():
   artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
   album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
 
-  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-  if artist_by_name:
-    artist_id = artist_by_name.id
-
-  else:#if artist name doesn't exist in db, add new row to artists table
-    session.rollback()
-    new_artist = models.Artist(artist_name=request.form["artist"])#edit so it only adds vid info if it doesn't already exist
-    session.add(new_artist)
-    session.commit()
-    new_artist_id = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
-    artist_id = int(new_artist_id.id)
+  artist_id = updateartist(request.form["artist"])
   
   session.rollback()
   if album_by_name:
@@ -222,6 +231,23 @@ def updatedata():
       session.commit()
 
   return "success"
+
+def updateartist(artist_artist_name):
+  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
+  session.rollback()
+  artist_by_name = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+  if artist_by_name:
+    artist_id = artist_by_name.id
+  #if artist name doesn't exist in db, add new row to artists table
+  else:
+    session.rollback()
+    new_artist = models.Artist(artist_name = artist_artist_name)
+    session.add(new_artist)
+    session.commit()
+    new_artist_id = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+    artist_id = int(new_artist_id.id)
+
+  return artist_id
 
 #pulls data for library page
 def getlibrary(user_id):

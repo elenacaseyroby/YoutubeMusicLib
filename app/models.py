@@ -7,7 +7,8 @@ from sqlalchemy.orm import relationship, backref
 
 """ DO NOT COMMIT CHANGES TO THIS FILE!! """
 
-engine = create_engine('mysql+pymysql://root:@127.0.0.1:3306/youtubelib', convert_unicode=True, echo=False)
+engine = create_engine('mysql+pymysql://casey:crystal@127.0.0.1:3306/youtubelib', convert_unicode=True, echo=False)
+
 Base = declarative_base()
 Base.metadata.reflect(engine)
 
