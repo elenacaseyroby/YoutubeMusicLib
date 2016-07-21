@@ -4,10 +4,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref 
+import os
 
 """ DO NOT COMMIT CHANGES TO THIS FILE!! """
 
-engine = create_engine('mysql+pymysql://casey:crystal@127.0.0.1:3306/youtubelib', convert_unicode=True, echo=False)
+if 'CLEARDB_DATABASE_URL' in os.environ and os.environ['CLEARDB_DATABASE_URL']:
+    db_url = os.environ['CLEARDB_DATABASE_URL']
+elif 'MYSQL_DATABASE_URL' in os.environ and os.environ['MYSQL_DATABASE_URL']:
+    db_url = os.environ['MYSQL_DATABASE_URL']
+else:
+    db_url = 'mysql+pymysql://root:@127.0.0.1:3306/youtubelib'
+
+engine = create_engine(db_url, convert_unicode=True, echo=False)
 
 Base = declarative_base()
 Base.metadata.reflect(engine)
