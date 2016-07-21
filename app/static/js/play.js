@@ -199,6 +199,9 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
 		//play_button = "<br><li>"+vid.title+"<button type='button' id='"+vid.id+"' value='"+vid.id+","+vid.title+"' onclick=\"playVideo('"+vid.id+"','"+vid.title+"', '"+vid.channel_id+"', '"+vid.description+"')\"> Play </button></li><br>";
+		//play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'" onclick=\'playVideo("'+vid.id+'","'+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'", "'+vid.channel_id+'", "'+vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'")\'> Play </button></li><br>';
+		//play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title).replace(/'/g, "\\'")+'" onclick=\"playVideo("'+vid.id+'","'+encodeURIComponent(vid.title).replace(/'/g, "\\'")+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description).replace(/'/g, "\\'")+'")\"> Play </button></li><br>';
+		//play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title)+'" onclick=\"playVideo("'+vid.id+'","'+encodeURIComponent(vid.title)+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description)+'")\"> Play </button></li><br>';
 		play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'" onclick=\'playVideo("'+vid.id+'","'+vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'", "'+vid.channel_id+'", "'+vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;")+'")\'> Play </button></li><br>';
 		console.log(play_button);
 		if(empty_element){
@@ -206,6 +209,9 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 		}else{
 			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain sizes
 		}
+		//can post descriptions with quotes to db and 
+		//can play most vids with single quotes in title but 
+		//double quotes in title prevent plays
 	});
 	
 }
