@@ -183,16 +183,19 @@ function savePlay(event, end = false) {
 			$("#record_plays").append(title).append("<br>");
 		}
 	});*/
-	lastFMGetSimilarArtists(trackInfo.artistName, function(artistcommamatch) {
+	lastFMGetSimilarArtists(trackInfo.artistName, function(similarartiststring) {
+		console.log("~~~~~ similar artist string!! ~~~~~~~~");
+		console.log(similarartiststring);
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
-	    	data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, artistcommamatch: artistcommamatch}
+	    	data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring)}
 	    });
 		if(!end){
 			$("#record_plays").append(title).append("<br>");
 		}
 	});
+
 }
 
 //get and render related videos

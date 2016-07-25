@@ -24,7 +24,7 @@ function lastFMGetSimilar(trackName, artistName, callBack) {
 }
 
 function lastFMGetSimilarArtists(artistName, callBack) {
-    var artistcommamatch = "";
+    var similarartiststring = [];
     console.log("artistName: ", artistName);
     results = $.ajax({
         url: "http://ws.audioscrobbler.com/2.0/",
@@ -36,16 +36,22 @@ function lastFMGetSimilarArtists(artistName, callBack) {
             "format=json",
         dataType: "jsonp",
         success: function (data) {
-            console.log(data);
             $.each(data.similarartists.artist, function(index=100, item){
                 console.log(item);
-                artistcommamatch.append(item.name+','item.match);
+                
+                //appends lastfm "similar artist name,match score"
+                /*
+                if (index > 0){
+                    similarartiststring = similarartiststring+',';
 
+                }*/
+                similarartiststring.push(item.name+','+item.match);
             });
+            callBack(similarartiststring);
         }
     });
-    console.log(results);
+    
     //pull results into a comma deliniated string that will be 
     //passed into callback and within the callback, into the ajax post request
-    callBack(artistcommamatch);
+    
 }
