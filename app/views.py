@@ -94,11 +94,6 @@ def login():
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
-  print "~~~~~~~~~~channel_id~~~~~~~~~~"
-  print request.form["channel_id"]
-  print "~~~~~~~~~~description~~~~~~~~~~"
-  print request.form["description"]
-
   #split youtube title into title and artist
   youtube_title = request.form["youtube_title"]
   if '-' in youtube_title:
@@ -109,12 +104,9 @@ def postlistens():
   artist_artist_name = artist_artist_name.strip()
   videos_title = split_youtube_title[1]
   videos_title = videos_title.lstrip('-').strip()
-  print artist_artist_name+" - "+videos_title
-
   artist_id = updateartist(artist_artist_name)
-  #if new vid post to db
+  #add videos and listens
   session.rollback()
-
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
     new_video = models.Video(youtube_id=request.form["youtube_id"],
@@ -131,6 +123,45 @@ def postlistens():
                 listened_to_end=request.form["listened_to_end"])
   session.add(new_listen)
   session.commit()
+
+  #store lastfm similar artists and match scores
+  lastfm_similar_artists_list = list()
+  similar_artists_list = list()
+  #artist_table_list is a full list of artists in our db
+  artists_table = getArtists(); #trying to find out how to select just artist names so it can be a list of names that can be easily checked
+  artist_table_list = list()
+  for artist in artists_table:
+    artist_table_list.append(artist[5].lower())
+  #similar_artists_list is a list of all the artists that are 
+  #listed as similar to artist_artist_name artist (currently playing artist) in our db
+  similar_artists = getsimilarartistsbyartist(artist_id)
+  if similar_artists:
+    for artist in similar_artists:
+        similar_artists_list.append(artist[0].lower())
+  #lastfm_similar_artists_list is a list of strings. Each string will contain
+  #a similar artist and their match score: "similar_artist,match_score"
+  lastfm_similar_artists_list = loads(request.form["similarartiststring"]) 
+  for lastfm_artist in lastfm_similar_artists_list:
+    artistandmatch = lastfm_artist.split(',')
+    #add if last fm similar artist isn't in artists table
+    artist = artistandmatch[0]
+    match = artistandmatch[1]
+    if artist.lower() not in artist_table_list:
+      session.rollback()
+      new_artist = models.Artist(artist_name = artist)
+      session.add(new_artist)
+      session.commit()
+    # add if lastfm similar artist isn't listed as artist's similar 
+    # artist in similar_artists table
+    if artist.lower() not in similar_artists_list:
+      lastfm_artist_in_db = session.query(models.Artist).filter_by(artist_name = artist).first()
+      session.rollback()
+      new_similar_artist = models.SimilarArtists(artist_id1 = artist_id,
+                                                artist_id2 = lastfm_artist_in_db.id,
+                                                lastfm_match_score = match)
+      session.add(new_similar_artist)
+      session.commit()
+  
   return "success"
 
 #get listens data for listens page
@@ -293,6 +324,15 @@ def getlibrary(user_id):
 
   return listens 
 
+def getArtists(artist_id=None):
+  where = ""
+  if artist_id:
+    where = "WHERE artist_id = "+artist_id
+  sql= text("""SELECT *
+    FROM Artists
+    """+where+";")
+  result = models.engine.execute(sql)
+  return result
 
 #query not in use yet
 def getgenres(youtube_id):
@@ -310,14 +350,22 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
+def getsimilarartistsbyartist(artist_id):
+  sql = text("""SELECT artists.artist_name, artists.id
+    FROM similar_artists
+    JOIN artists on similar_artists.artist_id2 = artists.id
+    WHERE similar_artists.artist_id1 = """+str(artist_id)+";")
+  result = models.engine.execute(sql)
+  return result
+
 #query not in use yet
-def getsimilarartists(youtube_id):
+def getsimilarartistsbyvideo(youtube_id):
   sql = text("""SELECT 
 a1.artist_name
 FROM videos
 JOIN similar_artists s1 ON videos.artist_id = s1.artist_id1
 JOIN artists a1 ON s1.artist_id2 = a1.id
-WHERE videos.youtube_id = '"""+youtube_id+"""';""")
+WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result1 = models.engine.execute(sql)
 
   for result in result1:
@@ -328,7 +376,7 @@ a2.artist_name
 FROM videos
 JOIN similar_artists s2 ON videos.artist_id = s2.artist_id2
 JOIN artists a2 ON s2.artist_id1 = a2.id
-WHERE videos.youtube_id = '"""+youtube_id+"""';""")
+WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result2 = models.engine.execute(sql)
 
   for result in result2:
@@ -336,6 +384,3 @@ WHERE videos.youtube_id = '"""+youtube_id+"""';""")
   #result = result1 + result2
   #result = list(set(result)) #remove redundancies
   return "success"
-
-
-

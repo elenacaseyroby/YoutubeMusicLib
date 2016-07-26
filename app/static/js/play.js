@@ -1,3 +1,7 @@
+$.getScript("static/js/lastfm.js", function(){
+	console.log("lastfm.js loaded");
+});
+
 number_of_plays = 0; 
 var user_id = 1;
 
@@ -55,7 +59,7 @@ $(function(){
 
 //loads iframe api scripts on first play and calls iframe api directly on additional plays
 function playVideo(id, title, channel_id, description) {
-	console.log("made it");
+	//console.log("made it");
 	current_iframe_video.id = id;
 	current_iframe_video.title = title;
 	current_iframe_video.channel_id = channel_id;
@@ -130,8 +134,22 @@ function playNextVidInList(){
 		}
 }
 
+function parseArtistAndTitle(youtubeTitle) {
+    var trackInfo = {};
+    if (youtubeTitle.indexOf(' - ') > -1) {
+        splitter = ' - ';
+    } else {
+        splitter = ' : ';
+    }
+    var splitYoutubeTitle = youtubeTitle.split(splitter);
+    trackInfo.artistName = splitYoutubeTitle[0].trim();
+    trackInfo.trackTitle = splitYoutubeTitle[1].trim();
+    return trackInfo;
+}
+
 //records play at top of page
 function savePlay(event, end = false) {
+
 	title = event.target.b.c.title;
 	title = decodeURIComponent(title.toString()).replace("&apos;", "'").replace('&quot;', '"');
 	youtube_id = event.target.b.c.videoId;
@@ -140,6 +158,8 @@ function savePlay(event, end = false) {
 	channel_id = channel_id.toString();
 	description = event.target.b.c.description;
 	description = decodeURIComponent(description.toString()).replace("&apos;", "'").replace('&quot;', '"');
+
+	var trackInfo = parseArtistAndTitle(title);
 
 	console.log("channel_id and description test /" );
 	console.log(channel_id);
@@ -152,14 +172,29 @@ function savePlay(event, end = false) {
 		listened_to_end = 1;
 	}
 	//send data to view.py
-	$.ajax({
+	/*
+	lastFMGetSimilar(trackInfo.trackTitle, trackInfo.artistName, function() {
+		$.ajax({
 		type: "POST",
 	    url: '/postlistens',
 	    data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description}
-    });
-	if(!end){
-		$("#record_plays").append(title).append("<br>");
-	}
+	    });
+		if(!end){
+			$("#record_plays").append(title).append("<br>");
+		}
+	});*/
+	lastFMGetSimilarArtists(trackInfo.artistName, function(similarartiststring) {
+		console.log("~~~~~ similar artist string!! ~~~~~~~~");
+		console.log(similarartiststring);
+		$.ajax({
+			type: "POST",
+	    	url: '/postlistens',
+	    	data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring)}
+	    });
+		if(!end){
+			$("#record_plays").append(title).append("<br>");
+		}
+	});
 
 }
 
@@ -199,7 +234,7 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
 		play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> Play </button></li><br>';
-		console.log(play_button);
+		//console.log(play_button);
 		if(empty_element){
 			$element_object.append(play_button);
 		}else{
