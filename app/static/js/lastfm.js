@@ -13,6 +13,7 @@ function lastFMGetSimilarArtists(artistName, callBack) {
         success: function (data) {
             $.each(data.similarartists.artist, function(index=100, item){
                 console.log(item);
+                item.name.replace(/,/g,' ')
                 similarartiststring.push(item.name+','+item.match);
             });
             callBack(similarartiststring);
