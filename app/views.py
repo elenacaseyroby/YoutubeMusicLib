@@ -4,7 +4,7 @@ from app import app, models, session #,db
 from .forms import LoginForm
 from json import loads
 from sqlalchemy import text, update
-import datetime
+import datetime, re
  
 #will update once logins have been implemented
 user_id = 1;
@@ -103,7 +103,22 @@ def postlistens():
   artist_artist_name = split_youtube_title[0]
   artist_artist_name = artist_artist_name.strip()
   videos_title = split_youtube_title[1]
-  videos_title = videos_title.lstrip('-').strip()
+  years = re.findall(r'\d{4}', videos_title)
+  if years:
+    year = str(years[0])
+  else: 
+    year = ''
+  videos_title = re.sub('\(.*\)', '', videos_title)
+  videos_title = videos_title.replace('full album', '')
+  videos_title = videos_title.replace('Full Album', '')
+  videos_title = videos_title.replace('- full album', '')
+  videos_title = videos_title.replace('- Full Album', '')
+  videos_title = videos_title.replace(year, '')
+  videos_title = videos_title.replace('-', '').strip()
+
+  print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  print "title: "+videos_title+" year:"+year
+  print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
   artist_id = updateartist(artist_artist_name)
   #add videos and listens
   session.rollback()
@@ -144,8 +159,12 @@ def postlistens():
   for lastfm_artist in lastfm_similar_artists_list:
     artistandmatch = lastfm_artist.split(',')
     #add if last fm similar artist isn't in artists table
+    print "~~~~~~~~~~~~~~~~~~~~~"
+    print artistandmatch
+    print "~~~~~~~~~~~~~~~~~~~~~"
     artist = artistandmatch[0]
-    match = artistandmatch[1]
+    match = artistandmatch[1] #bug: lastfm.js not replacing all "," with spaces so sometimes match will be an artist name instead of an integer
+
     if artist.lower() not in artist_table_list:
       session.rollback()
       new_artist = models.Artist(artist_name = artist)
