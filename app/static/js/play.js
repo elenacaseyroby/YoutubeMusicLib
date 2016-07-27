@@ -249,6 +249,13 @@ function savePlay(event, end = false) {
 			$("#record_plays").append(youtube_title).append("<br>");
 		}
 	});
+	if (album == "undefined"){
+		console.log("lastFMGetAlbumByTrack");
+		genres = lastFMGetGenresByTrack(title, artist);
+		console.log("genres");
+		console.log(genres);
+	}
+
 }
 
 //get and render related videos
