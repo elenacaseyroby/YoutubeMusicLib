@@ -102,6 +102,17 @@ def postlistens():
   artist_name = str(request.form["artist"])
   album_name = str(request.form["album"])
   """
+  if (request.form["album"] != "undefined"):
+    print "album not undefined"
+    album_id = updatealbum(request.form["album"])
+  else:
+    album_id = 2
+  if(request.form["year"] == "1900-01-01"):
+    year = None
+  else: 
+    year = request.form["year"] 
+
+  
   artist_id = updateartist(str(request.form["artist"]))
   session.rollback()
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
@@ -110,9 +121,10 @@ def postlistens():
                   youtube_title=str(request.form["youtube_title"]),
                   title = str(request.form["title"]),
                   artist_id = artist_id,
+                  album_id = album_id,
                   channel_id = str(request.form["channel_id"]),
                   description = str(request.form["description"]),
-                  release_date = str(request.form["year"]))
+                  release_date = year)
     session.add(new_video)
     session.commit()
   #post listen
@@ -278,6 +290,23 @@ def updateartist(artist_artist_name):
     artist_id = int(new_artist_id.id)
 
   return artist_id
+
+def updatealbum(album_name):
+  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
+  session.rollback()
+  album_by_name = session.query(models.Album).filter_by(name = album_name).first()
+  if album_by_name:
+    album_id = album_by_name.id
+  #if artist name doesn't exist in db, add new row to artists table
+  else:
+    session.rollback()
+    new_album = models.Album(name = album_name)
+    session.add(new_album)
+    session.commit()
+    new_album_id = session.query(models.Album).filter_by(name = album_name).first()
+    album_id = int(new_album_id.id)
+
+  return album_id
 
 #pulls data for library page
 def getlibrary(user_id):
