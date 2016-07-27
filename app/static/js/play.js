@@ -134,68 +134,116 @@ function playNextVidInList(){
 		}
 }
 
-function parseArtistAndTitle(youtubeTitle) {
+function parseArtistTitleYear(youtubeTitle) {
     var trackInfo = {};
-    if (youtubeTitle.indexOf(' - ') > -1) {
-        splitter = ' - ';
-    } else {
-        splitter = ' : ';
+    if (youtubeTitle.indexOf('-') > -1) {
+        splitter = '-';
+    } else if (youtubeTitle.indexOf('|') > -1) {
+        splitter = '|';
+    } else if (youtubeTitle.indexOf('"') > -1) {
+        splitter = '"';
+    }else {
+        splitter = ':';
     }
     var splitYoutubeTitle = youtubeTitle.split(splitter);
     trackInfo.artistName = splitYoutubeTitle[0].trim();
-    trackInfo.trackTitle = splitYoutubeTitle[1].trim();
+    trackInfo.title = youtubeTitle.replace(trackInfo.artistName, '');
+    
+    console.log("title w year");
+    console.log(trackInfo.title);
+
+    var years = trackInfo.title.match(/\d{4}/g);
+	if(years == null){
+		trackInfo.year="1900-01-01";
+	}else{
+		trackInfo.title = trackInfo.title.replace(years[0].toString(), '');
+		trackInfo.year = years[0].toString()+"-01-01";
+	}
+	title_with_fullalbum = trackInfo.title;
+	trackInfo.title = trackInfo.title.replace(/full album/i, '');
+	trackInfo.title = trackInfo.title.replace(/lp/i, '');
+	trackInfo.title = trackInfo.title.replace(/album/i, '');
+	title_without_fullalbum = trackInfo.title;
+
+	var isfullalbum = false;
+	if( trackInfo.title.search(/ep/i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/demo/i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/best of/i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/greatest hits/i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/collection/i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/compilation/i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/single./i) >-1){
+		isfullalbum = true;
+	}else if( trackInfo.title.search(/complete/i) >-1){
+		isfullalbum = true;
+	}
+	trackInfo.title = trackInfo.title.replace(/-/g, '');
+	trackInfo.title = trackInfo.title.replace(/:/g, '');
+	trackInfo.title = trackInfo.title.replace(/\|/g, '');
+	trackInfo.title = trackInfo.title.replace(/\(.*\)/g, '');
+	trackInfo.title = trackInfo.title.replace(/\[.*\]/g, '');
+	trackInfo.title = trackInfo.title.replace(/\[/g, '');
+	trackInfo.title = trackInfo.title.replace(/\]/g, '');
+	trackInfo.title = trackInfo.title.replace(/\(/g, '');
+	trackInfo.title = trackInfo.title.replace(/\)/g, '');
+		trackInfo.title = trackInfo.title.replace(/"/g, '');
+	trackInfo.title = trackInfo.title.trim();
+
+	if((title_with_fullalbum != title_without_fullalbum) || isfullalbum){
+		trackInfo.album = trackInfo.title;
+	}else{
+		trackInfo.album = "undefined";
+	}
+	
+	console.log(trackInfo.title);
+	console.log("track info year");
+	console.log(trackInfo.year);
+	console.log("album");
+	console.log(trackInfo.album);
     return trackInfo;
 }
 
 //records play at top of page
 function savePlay(event, end = false) {
 
-	title = event.target.b.c.title;
-	title = decodeURIComponent(title.toString()).replace("&apos;", "'").replace('&quot;', '"');
 	youtube_id = event.target.b.c.videoId;
 	youtube_id = youtube_id.toString();
 	channel_id = event.target.b.c.channel_id;
 	channel_id = channel_id.toString();
+
 	description = event.target.b.c.description;
-	description = decodeURIComponent(description.toString()).replace("&apos;", "'").replace('&quot;', '"');
+	description = decodeURIComponent(description.toString()).replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+	title = event.target.b.c.title;
+	title = decodeURIComponent(title.toString()).replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+	youtube_title = title;
 
-	var trackInfo = parseArtistAndTitle(title);
+	var trackInfo = parseArtistTitleYear(title);
+	year = trackInfo.year;
+	title = trackInfo.title;
+	artist = trackInfo.artistName;
+	album = trackInfo.album;
 
-	console.log("channel_id and description test /" );
-	console.log(channel_id);
-	console.log(description);
-
-	//time_start = event.target.getCurrentTime();
-	//time_end = event.target.getCurrentTime();
 	listened_to_end = 0;
 	if(end){
 		listened_to_end = 1;
 	}
 	//send data to view.py
-	/*
-	lastFMGetSimilar(trackInfo.trackTitle, trackInfo.artistName, function() {
-		$.ajax({
-		type: "POST",
-	    url: '/postlistens',
-	    data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description}
-	    });
-		if(!end){
-			$("#record_plays").append(title).append("<br>");
-		}
-	});*/
 	lastFMGetSimilarArtists(trackInfo.artistName, function(similarartiststring) {
-		console.log("~~~~~ similar artist string!! ~~~~~~~~");
-		console.log(similarartiststring);
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
-	    	data: {user_id: user_id, youtube_title: title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring)}
+	    	data: {user_id: user_id, youtube_title: youtube_title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring), album : album, title: title, artist: artist, year: year}
 	    });
 		if(!end){
-			$("#record_plays").append(title).append("<br>");
+			$("#record_plays").append(youtube_title).append("<br>");
 		}
 	});
-
 }
 
 //get and render related videos

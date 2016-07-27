@@ -94,47 +94,30 @@ def login():
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
-  #split youtube title into title and artist
-  youtube_title = request.form["youtube_title"]
-  if '-' in youtube_title:
-    splitter = '-'
-  else: splitter = ':'
-  split_youtube_title = youtube_title.split(splitter, 1)
-  artist_artist_name = split_youtube_title[0]
-  artist_artist_name = artist_artist_name.strip()
-  videos_title = split_youtube_title[1]
-  years = re.findall(r'\d{4}', videos_title)
-  if years:
-    year = str(years[0])
-  else: 
-    year = ''
-  videos_title = re.sub('\(.*\)', '', videos_title)
-  videos_title = videos_title.replace('full album', '')
-  videos_title = videos_title.replace('Full Album', '')
-  videos_title = videos_title.replace('- full album', '')
-  videos_title = videos_title.replace('- Full Album', '')
-  videos_title = videos_title.replace(year, '')
-  videos_title = videos_title.replace('-', '').strip()
 
-  print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-  print "title: "+videos_title+" year:"+year
-  print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-  artist_id = updateartist(artist_artist_name)
   #add videos and listens
+  """
+  youtube_title = str(request.form["youtube_title"])
+  title = str(request.form["title"])
+  artist_name = str(request.form["artist"])
+  album_name = str(request.form["album"])
+  """
+  artist_id = updateartist(str(request.form["artist"]))
   session.rollback()
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
-    new_video = models.Video(youtube_id=request.form["youtube_id"],
-                  youtube_title=request.form["youtube_title"],
-                  title = videos_title,
+    new_video = models.Video(youtube_id=str(request.form["youtube_id"]),
+                  youtube_title=str(request.form["youtube_title"]),
+                  title = str(request.form["title"]),
                   artist_id = artist_id,
-                  channel_id = request.form["channel_id"],
-                  description = request.form["description"])
+                  channel_id = str(request.form["channel_id"]),
+                  description = str(request.form["description"]),
+                  release_date = str(request.form["year"]))
     session.add(new_video)
     session.commit()
   #post listen
   new_listen = models.Listen(user_id=request.form["user_id"],
-                youtube_id=request.form["youtube_id"],
+                youtube_id=str(request.form["youtube_id"]),
                 listened_to_end=request.form["listened_to_end"])
   session.add(new_listen)
   session.commit()
@@ -148,7 +131,7 @@ def postlistens():
   for artist in artists_table:
     artist_table_list.append(artist[5].lower())
   #similar_artists_list is a list of all the artists that are 
-  #listed as similar to artist_artist_name artist (currently playing artist) in our db
+  #listed as similar to artist_name artist (currently playing artist) in our db
   similar_artists = getsimilarartistsbyartist(artist_id)
   if similar_artists:
     for artist in similar_artists:
@@ -159,11 +142,8 @@ def postlistens():
   for lastfm_artist in lastfm_similar_artists_list:
     artistandmatch = lastfm_artist.split(',')
     #add if last fm similar artist isn't in artists table
-    print "~~~~~~~~~~~~~~~~~~~~~"
-    print artistandmatch
-    print "~~~~~~~~~~~~~~~~~~~~~"
     artist = artistandmatch[0]
-    match = artistandmatch[1] #bug: lastfm.js not replacing all "," with spaces so sometimes match will be an artist name instead of an integer
+    match = artistandmatch[1]
 
     if artist.lower() not in artist_table_list:
       session.rollback()
