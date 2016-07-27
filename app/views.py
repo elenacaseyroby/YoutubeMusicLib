@@ -111,6 +111,10 @@ def postlistens():
     year = None
   else: 
     year = request.form["year"] 
+  if(request.form["album"] != "undefined"):
+    track_num = 0
+  else:
+    track_num = None
 
   
   artist_id = updateartist(str(request.form["artist"]))
@@ -124,6 +128,7 @@ def postlistens():
                   album_id = album_id,
                   channel_id = str(request.form["channel_id"]),
                   description = str(request.form["description"]),
+                  track_num = track_num,
                   release_date = year)
     session.add(new_video)
     session.commit()
@@ -193,7 +198,7 @@ def getlistensdata(search_start_date, search_end_date):
    , artists.artist_name as artist
    , cities.name
    , albums.name as album
-   , albums.track_num
+   , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
    FROM listens
@@ -322,7 +327,7 @@ def getlibrary(user_id):
    , artists.artist_name as artist
    , cities.name
    , albums.name as album
-   , albums.track_num
+   , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
    FROM saved_vids
