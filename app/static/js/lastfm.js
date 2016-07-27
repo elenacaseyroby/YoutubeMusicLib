@@ -11,10 +11,14 @@ function lastFMGetSimilarArtists(artistName, callBack) {
             "format=json",
         dataType: "jsonp",
         success: function (data) {
-            $.each(data.similarartists.artist, function(index=100, item){
-                item.name.replace(/,/g,' ')
-                similarartiststring.push(item.name+','+item.match);
-            });
+            if(data.similarartists != null){
+                $.each(data.similarartists.artist, function(index=100, item){
+                    item.name.replace(/,/g,' ')
+                    similarartiststring.push(item.name+','+item.match);
+                });
+            }else{
+                similarartiststring.push('undefined,0.00');
+            }
             callBack(similarartiststring);
         }
     });
