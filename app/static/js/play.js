@@ -142,6 +142,8 @@ function parseArtistTitleYear(youtubeTitle) {
         splitter = '|';
     } else if (youtubeTitle.indexOf('"') > -1) {
         splitter = '"';
+    }else if (youtubeTitle.indexOf('~') > -1) {
+        splitter = '~';
     }else {
         splitter = ':';
     }
@@ -185,6 +187,7 @@ function parseArtistTitleYear(youtubeTitle) {
 	}
 	trackInfo.title = trackInfo.title.replace(/-/g, '');
 	trackInfo.title = trackInfo.title.replace(/:/g, '');
+	trackInfo.title = trackInfo.title.replace(/~/g, '');
 	trackInfo.title = trackInfo.title.replace(/\|/g, '');
 	trackInfo.title = trackInfo.title.replace(/\(.*\)/g, '');
 	trackInfo.title = trackInfo.title.replace(/\[.*\]/g, '');
@@ -233,6 +236,8 @@ function savePlay(event, end = false) {
 	if(end){
 		listened_to_end = 1;
 	}
+	console.log("album");
+	console.log(album);
 	//send data to view.py
 	lastFMGetSimilarArtists(trackInfo.artistName, function(similarartiststring) {
 		$.ajax({
