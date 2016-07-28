@@ -65,7 +65,8 @@ function lastFMGetGenresByTrack(title, artistName, callBack) {
     });
 }
 //method=artist.getinfo&artist=Cher&api_key=YOUR_API_KEY&format=json
-function lastFMGetCities(artistName) {
+function lastFMGetBioByArtist(artistName, callBack) {
+    var bio = "";
     //var track_num is null;
     console.log(artistName);
     results = $.ajax({
@@ -77,20 +78,15 @@ function lastFMGetCities(artistName) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
+            
             console.log(data);
-            /*
-            if(data.track.toptags.tag.length > 0){
-                console.log("data not null");
-                $.each(data.track.toptags.tag, function(index=100, item){
-                    tags.push(item.name);
-                });
-            }else{
-                console.log("music!");
-                tags.push('music');
+            if(data.artist.bio.content){
+                bio = data.artist.bio.content
             }
-            console.log("js tags");
-            console.log(tags);*/
-            //callBack(tags);
+            console.log("~~~~~~~~~bio start ~~~~~~~~~~~~");
+            console.log(bio);
+            console.log("~~~~~~~~~bio end ~~~~~~~~~~~~");
+            callBack(bio);
             
         }
     });

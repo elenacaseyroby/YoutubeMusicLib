@@ -265,7 +265,16 @@ function savePlay(event, end = false) {
 		});
 	}
 	console.log("last fm get cities~~~~~~~~~~");
-	lastFMGetCities(artist);
+	
+
+	lastFMGetBioByArtist(artist, function(bio) {
+			$.ajax({
+				type: "POST",
+		    	url: '/postartistinfo',
+		    	data: {artist: artist, bio: bio}
+		    });
+	});
+
 	console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 	/*
 	console.log("~~~~~album before if else ~~~~~~~~~");
