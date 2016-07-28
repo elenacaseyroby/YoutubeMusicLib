@@ -179,7 +179,16 @@ def postlistens():
       session.commit()
   
   return "success"
+@app.route('/postgenres', methods=['POST'])
+def postgenres():
+  genres = loads(request.form['genres'])
+  print "post genres~~~~~~~ genres"
+  print genres
+  youtube_id = request.form['youtube_id']
+  updategenres(youtube_id, genres)
 
+  return "success"
+  
 #get listens data for listens page
 def getlistensdata(search_start_date, search_end_date):
   session.rollback()
@@ -312,6 +321,31 @@ def updatealbum(album_name):
     album_id = int(new_album_id.id)
 
   return album_id
+
+def updategenres(youtube_id, api_genres):
+  video_genres = [];
+  sql = text("""SELECT genres.name
+                FROM genres
+                JOIN vids_genres ON genres.id = vids_genres.genre_id
+                WHERE vids_genres.youtube_id = '"""+youtube_id+"';");
+  results = models.engine.execute(sql)
+  rows = results.fetchall()
+  if len(rows) > 0:
+    for row in rows:
+      video_genres.append(row[0])
+
+  for api_genre in api_genres:
+    session.rollback()
+    is_api_genre_verified = session.query(models.Genre).filter_by(name = api_genre).first()
+
+    if is_api_genre_verified and not (api_genre in video_genres):
+      session.rollback()
+      new_vids_genres = models.VidsGenres(youtube_id = youtube_id,
+                                          genre_id = is_api_genre_verified.id)
+      session.add(new_vids_genres)
+      session.commit()
+  return "success";
+
 
 #pulls data for library page
 def getlibrary(user_id):
