@@ -3,6 +3,7 @@ from flask import render_template, flash, redirect, request, Flask
 from app import app, models, session #,db
 from .forms import LoginForm
 from json import loads
+from myfunctions import sortnumbers
 from sqlalchemy import text, update
 import datetime, re
  
@@ -117,7 +118,7 @@ def postlistens():
     track_num = None
 
   
-  artist_id = updateartist(str(request.form["artist"]))
+  artist_id = updatevideoartist(str(request.form["artist"]))
   session.rollback()
   video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
@@ -188,6 +189,63 @@ def postgenres():
   updategenres(youtube_id, genres)
 
   return "success"
+
+@app.route('/postartistinfo', methods=['POST'])
+def postartistinfo():
+  state_list = []
+  city_list = []
+  session.rollback()
+  
+  artist_in_db = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+  if (request.form["bio"]):
+    bio = request.form["bio"]
+
+    #if artist doesn't have year stored, store year
+    if artist_in_db:
+      if not artist_in_db.start_year:
+        mentionedyears = re.findall('\d{4}', bio)
+        if mentionedyears:
+          years = sortnumbers(mentionedyears)
+          print "~~~~~~~years~~~~~~~~~~"
+          print request.form["artist"]
+          print artist_in_db.id
+          print mentionedyears
+          print years.low
+          print years.high
+          print "~~~~~~~~~~~~~~~~~~~~~~"
+          if years.low and years.high:
+            print "years low and high set"
+            session.rollback()
+            q = session.query(models.Artist)
+            q = q.filter(models.Artist.id==artist_in_db.id)
+            record = q.one()
+            record.start_year = str(years.low)+'-01-01'
+            record.end_year = str(years.high)+'-01-01'
+            session.flush()
+      #if artist doesn't have city, store city
+      if artist_in_db.city_id == 2:
+        cities_results = getCities(select = " id, state, city")
+        for city in cities_results:
+            print str(city.state)+str(city.city)
+            if (str(city.state) in bio) or (str(city.city) in bio):
+              print str(city.state)+" in bio"
+              session.rollback()
+              q = session.query(models.Artist)
+              q = q.filter(models.Artist.id==artist_in_db.id)
+              record = q.one()
+              record.city_id = int(city.id)
+              session.flush()
+    else:
+      print "no bio"
+
+    return "success"
+
+
+
+  #find artist_id
+  #if start_year and 
+
+  #find all 4 digits and put smallest in artists.start_year and largest in artists.end_year
   
 #get listens data for listens page
 def getlistensdata(search_start_date, search_end_date):
@@ -254,7 +312,7 @@ def updatedata():
   artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
   album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
 
-  artist_id = updateartist(request.form["artist"])
+  artist_id = updatevideoartist(request.form["artist"])
   
   session.rollback()
   if album_by_name:
@@ -288,7 +346,7 @@ def updatedata():
 
   return "success"
 
-def updateartist(artist_artist_name):
+def updatevideoartist(artist_artist_name):
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
   session.rollback()
   artist_by_name = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
@@ -347,6 +405,7 @@ def updategenres(youtube_id, api_genres):
   return "success";
 
 
+
 #pulls data for library page
 def getlibrary(user_id):
   session.rollback()
@@ -391,12 +450,24 @@ def getlibrary(user_id):
 
   return listens 
 
+def getCities(select = "*", artist_id=None):
+  where = ""
+  if artist_id:
+    where = "WHERE cities.artist_id = "+artist_id
+  sql= text("""SELECT """+select+"""
+    FROM cities
+    """+where+";")
+  print sql
+  result = models.engine.execute(sql)
+  return result
+
+
 def getArtists(artist_id=None):
   where = ""
   if artist_id:
     where = "WHERE artist_id = "+artist_id
   sql= text("""SELECT *
-    FROM Artists
+    FROM artists
     """+where+";")
   result = models.engine.execute(sql)
   return result
