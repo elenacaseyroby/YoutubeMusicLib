@@ -203,12 +203,12 @@ function parseArtistTitleYear(youtubeTitle) {
 	}else{
 		trackInfo.album = "undefined";
 	}
-	
+	/*
 	console.log(trackInfo.title);
 	console.log("track info year");
 	console.log(trackInfo.year);
 	console.log("album");
-	console.log(trackInfo.album);
+	console.log(trackInfo.album);*/
     return trackInfo;
 }
 
@@ -216,6 +216,8 @@ function parseArtistTitleYear(youtubeTitle) {
 function savePlay(event, end = false) {
 
 	youtube_id = event.target.b.c.videoId;
+	console.log("prepost youtube id");
+	console.log(youtube_id);
 	youtube_id = youtube_id.toString();
 	channel_id = event.target.b.c.channel_id;
 	channel_id = channel_id.toString();
@@ -236,8 +238,8 @@ function savePlay(event, end = false) {
 	if(end){
 		listened_to_end = 1;
 	}
-	console.log("album");
-	console.log(album);
+	console.log("first post dashes?");
+	console.log(youtube_id);
 	//send data to view.py
 	lastFMGetSimilarArtists(trackInfo.artistName, function(similarartiststring) {
 		$.ajax({
@@ -249,12 +251,36 @@ function savePlay(event, end = false) {
 			$("#record_plays").append(youtube_title).append("<br>");
 		}
 	});
+	console.log("dashes in youtube_id?");
+	console.log(youtube_id)
+	if (album == "undefined"){
+		console.log("post genres");
+		lastFMGetGenresByTrack(title, artist, function(tags) {
+			console.log(youtube_id);
+			$.ajax({
+				type: "POST",
+		    	url: '/postgenres',
+		    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+		    });
+		});
+	}
+	console.log("last fm get cities~~~~~~~~~~");
+	lastFMGetCities(artist);
+	console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+	/*
+	console.log("~~~~~album before if else ~~~~~~~~~");
+	console.log(album);
 	if (album == "undefined"){
 		console.log("lastFMGetAlbumByTrack");
 		genres = lastFMGetGenresByTrack(title, artist);
 		console.log("genres");
 		console.log(genres);
 	}
+	else {
+		console.log("lastFMGetTrackNum");
+		info = lastFMGetTrackNum(artist, album, title);
+		console.log(info);
+	}*/
 
 }
 
