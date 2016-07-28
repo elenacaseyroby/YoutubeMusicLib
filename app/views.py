@@ -199,29 +199,55 @@ def postartistinfo():
   artist_in_db = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
   if (request.form["bio"]):
     bio = request.form["bio"]
+    now = datetime.datetime.now()
+    thisyear = int(str(now.year))
+    mentionedyears = []
 
     #if artist doesn't have year stored, store year
     if artist_in_db:
       if not artist_in_db.start_year:
-        mentionedyears = re.findall('\d{4}', bio)
-        if mentionedyears:
-          years = sortnumbers(mentionedyears)
-          print "~~~~~~~years~~~~~~~~~~"
-          print request.form["artist"]
-          print artist_in_db.id
-          print mentionedyears
-          print years.low
-          print years.high
-          print "~~~~~~~~~~~~~~~~~~~~~~"
-          if years.low and years.high:
-            print "years low and high set"
-            session.rollback()
-            q = session.query(models.Artist)
-            q = q.filter(models.Artist.id==artist_in_db.id)
-            record = q.one()
-            record.start_year = str(years.low)+'-01-01'
-            record.end_year = str(years.high)+'-01-01'
-            session.flush()
+        potentialdates = re.findall('\d{4}', bio)
+        if potentialdates:
+
+          for date in potentialdates:
+            if int(date)>1500 and int(date)<=thisyear:
+              mentionedyears.append(int(date))
+
+          if len(mentionedyears) >0:
+            years = sortnumbers(mentionedyears)
+            print "~~~~~~~years~~~~~~~~~~"
+            print request.form["artist"]
+            print artist_in_db.id
+            print mentionedyears
+            print years.low
+            print years.high
+            print "~~~~~~~~~~~~~~~~~~~~~~"
+            if years.low and years.high:
+              q = session.query(models.Artist).filter_by(id=artist_in_db.id).one()
+              if q != []:
+                  q.start_year = str(years.low)+'-01-01'
+                  #set end date if inactive for 10+ yr
+                  
+                  if thisyear - int(years.high) > 10:
+                    q.end_year = str(years.high)+'-01-01'
+                  session.add(q)
+                  session.commit()
+              print "~~~~~~~years low and high set~~~~~~~~~~~"
+              """
+              session.rollback()
+              q = session.query(models.Artist)
+              q = q.filter(models.Artist.id==artist_in_db.id)
+              record = q.one()
+              record.start_year = str(years.low)+'-01-01'
+              thisyear = int(datetime.datetime.now())
+              print str(thisyear)
+              print str(years.hight)
+              print "diff = "+str(thisyear - int(years.high))
+              #set end date if inactive for 10+ yr
+              if thisyear - int(years.high) > 10:
+                record.end_year = str(years.high)+'-01-01'
+              session.flush()
+              """
       #if artist doesn't have city, store city
       if artist_in_db.city_id == 2:
         cities_results = getCities(select = " id, state, city")
