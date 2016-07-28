@@ -208,7 +208,6 @@ def postartistinfo():
       if not artist_in_db.start_year:
         potentialdates = re.findall('\d{4}', bio)
         if potentialdates:
-
           for date in potentialdates:
             if int(date)>1500 and int(date)<=thisyear:
               mentionedyears.append(int(date))
@@ -250,17 +249,24 @@ def postartistinfo():
               """
       #if artist doesn't have city, store city
       if artist_in_db.city_id == 2:
-        cities_results = getCities(select = " id, state, city")
+        cities_results = getCities(select = " id, city_or_state")
         for city in cities_results:
-            print str(city.state)+str(city.city)
-            if (str(city.state) in bio) or (str(city.city) in bio):
-              print str(city.state)+" in bio"
+            print str(city.city_or_state)
+            if str(city.city_or_state) in bio:
+              print str(city.city_or_state)+" in bio"
               session.rollback()
+              q = session.query(models.Artist).filter_by(id=artist_in_db.id).one()
+              if q != []:
+                  q.city_id= str(city.id)
+                  session.add(q)
+                  session.commit()
+              """
               q = session.query(models.Artist)
               q = q.filter(models.Artist.id==artist_in_db.id)
               record = q.one()
               record.city_id = int(city.id)
               session.flush()
+              """
     else:
       print "no bio"
 
