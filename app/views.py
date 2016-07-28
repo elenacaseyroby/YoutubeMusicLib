@@ -231,22 +231,7 @@ def postartistinfo():
                     q.end_year = str(years.high)+'-01-01'
                   session.add(q)
                   session.commit()
-              print "~~~~~~~years low and high set~~~~~~~~~~~"
-              """
-              session.rollback()
-              q = session.query(models.Artist)
-              q = q.filter(models.Artist.id==artist_in_db.id)
-              record = q.one()
-              record.start_year = str(years.low)+'-01-01'
-              thisyear = int(datetime.datetime.now())
-              print str(thisyear)
-              print str(years.hight)
-              print "diff = "+str(thisyear - int(years.high))
-              #set end date if inactive for 10+ yr
-              if thisyear - int(years.high) > 10:
-                record.end_year = str(years.high)+'-01-01'
-              session.flush()
-              """
+
       #if artist doesn't have city, store city
       if artist_in_db.city_id == 2:
         cities_results = getCities(select = " id, city_or_state")
@@ -260,13 +245,7 @@ def postartistinfo():
                   q.city_id= str(city.id)
                   session.add(q)
                   session.commit()
-              """
-              q = session.query(models.Artist)
-              q = q.filter(models.Artist.id==artist_in_db.id)
-              record = q.one()
-              record.city_id = int(city.id)
-              session.flush()
-              """
+
     else:
       print "no bio"
 
@@ -295,7 +274,7 @@ def getlistensdata(search_start_date, search_end_date):
    , videos.music
    , videos.release_date
    , artists.artist_name as artist
-   , cities.name
+   , cities.city_or_state
    , albums.name as album
    , videos.track_num
    , artists.id as artist_id
@@ -450,7 +429,7 @@ def getlibrary(user_id):
    , videos.music
    , videos.release_date
    , artists.artist_name as artist
-   , cities.name
+   , cities.city_or_state
    , albums.name as album
    , videos.track_num
    , artists.id as artist_id
