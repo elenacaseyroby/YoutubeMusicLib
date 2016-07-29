@@ -19,7 +19,12 @@ function lastFMGetSimilarArtists(artistName, callBack) {
             "format=json",
         dataType: "jsonp",
         success: function (data) {
-            if(data.similarartists != null){
+            if (data.error) {
+                console.log("Last.fm API Error: ");
+                console.log(data.error);
+                console.log(data.message);
+            }
+            else if (data.similarartists != null){
                 $.each(data.similarartists.artist, function(index=100, item){
                     item.name.replace(/,/g,' ')
                     var artist = {
@@ -56,13 +61,16 @@ function lastFMGetGenresByTrack(title, artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            if(data.track.toptags.tag.length > 0){
+            if (data.error) {
+                console.log("Last.fm API Error: ");
+                console.log(data.error);
+                console.log(data.message);
+            }
+            else if(data.track.toptags.tag.length > 0){
                 $.each(data.track.toptags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
-            }/*else{
-                tags.push('music');
-            }*/
+            }
             callBack(tags);
             
         }
@@ -95,9 +103,11 @@ function lastFMGetGenresByAlbum(album, artistName, callBack) {
                 $.each(data.album.tags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
-            }/*else{
+            }
+            else {
                 tags.push('music');
-            }*/
+            }
+            console.log("lastFMGetGenresByAlbum tags: ", tags);
             console.log(tags);
             callBack(tags); 
         }
@@ -116,14 +126,21 @@ function lastFMGetGenresByArtist(artistName, callBack) {
         success: function (data) {
             console.log("artist data");
             console.log(data);
-            if(data.artist.tags.tag.length > 0){
+            if (data.error) {
+                console.log("Last.fm API Error: ");
+                console.log(data.error);
+                console.log(data.message);
+            }
+            else if (data.artist.tags.tag.length > 0){
                 console.log("data not null");
                 $.each(data.artist.tags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
-            }else{
+            }
+            else {
                 tags.push('music');
             }
+            console.log("lastFMGetGenresByArtist tags: ");
             console.log(tags);
             callBack(tags); 
         }
@@ -141,11 +158,17 @@ function lastFMGetBioByArtist(artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            if(data.artist.bio.content){
+            if (data.error) {
+                console.log("Last.fm API Error: ");
+                console.log(data.error);
+                console.log(data.message);
+            }
+            else if (data.artist.bio.content){
                 bio = data.artist.bio.content
             }
+            console.log("lastFMGetBioByArtist bio: ");
+            console.log(bio);
             callBack(bio);
-            
         }
     });
 }
