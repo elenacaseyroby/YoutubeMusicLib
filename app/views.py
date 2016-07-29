@@ -158,10 +158,15 @@ def postlistens():
   #a similar artist and their match score: "similar_artist,match_score"
   lastfm_similar_artists_list = loads(request.form["similarartiststring"]) 
   for lastfm_artist in lastfm_similar_artists_list:
-    artistandmatch = lastfm_artist.split(',')
+    #artistandmatch = lastfm_artist.split(',')
     #add if last fm similar artist isn't in artists table
-    artist = artistandmatch[0]
-    match = artistandmatch[1]
+    #artist = artistandmatch[0]
+    #match = artistandmatch[1]
+    print "~~~~lastfm artist~~~~~"
+    print lastfm_artist
+    print "~~~~~~~~~~~~~~~~~~~~~"
+    artist = lastfm_artist['name']
+    match = lastfm_artist['match']
 
     if artist.lower() not in artist_table_list:
       session.rollback()
