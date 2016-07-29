@@ -184,6 +184,8 @@ function parseArtistTitleYear(youtubeTitle) {
 		isfullalbum = true;
 	}else if( trackInfo.title.search(/complete/i) >-1){
 		isfullalbum = true;
+	}else if( trackInfo.title.search(/album/i) >-1){
+		isfullalbum = true;
 	}
 	trackInfo.title = trackInfo.title.replace(/-/g, '');
 	trackInfo.title = trackInfo.title.replace(/:/g, '');
@@ -233,6 +235,9 @@ function savePlay(event, end = false) {
 	title = trackInfo.title;
 	artist = trackInfo.artistName;
 	album = trackInfo.album;
+	console.log("~~~~~~~~~~~album:~~~~~~~~~~");
+	console.log(album);
+	console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 	listened_to_end = 0;
 	if(end){
@@ -241,7 +246,7 @@ function savePlay(event, end = false) {
 	console.log("first post dashes?");
 	console.log(youtube_id);
 	//send data to view.py
-	lastFMGetSimilarArtists(trackInfo.artistName, function(similarartiststring) {
+	lastFMGetSimilarArtists(encodeURIComponent(trackInfo.artistName), function(similarartiststring) {
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
@@ -255,42 +260,60 @@ function savePlay(event, end = false) {
 	console.log(youtube_id)
 	if (album == "undefined"){
 		console.log("post genres");
-		lastFMGetGenresByTrack(title, artist, function(tags) {
+		lastFMGetGenresByTrack(encodeURIComponent(title), encodeURIComponent(artist), function(tags) {
 			console.log(youtube_id);
-			$.ajax({
-				type: "POST",
-		    	url: '/postgenres',
-		    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
-		    });
-		});
-	}
-	console.log("last fm get cities~~~~~~~~~~");
-	
+			
+			if (tags.length >0){
+				$.ajax({
+					type: "POST",
+			    	url: '/postgenres',
+			    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+			    });
+			   	
+			}else{
+				lastFMGetGenresByArtist(encodeURIComponent(artist), function(tags){
+					$.ajax({
+						type: "POST",
+				    	url: '/postgenres',
+				    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+				    });
 
-	lastFMGetBioByArtist(artist, function(bio) {
+				});
+
+			}
+		});
+	}else{
+		lastFMGetGenresByAlbum(encodeURIComponent(album), encodeURIComponent(artist), function(tags){
+			
+			if (tags.lenth >0){
+				$.ajax({
+					type: "POST",
+			    	url: '/postgenres',
+			    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+			    });
+			    
+			}else{
+				lastFMGetGenresByArtist(encodeURIComponent(artist), function(tags){
+					$.ajax({
+						type: "POST",
+				    	url: '/postgenres',
+				    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+				    });
+
+				});
+
+			}
+		});
+
+	}
+
+	lastFMGetBioByArtist(encodeURIComponent(artist), function(bio) {
 			$.ajax({
 				type: "POST",
 		    	url: '/postartistinfo',
 		    	data: {artist: artist, bio: bio}
 		    });
 	});
-
-	console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-	/*
-	console.log("~~~~~album before if else ~~~~~~~~~");
-	console.log(album);
-	if (album == "undefined"){
-		console.log("lastFMGetAlbumByTrack");
-		genres = lastFMGetGenresByTrack(title, artist);
-		console.log("genres");
-		console.log(genres);
-	}
-	else {
-		console.log("lastFMGetTrackNum");
-		info = lastFMGetTrackNum(artist, album, title);
-		console.log(info);
-	}*/
-
 }
 
 //get and render related videos

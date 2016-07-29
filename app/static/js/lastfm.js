@@ -47,28 +47,75 @@ function lastFMGetGenresByTrack(title, artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            console.log(data);
             if(data.track.toptags.tag.length > 0){
-                console.log("data not null");
                 $.each(data.track.toptags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
-            }else{
-                console.log("music!");
+            }/*else{
                 tags.push('music');
-            }
-            console.log("js tags");
-            console.log(tags);
+            }*/
             callBack(tags);
             
         }
     });
 }
-
+//method=album.getinfo&api_key=YOUR_API_KEY&artist=Cher&album=Believe&format=json
+//method=album.gettoptags&artist=radiohead&album=the%20bends&api_key=YOUR_API_...
+function lastFMGetGenresByAlbum(album, artistName, callBack) {
+    var tags = []; 
+    results = $.ajax({
+        url: "http://ws.audioscrobbler.com/2.0/",
+        data: "method=album.getinfo" +
+            "&artist=" +
+            artistName +
+            "&album=" +
+            album +
+            "&api_key=175f6031e4788e29a9ff3961219ffc06" +
+            "&format=json",
+        dataType: "jsonp",
+        success: function (data) {
+            if(data.album.tags.tag.length > 0){
+                console.log("data not null");
+                $.each(data.album.tags.tag, function(index=100, item){
+                    tags.push(item.name);
+                });
+            }/*else{
+                tags.push('music');
+            }*/
+            console.log(tags);
+            callBack(tags); 
+        }
+    });
+}
+function lastFMGetGenresByArtist(artistName, callBack) {
+    var tags = []; 
+    results = $.ajax({
+        url: "http://ws.audioscrobbler.com/2.0/",
+        data: "method=artist.getinfo" +
+            "&artist=" +
+            artistName +
+            "&api_key=175f6031e4788e29a9ff3961219ffc06" +
+            "&format=json",
+        dataType: "jsonp",
+        success: function (data) {
+            console.log("artist data");
+            console.log(data);
+            if(data.artist.tags.tag.length > 0){
+                console.log("data not null");
+                $.each(data.artist.tags.tag, function(index=100, item){
+                    tags.push(item.name);
+                });
+            }else{
+                tags.push('music');
+            }
+            console.log(tags);
+            callBack(tags); 
+        }
+    });
+}
 function lastFMGetBioByArtist(artistName, callBack) {
     var bio = "";
     //var track_num is null;
-    console.log(artistName);
     results = $.ajax({
         url: "http://ws.audioscrobbler.com/2.0/",
         data: "method=artist.getInfo" +
@@ -78,8 +125,6 @@ function lastFMGetBioByArtist(artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            
-            console.log(data);
             if(data.artist.bio.content){
                 bio = data.artist.bio.content
             }
