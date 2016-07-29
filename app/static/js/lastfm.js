@@ -6,6 +6,7 @@ function albumInfo(album, trackNumber, year) {
 }
 
 function lastFMGetSimilarArtists(artistName, callBack) {
+
     var similarartiststring = [];
     //console.log("artistName: ", artistName);
     results = $.ajax({
@@ -21,10 +22,18 @@ function lastFMGetSimilarArtists(artistName, callBack) {
             if(data.similarartists != null){
                 $.each(data.similarartists.artist, function(index=100, item){
                     item.name.replace(/,/g,' ')
-                    similarartiststring.push(item.name+','+item.match);
+                    var artist = {
+                        name: item.name,
+                        match: item.match
+                    };
+                    similarartiststring.push(artist);
                 });
             }else{
-                similarartiststring.push('undefined,0.00');
+                var artist = {
+                    name: "undefined",
+                    match: "0.00"
+                };
+                similarartiststring.push(artist);
             }
             callBack(similarartiststring);
             //return similarartiststring;
