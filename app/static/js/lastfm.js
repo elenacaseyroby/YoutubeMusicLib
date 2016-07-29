@@ -83,8 +83,15 @@ function lastFMGetGenresByAlbum(album, artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            if(data.album.tags.tag.length > 0){
-                console.log("data not null");
+            console.log("lastFMGetGenresByAlbum Data: ");
+            console.log(data);
+            if (data.error) {
+                console.log("Last.fm API Error: ");
+                console.log(data.error);
+                console.log(data.message);
+            }
+            else if (data.album.tags.tag.length > 0){
+                console.log("Last.fm albums tag array not empty");
                 $.each(data.album.tags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
