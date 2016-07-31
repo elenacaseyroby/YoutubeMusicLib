@@ -9,7 +9,6 @@ import datetime, re
  
 #will update once logins have been implemented
 user_id = 1;
-#.
 
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
