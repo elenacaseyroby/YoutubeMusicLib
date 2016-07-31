@@ -10,6 +10,7 @@ httplib2==0.9.2
 itsdangerous==0.24
 Jinja2==2.8
 MarkupSafe==0.23
+MySQL-python==1.2.5
 oauth2client==2.1.0
 pyasn1==0.1.9
 pyasn1-modules==0.0.8
@@ -17,8 +18,8 @@ PyMySQL==0.7.4
 rsa==3.4.2
 simplejson==3.8.2
 six==1.10.0
+SQLAlchemy==1.0.14
 uritemplate==0.6
 webassets==0.11.1
 Werkzeug==0.11.10
 WTForms==2.1
-MySQL-python==1.2.5
