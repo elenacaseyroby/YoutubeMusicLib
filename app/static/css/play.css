@@ -16,5 +16,9 @@
 h3{
 	text-align: center;
 }
-
+li:hover{
+	font-weight: bold;
+	font-style: italic; 
+	text-decoration: underline;
+}
 
