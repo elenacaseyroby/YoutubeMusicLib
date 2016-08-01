@@ -6,9 +6,7 @@ Documentation
 * run $virtualenv venv
 This will make a folder called "venv" in your project directory that will contain everything you download for project environment.
 * run $. venv/bin/activate to activate the virtual environment (to deactivate run $deactivate)
-* install Flask in your venv environment
-* pip install --upgrade google-api-python-client
-* pip install Flask-Assets  ~~ to use js and bootstrap
+* run $pip install -r requirements.txt
 
 
 How to install Flask:
