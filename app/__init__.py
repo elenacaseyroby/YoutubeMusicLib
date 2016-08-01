@@ -12,7 +12,7 @@ Session = sessionmaker(bind=models.engine)
 Session.configure(bind=models.engine) 
 session = Session()
 
-print "~~~~~~~~~~~start~~~~~~~~~~"
+print("~~~~~~~~~~~start~~~~~~~~~~")
 
 from app import views, models #imports views.py from the app package
 
