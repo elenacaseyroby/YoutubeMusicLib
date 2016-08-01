@@ -26,7 +26,7 @@ $(function(){
 		var request = gapi.client.youtube.search.list({
 			part: "snippet",
 			type: "video",
-			maxResults: 3,
+			maxResults: 10,
 			order: "relevance",
 			q: encodeURIComponent($("#keywords").val()).replace(/%20/g, "+")
 		});
@@ -253,7 +253,9 @@ function savePlay(event, end = false) {
 	    	data: {user_id: user_id, youtube_title: youtube_title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring), album : album, title: title, artist: artist, year: year}
 	    });
 		if(!end){
-			$("#record_plays").append(youtube_title).append("<br>");
+			play_button = '<li>'+youtube_title+'<button type="button" id="'+youtube_id+'" value="'+youtube_id+','+encodeURIComponent(title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+youtube_id+'","'+encodeURIComponent(title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+channel_id+'", "'+encodeURIComponent(description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> Play </button></li><br>';
+		
+			$("#record_plays").append(play_button);
 		}
 	});
 	console.log("dashes in youtube_id?");
@@ -324,7 +326,7 @@ function getRelatedVideos(youtube_id){
 			part: "snippet",
 			type: "video",
 			relatedToVideoId: youtube_id,
-			maxResults: 3
+			maxResults: 5
 			
 	});
 	request.execute(function(response){
@@ -351,7 +353,7 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	}
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
-		play_button = '<br><li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> Play </button></li><br>';
+		play_button = '<li>'+vid.title+'<button type="button" id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> Play </button></li><br>';
 		//console.log(play_button);
 		if(empty_element){
 			$element_object.append(play_button);

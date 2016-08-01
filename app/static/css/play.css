@@ -1,0 +1,20 @@
+
+.plays-column{
+	float: left; 
+	width: 33%;
+	border-right: 4em;
+}
+.search-column{
+	display: inline-block;
+	width: 33%;
+	border-right: 4em;
+}
+.related-column{
+	float: right;
+	width: 33%;
+}
+h3{
+	text-align: center;
+}
+
+
