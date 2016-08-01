@@ -1,6 +1,8 @@
 #!/usr/bin/python
 from flask import render_template, flash, redirect, request, Flask
-from app import app, models, session #,db
+from flask_login import LoginManager
+from flask.ext.security import login_required
+from app import app, models, session, login_manager #,db
 from .forms import LoginForm
 from json import loads
 from .myfunctions import sortnumbers
@@ -9,6 +11,18 @@ import datetime, re
  
 #will update once logins have been implemented
 user_id = 1;
+
+class user:
+  def __init__(self):
+    pass
+  def is_active(self):
+    pass
+  def get_id(self):
+    pass
+  def is_authenticated(self):
+    pass
+  def is_anonymous(self):
+    pass
 
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
@@ -36,6 +50,10 @@ class displayupdate_page_row_object:
         return self.youtube_id 
         return self.artist_id 
         return self.album_id 
+
+@login_manager.user_loader
+def load_user(user_id):
+  return User.get(user_id)
 
 @app.route('/')
 @app.route('/index')
@@ -69,7 +87,7 @@ def listens():
 
 
 @app.route('/library')
-
+@login_required
 def library():
   library = list()
   library = getlibrary(user_id)
@@ -80,7 +98,19 @@ def library():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+def login():
+  form = LoginForm()
+  if form.validate_on_submit():
+    login_user(user)
+    flask.flash('Logged in successfully.')
 
+    next = flask.request.args.get('next')
+    if not next_is_valid(next):
+        return flask.abort(400)
+
+    return flask.redirect(next or flask.url_for('index'))
+  return flask.render_template('login.html', form=form)
+"""
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -91,6 +121,13 @@ def login():
                            title='Sign In',
                            form=form,
                            providers=app.config['OPENID_PROVIDERS'])
+"""
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect('/index')
 
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
