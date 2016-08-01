@@ -367,9 +367,9 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 
 function init(){
 	//test key:
-	gapi.client.setApiKey("AIzaSyB8Myy78KEAuztudBxlM7ZwMbVnu7VQZpA");
+	//gapi.client.setApiKey("AIzaSyB8Myy78KEAuztudBxlM7ZwMbVnu7VQZpA");
 	//live:
-	//gapi.client.setApiKey("AIzaSyBb7dtTX5v8gJN-tD8Mbm8jCdBqlXIeY2k");
+	gapi.client.setApiKey("AIzaSyBxdhuwSIApshQo5Qeve12K1-0B7HD_n8g");
 	
 	gapi.client.load("youtube","v3", function(){
 		//youtube api is ready
