@@ -3,8 +3,8 @@
 {% block content %}
 	{% if islistens == "true" %}
 		<form id="searchdates" action="/listens" method="get">
-		View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
-		<input type="submit" value="Search Dates">
+		View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}">
+		<input type="submit" value="Search Dates" class="pure-button">
 		</form>
 	<h3>Recent Listens:</h3>
 	{%endif%}
@@ -21,13 +21,12 @@ make all textbox be search dropdown that fills with db table elements to make it
 		    <th>Time</th>
 		    <th>Add to Library</th>
 		    {%endif%}
-		    <th>Play</th> 
+		    <!--<th>Play</th> -->
 		    <th>Check if Music</th>
 		    <th>Title</th>
 		    <th>Artist</th> 
 		    <th>Album</th>
-
-		    <th>Release Date</th> 
+		    <!--<th>Release Date</th> -->
 		  </tr>
 			{%set i = 0%}
 			{%for vid in display_update_rows%}
@@ -37,12 +36,12 @@ make all textbox be search dropdown that fills with db table elements to make it
 						<td>{{vid.index}}</td>
 						<td><input type = "checkbox" id = "library{{i | string}}"></td> 
 						{%endif%}
-						<td><input type = "checkbox" id = "play{{i | string}}" ></td>
+						<!--<td><input type = "checkbox" id = "play{{i | string}}" ></td>-->
 						<td><input type = "checkbox" id = "music{{i | string}}" {{"checked" if vid.music}}></td> 
 						<td><input type="textbox" id="title{{i | string}}" value="{{vid.title}}"></td> 
 						<td><input type="textbox" id="artist{{i | string}}" value="{{vid.artist}}"></td> 
 						<td><input type="textbox" id="album{{i | string}}" value="{{vid.album}}"></td> 
-						<td><input type="text" class="datepicker" id="release_date{{i | string}}" value = "{{vid.release_Date if vid.release_date}}"></td>
+						<!--<td><input type="text" class="datepicker" id="release_date{{i | string}}" value = "{{vid.release_Date if vid.release_date}}"></td>-->
 					</tr>
 					<hidden id="youtube_id{{i | string}}" value="{{vid.youtube_id}}"></hidden>
 					<hidden id="artist_id{{i | string}}" value="{{vid.artist_id}}"></hidden>
@@ -52,7 +51,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 			{%endfor%}
 		</table>
 
-		<input type="submit" value="Play Videos & Submit Updates">
+		<br><input type="submit" value="Submit Updates" class="pure-button">
 	</form>
 
 	<!--scripts-->

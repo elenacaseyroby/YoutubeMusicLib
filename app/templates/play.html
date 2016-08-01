@@ -2,33 +2,40 @@
 
 {% block content %}
 
-	<div class = "row" >
-		<center><div id="iframe"></div></center>
-		<h5> You have played: </h5>
-		<div id="record_plays"></div>
-		<form action = "#" id="searchbar">
-			<br><br>Enter keywords to find a song or album, here:<br>
-			<input type = "text" id="keywords" size = "75"><br><br>
-			<input type="submit" value="Submit">
-		</form>
-		<div class="column1">
-		<h3>Selected Videos:</h3>
-		<div id="selectedvideos"></div>
-		</div>
-		<div class="column2">
-		<h3>Related Videos:</h3>
-		<div id="relatedvideos"></div>
-		</div>
-		{% if vid_info %}
+	<center><div id="iframe"></div>
+	<form action = "#" id="searchbar">
+		<br><br>Enter keywords to find a song or album, here:<br>
+		<input type = "text" id="keywords" size = "75"><br><br>
+		<input type="submit" value="Submit" class="pure-button">
+	</form>
+	</center>
+	<div class="triple-columns">
+		<div class="plays-column">
+			<h3> Played Videos: </h3>
 			<ul>
-			{% for vid in vid_info %}
-			<li>vid['title']</li>
-			{% endfor %}
+			<div id="record_plays"></div>
 			</ul>
-		{% endif %}
-    </div>
+		</div>
+		<div class="search-column">
+			<h3>Selected Videos:</h3>
+			<div id="selectedvideos"></div>
+			{% if vid_info %}
+				<ul>
+				{% for vid in vid_info %}
+				<li>vid['title']</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
+		</div>
+
+		<div class="related-column">
+			<h3>Related Videos:</h3>
+			<div id="relatedvideos"></div>
+		</div>
+	</div>
 
 	<!--scripts-->
+	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/play.css') }}">
 	<script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script>window.jQuery</script>
