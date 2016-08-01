@@ -3,7 +3,7 @@ from flask import render_template, flash, redirect, request, Flask
 from app import app, models, session #,db
 from .forms import LoginForm
 from json import loads
-from myfunctions import sortnumbers
+from .myfunctions import sortnumbers
 from sqlalchemy import text, update
 import datetime, re
  
@@ -62,8 +62,8 @@ def listens():
     search_end_date = today
   else:
     search_end_date = request.args.get("search_end_date");
-  print search_end_date
-  print search_start_date
+  print(search_end_date)
+  print(search_start_date)
   listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) 
   return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
 
@@ -104,7 +104,7 @@ def postlistens():
   album_name = str(request.form["album"])
   """
   if (request.form["album"] != "undefined"):
-    print "album not undefined"
+    print("album not undefined")
     album_id = updatealbum(request.form["album"])
   else:
     album_id = 2
@@ -162,9 +162,9 @@ def postlistens():
     #add if last fm similar artist isn't in artists table
     #artist = artistandmatch[0]
     #match = artistandmatch[1]
-    print "~~~~lastfm artist~~~~~"
-    print lastfm_artist
-    print "~~~~~~~~~~~~~~~~~~~~~"
+    print("~~~~lastfm artist~~~~~")
+    print(lastfm_artist)
+    print("~~~~~~~~~~~~~~~~~~~~~")
     artist = lastfm_artist['name']
     match = lastfm_artist['match']
 
@@ -188,8 +188,8 @@ def postlistens():
 @app.route('/postgenres', methods=['POST'])
 def postgenres():
   genres = loads(request.form['genres'])
-  print "post genres~~~~~~~ genres"
-  print genres
+  print("post genres~~~~~~~ genres")
+  print(genres)
   youtube_id = request.form['youtube_id']
   updategenres(youtube_id, genres)
 
@@ -219,13 +219,13 @@ def postartistinfo():
 
           if len(mentionedyears) >0:
             years = sortnumbers(mentionedyears)
-            print "~~~~~~~years~~~~~~~~~~"
-            print request.form["artist"]
-            print artist_in_db.id
-            print mentionedyears
-            print years.low
-            print years.high
-            print "~~~~~~~~~~~~~~~~~~~~~~"
+            print("~~~~~~~years~~~~~~~~~~")
+            print(request.form["artist"])
+            print(artist_in_db.id)
+            print(mentionedyears)
+            print(years.low)
+            print(years.high)
+            print("~~~~~~~~~~~~~~~~~~~~~~")
             if years.low and years.high:
               q = session.query(models.Artist).filter_by(id=artist_in_db.id).one()
               if q != []:
@@ -241,9 +241,9 @@ def postartistinfo():
       if artist_in_db.city_id == 2:
         cities_results = getCities(select = " id, city_or_state")
         for city in cities_results:
-            print str(city.city_or_state)
+            print(str(city.city_or_state))
             if str(city.city_or_state) in bio:
-              print str(city.city_or_state)+" in bio"
+              print(str(city.city_or_state)+" in bio")
               session.rollback()
               q = session.query(models.Artist).filter_by(id=artist_in_db.id).one()
               if q != []:
@@ -252,7 +252,7 @@ def postartistinfo():
                   session.commit()
 
     else:
-      print "no bio"
+      print("no bio")
 
     return "success"
 
@@ -473,7 +473,7 @@ def getCities(select = "*", artist_id=None):
   sql= text("""SELECT """+select+"""
     FROM cities
     """+where+";")
-  print sql
+  print(sql)
   result = models.engine.execute(sql)
   return result
 
@@ -523,7 +523,7 @@ WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result1 = models.engine.execute(sql)
 
   for result in result1:
-    print result
+    print(result)
 
   sql = text("""SELECT 
 a2.artist_name
@@ -534,7 +534,7 @@ WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result2 = models.engine.execute(sql)
 
   for result in result2:
-    print result
+    print(result)
   #result = result1 + result2
   #result = list(set(result)) #remove redundancies
   return "success"
