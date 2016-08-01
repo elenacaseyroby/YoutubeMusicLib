@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from flask import render_template, flash, redirect, request, Flask
 from flask_login import LoginManager
-from flask.ext.security import login_required
+from flask_security import login_required
 from app import app, models, session, login_manager #,db
 from .forms import LoginForm
 from json import loads
@@ -13,10 +13,10 @@ import datetime, re
 user_id = 1;
 
 class user:
-  def __init__(self):
+  def __init__(self, id, ):
     pass
   def is_active(self):
-    pass
+    return True
   def get_id(self):
     pass
   def is_authenticated(self):
@@ -102,26 +102,19 @@ def login():
   form = LoginForm()
   if form.validate_on_submit():
     login_user(user)
-    flask.flash('Logged in successfully.')
-
-    next = flask.request.args.get('next')
-    if not next_is_valid(next):
-        return flask.abort(400)
-
-    return flask.redirect(next or flask.url_for('index'))
-  return flask.render_template('login.html', form=form)
-"""
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        flash('Login requested for OpenID="%s", remember_me=%s' %
+    flash('Login requested for OpenID="%s", remember_me=%s' %
               (form.openid.data, str(form.remember_me.data)))
-        return redirect('/index')
-    return render_template('login.html', 
+
+
+
+    next = request.args.get('next')
+    if not next_is_valid(next):
+        return abort(400)
+    return redirect(next or url_for('index'))
+  return render_template('login.html', 
                            title='Sign In',
                            form=form,
                            providers=app.config['OPENID_PROVIDERS'])
-"""
 
 @app.route("/logout")
 @login_required
