@@ -225,9 +225,11 @@ function savePlay(event, end = false) {
 	    	data: {user_id: user_id, youtube_title: youtube_title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring), album : album, title: title, artist: artist, year: year}
 	    });
 		if(!end){
-			play_button = '<li><a type="button" id="'+youtube_id+'" value="'+youtube_id+','+encodeURIComponent(title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+youtube_id+'","'+encodeURIComponent(title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+channel_id+'", "'+encodeURIComponent(description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'>'+youtube_title+'</a></li><br>';
-		
-			$("#record_plays").append(play_button);
+			record_plays = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
+			played_videos = [];
+			played_videos.push(record_plays);
+
+			renderList(vid_list = played_videos, $element_object = $('#record_plays'), empty_element = false);
 		}
 	});
 	if (album == "undefined"){
