@@ -121,7 +121,8 @@ def postlistens():
                   channel_id = str(request.form["channel_id"]),
                   description = str(request.form["description"]),
                   track_num = track_num,
-                  release_date = year)
+                  release_date = year,
+                  music = 1)
     session.add(new_video)
     session.commit()
   #post listen
