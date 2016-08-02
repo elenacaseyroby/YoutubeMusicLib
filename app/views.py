@@ -1,29 +1,55 @@
 #!/usr/bin/python
-from flask import render_template, flash, redirect, request, Flask
+from flask import render_template, flash, session, redirect, request, Flask, url_for, jsonify
 from flask_login import LoginManager
 from flask_security import login_required
-from app import app, models, session, login_manager #,db
+from flask_oauthlib.client import OAuth
+from app import app, models, sql_session, login_manager
 from .forms import LoginForm
 from json import loads
 from .myfunctions import sortnumbers
 from sqlalchemy import text, update
+from urllib.request import Request, urlopen
+from urllib.parse import unquote
+from urllib.error import URLError
 import datetime, re
+
+GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
  
 #will update once logins have been implemented
 user_id = 1;
 
-class user:
-  def __init__(self, id, ):
-    pass
+oauth = OAuth(app)
+
+google = oauth.remote_app('google',
+  base_url='https://www.googleapis.com/oauth2/v1/',
+  authorize_url='https://accounts.google.com/o/oauth2/auth',
+  request_token_url=None,
+  request_token_params={'scope': 'email'},
+  access_token_url='https://accounts.google.com/o/oauth2/token',
+  access_token_method='POST',
+  consumer_key=GOOGLE_CLIENT_ID,
+  consumer_secret=GOOGLE_CLIENT_SECRET)
+"""
+class user(db.Model):
+
+  __tablename__ = 'users'
+
+  id = db.Column(db.String, primary_key=true)
+  verification_level = db.Column(db.Int)
+  email = db.Column(db.String)
+  first_name = db.Column(db.String)
+  last_name = db.Column(db.String)
+
   def is_active(self):
     return True
   def get_id(self):
-    pass
+    return self.email
   def is_authenticated(self):
-    pass
+    return self.authenticated
   def is_anonymous(self):
-    pass
-
+    return false
+"""
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
         self.index = index
@@ -51,76 +77,86 @@ class displayupdate_page_row_object:
         return self.artist_id 
         return self.album_id 
 
-@login_manager.user_loader
-def load_user(user_id):
-  return User.get(user_id)
-
 @app.route('/')
 @app.route('/index')
-@app.route('/play')
+def index():
+  if 'google_token' in session:
+    return redirect(url_for('playMusic'))
+  return redirect(url_for('login'))
 
+@app.route('/play')
 def playMusic():
-  return render_template('play.html')
+  if 'google_token' in session:
+    return render_template('play.html')
 
 @app.route('/listens', methods = ['GET'])
 def listens():
-  #set dates from form submission 
-  #if those are empty set default dates
-  now = datetime.datetime.now()
-  today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
-  oneweekago = datetime.date.today() - datetime.timedelta(days=7)
-  oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
+  if 'google_token' in session:
+    #set dates from form submission 
+    #if those are empty set default dates
+    now = datetime.datetime.now()
+    today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
+    oneweekago = datetime.date.today() - datetime.timedelta(days=7)
+    oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
 
 
-  if not request.args.get("search_start_date"):
-    search_start_date = oneweekago
-  else:
-    search_start_date = request.args.get("search_start_date");
-  if not request.args.get("search_end_date"):
-    search_end_date = today
-  else:
-    search_end_date = request.args.get("search_end_date");
-  print(search_end_date)
-  print(search_start_date)
-  listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) 
-  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
+    if not request.args.get("search_start_date"):
+      search_start_date = oneweekago
+    else:
+      search_start_date = request.args.get("search_start_date");
+    if not request.args.get("search_end_date"):
+      search_end_date = today
+    else:
+      search_end_date = request.args.get("search_end_date");
+    print(search_end_date)
+    print(search_start_date)
+    listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) 
+    return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
+  return redirect(url_for('login'))
 
 
 @app.route('/library')
-@login_required
 def library():
-  library = list()
-  library = getlibrary(user_id)
-  if not library:
-    return render_template('nolibrarymessage.html')
-  else:
-    return render_template('displayupdate_data.html', display_update_rows = library, islistens = "false")
+  if 'google_token' in session:
+    library = list()
+    library = getlibrary(user_id)
+    if not library:
+      return render_template('nolibrarymessage.html')
+    else:
+      return render_template('displayupdate_data.html', display_update_rows = library, islistens = "false")
+  return redirect(url_for('login'))
 
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login')
 def login():
-  form = LoginForm()
-  if form.validate_on_submit():
-    login_user(user)
-    flash('Login requested for OpenID="%s", remember_me=%s' %
-              (form.openid.data, str(form.remember_me.data)))
+    return google.authorize(callback=url_for('authorized', _external=True))
 
+@app.route('/logout')
+def revoke_token():
+  if 'google_token' in session: 
+    res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
+    session.pop('user_email', None)
+    session.pop('google_token', None)
+    return redirect('/')
+  return redirect(url_for('login'))
 
+@app.route('/oauth2callback')
+@google.authorized_handler
+def authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error'],
+            request.args['error_description']
+        )
+    session['google_token'] = (resp['access_token'], resp['id_token'])
+    res = google.get('https://www.googleapis.com/plus/v1/people/me')
+    google_object = res.data
+    if (len(google_object['emails']) > 0):
+      session['user_email'] = (google_object['emails'][0]['value']) 
+    return redirect('/play')
 
-    next = request.args.get('next')
-    if not next_is_valid(next):
-        return abort(400)
-    return redirect(next or url_for('index'))
-  return render_template('login.html', 
-                           title='Sign In',
-                           form=form,
-                           providers=app.config['OPENID_PROVIDERS'])
-
-@app.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    return redirect('/index')
+@google.tokengetter
+def get_access_token(token=None):
+    return session.get('google_token')
 
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
@@ -149,8 +185,8 @@ def postlistens():
 
   
   artist_id = updatevideoartist(str(request.form["artist"]))
-  session.rollback()
-  video_in_db = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+  sql_session.rollback()
+  video_in_db = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   if not video_in_db:
     new_video = models.Video(youtube_id=str(request.form["youtube_id"]),
                   youtube_title=str(request.form["youtube_title"]),
@@ -161,14 +197,14 @@ def postlistens():
                   description = str(request.form["description"]),
                   track_num = track_num,
                   release_date = year)
-    session.add(new_video)
-    session.commit()
+    sql_session.add(new_video)
+    sql_session.commit()
   #post listen
   new_listen = models.Listen(user_id=request.form["user_id"],
                 youtube_id=str(request.form["youtube_id"]),
                 listened_to_end=request.form["listened_to_end"])
-  session.add(new_listen)
-  session.commit()
+  sql_session.add(new_listen)
+  sql_session.commit()
 
   #store lastfm similar artists and match scores
   lastfm_similar_artists_list = list()
@@ -199,20 +235,20 @@ def postlistens():
     match = lastfm_artist['match']
 
     if artist.lower() not in artist_table_list:
-      session.rollback()
+      sql_session.rollback()
       new_artist = models.Artist(artist_name = artist)
-      session.add(new_artist)
-      session.commit()
+      sql_session.add(new_artist)
+      sql_session.commit()
     # add if lastfm similar artist isn't listed as artist's similar 
     # artist in similar_artists table
     if artist.lower() not in similar_artists_list:
-      lastfm_artist_in_db = session.query(models.Artist).filter_by(artist_name = artist).first()
-      session.rollback()
+      lastfm_artist_in_db = sql_session.query(models.Artist).filter_by(artist_name = artist).first()
+      sql_session.rollback()
       new_similar_artist = models.SimilarArtists(artist_id1 = artist_id,
                                                 artist_id2 = lastfm_artist_in_db.id,
                                                 lastfm_match_score = match)
-      session.add(new_similar_artist)
-      session.commit()
+      sql_session.add(new_similar_artist)
+      sql_session.commit()
   
   return "success"
 @app.route('/postgenres', methods=['POST'])
@@ -229,9 +265,9 @@ def postgenres():
 def postartistinfo():
   state_list = []
   city_list = []
-  session.rollback()
+  sql_session.rollback()
   
-  artist_in_db = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+  artist_in_db = sql_session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
   if (request.form["bio"]):
     bio = request.form["bio"]
     now = datetime.datetime.now()
@@ -257,15 +293,15 @@ def postartistinfo():
             print(years.high)
             print("~~~~~~~~~~~~~~~~~~~~~~")
             if years.low and years.high:
-              q = session.query(models.Artist).filter_by(id=artist_in_db.id).one()
+              q = sql_session.query(models.Artist).filter_by(id=artist_in_db.id).one()
               if q != []:
                   q.start_year = str(years.low)+'-01-01'
                   #set end date if inactive for 10+ yr
                   
                   if thisyear - int(years.high) > 10:
                     q.end_year = str(years.high)+'-01-01'
-                  session.add(q)
-                  session.commit()
+                  sql_session.add(q)
+                  sql_session.commit()
 
       #if artist doesn't have city, store city
       if artist_in_db.city_id == 2:
@@ -274,12 +310,12 @@ def postartistinfo():
             print(str(city.city_or_state))
             if str(city.city_or_state) in bio:
               print(str(city.city_or_state)+" in bio")
-              session.rollback()
-              q = session.query(models.Artist).filter_by(id=artist_in_db.id).one()
+              sql_session.rollback()
+              q = sql_session.query(models.Artist).filter_by(id=artist_in_db.id).one()
               if q != []:
                   q.city_id= str(city.id)
-                  session.add(q)
-                  session.commit()
+                  sql_session.add(q)
+                  sql_session.commit()
 
     else:
       print("no bio")
@@ -295,7 +331,7 @@ def postartistinfo():
   
 #get listens data for listens page
 def getlistensdata(search_start_date, search_end_date):
-  session.rollback()
+  sql_session.rollback()
   limit = 30
   listens = list()
   start_date = search_start_date
@@ -354,74 +390,74 @@ def updatedata():
   artist_id = 1
   #error: not updating middle row of 3 like the other two
 
-  session.rollback()
-  artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
-  album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
+  sql_session.rollback()
+  artist_by_name = sql_session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+  album_by_name = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
 
   artist_id = updatevideoartist(request.form["artist"])
   
-  session.rollback()
+  sql_session.rollback()
   if album_by_name:
     album_id = album_by_name.id
   else: 
-    session.rollback()
+    sql_session.rollback()
     new_album = models.Album(name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
-    session.add(new_album)
-    session.commit()
-    new_album_id = session.query(models.Album).filter_by(name = request.form["album"]).first()
+    sql_session.add(new_album)
+    sql_session.commit()
+    new_album_id = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
     album_id = int(new_album_id.id)
   
-  session.rollback()
-  video_update = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+  sql_session.rollback()
+  video_update = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
   video_update.title=request.form["title"]
   video_update.music=request.form["music"]
   video_update.artist_id=int(artist_id)
   video_update.album_id=int(album_id)
-  session.commit() 
+  sql_session.commit() 
 
-  session.rollback()
+  sql_session.rollback()
   if request.form['library'] == "1": 
   #only updates if add to library was checked,
   #since unchecked is default right now.
-    saved_vids = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
+    saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
                                      , user_id = user_id)
-      session.add(new_saved_vid)
-      session.commit()
+      sql_session.add(new_saved_vid)
+      sql_session.commit()
 
   return "success"
 
 def updatevideoartist(artist_artist_name):
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-  session.rollback()
-  artist_by_name = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+  sql_session.rollback()
+  artist_by_name = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
   if artist_by_name:
     artist_id = artist_by_name.id
   #if artist name doesn't exist in db, add new row to artists table
   else:
-    session.rollback()
+    sql_session.rollback()
     new_artist = models.Artist(artist_name = artist_artist_name)
-    session.add(new_artist)
-    session.commit()
-    new_artist_id = session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+    sql_session.add(new_artist)
+    sql_session.commit()
+    new_artist_id = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
     artist_id = int(new_artist_id.id)
 
   return artist_id
 
 def updatealbum(album_name):
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-  session.rollback()
-  album_by_name = session.query(models.Album).filter_by(name = album_name).first()
+  sql_session.rollback()
+  album_by_name = sql_session.query(models.Album).filter_by(name = album_name).first()
   if album_by_name:
     album_id = album_by_name.id
   #if artist name doesn't exist in db, add new row to artists table
   else:
-    session.rollback()
+    sql_session.rollback()
     new_album = models.Album(name = album_name)
-    session.add(new_album)
-    session.commit()
-    new_album_id = session.query(models.Album).filter_by(name = album_name).first()
+    sql_session.add(new_album)
+    sql_session.commit()
+    new_album_id = sql_session.query(models.Album).filter_by(name = album_name).first()
     album_id = int(new_album_id.id)
 
   return album_id
@@ -439,24 +475,24 @@ def updategenres(youtube_id, api_genres):
       video_genres.append(row[0])
 
   for api_genre in api_genres:
-    session.rollback()
-    is_api_genre_verified = session.query(models.Genre).filter_by(name = api_genre).first()
+    sql_session.rollback()
+    is_api_genre_verified = sql_session.query(models.Genre).filter_by(name = api_genre).first()
 
     if is_api_genre_verified and not (api_genre in video_genres):
-      session.rollback()
+      sql_session.rollback()
       new_vids_genres = models.VidsGenres(youtube_id = youtube_id,
                                           genre_id = is_api_genre_verified.id)
-      session.add(new_vids_genres)
-      session.commit()
+      sql_session.add(new_vids_genres)
+      sql_session.commit()
   return "success";
 
 
 
 #pulls data for library page
 def getlibrary(user_id):
-  session.rollback()
+  sql_session.rollback()
   listens = list()
-  saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
+  saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if saved_vids:
     sql = text("""SELECT videos.youtube_id
    , videos.youtube_title

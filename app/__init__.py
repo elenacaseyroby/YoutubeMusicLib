@@ -13,7 +13,7 @@ app.config.from_object('config')
 #start session
 Session = sessionmaker(bind=models.engine)
 Session.configure(bind=models.engine) 
-session = Session()
+sql_session = Session()
 
 print("~~~~~~~~~~~start~~~~~~~~~~")
 
