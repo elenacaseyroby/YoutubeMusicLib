@@ -34,16 +34,8 @@ $(function(){
 			if($("#library" + i.toString()).attr("value") != library_value){
 				dataupdated = true;
 			}	
-			console.log("music:");
-			console.log($("#music" + i.toString()).attr("value"));
-			console.log(music_value);
-			console.log("library:");
-			console.log($("#library" + i.toString()).attr("value"));
-			console.log(library_value);
 
-			console.log(dataupdated);
 			if(dataupdated){
-				console.log("~~~~post~~~~~");
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',

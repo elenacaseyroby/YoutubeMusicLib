@@ -269,7 +269,6 @@ def getlistensdata(search_start_date, search_end_date):
    GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
-  print(sql)
 
   results = models.engine.execute(sql)
   for result in results:
