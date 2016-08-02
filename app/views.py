@@ -63,6 +63,8 @@ def listens():
   else:
     search_end_date = request.args.get("search_end_date")
   search_artist = request.args.get("search_artist", "%")
+  if search_artist == "":
+      search_artist = "%"
   listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
   if search_artist == "%":
       search_artist = ""
@@ -74,6 +76,8 @@ def listens():
 def library():
   library = list()
   search_artist = request.args.get("search_artist", "%")
+  if search_artist == "":
+      search_artist = "%"
   library = getlibrary(user_id, search_artist)
   if not library:
     return render_template('nolibrarymessage.html')
