@@ -19,8 +19,8 @@ make all textbox be search dropdown that fills with db table elements to make it
 		  <tr>
 		  	{% if islistens == "true"%}
 		    <th>Time</th>
-		    <th>Add to Library</th>
 		    {%endif%}
+		    <th>Add to Library</th>
 		    <!--<th>Play</th> -->
 		    <th>Check if Music</th>
 		    <th>Title</th>
@@ -34,8 +34,8 @@ make all textbox be search dropdown that fills with db table elements to make it
 					<tr>
 						{% if islistens == "true"%}
 						<td>{{vid.index}}</td>
-						<td><input type = "checkbox" id = "library{{i | string}}"></td> 
 						{%endif%}
+						<td><input type = "checkbox" id = "library{{i | string}}" value={{vid.library}} {{"checked" if vid.library}}></td> 
 						<!--<td><input type = "checkbox" id = "play{{i | string}}" ></td>-->
 						<td><input class = "music-{{vid.youtube_id}}" type = "checkbox" id = "music{{i | string}}" value={{vid.music}} {{"checked" if vid.music}}></td> 
 						<td><input class = "title-{{vid.youtube_id}}" type="textbox" id="title{{i | string}}" value="{{vid.title}}"></td> 

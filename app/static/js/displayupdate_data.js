@@ -31,8 +31,19 @@ $(function(){
 			if($("#music" + i.toString()).attr("value") != music_value){
 				dataupdated = true;
 			}	
-			
+			if($("#library" + i.toString()).attr("value") != library_value){
+				dataupdated = true;
+			}	
+			console.log("music:");
+			console.log($("#music" + i.toString()).attr("value"));
+			console.log(music_value);
+			console.log("library:");
+			console.log($("#library" + i.toString()).attr("value"));
+			console.log(library_value);
+
+			console.log(dataupdated);
 			if(dataupdated){
+				console.log("~~~~post~~~~~");
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',
@@ -47,10 +58,10 @@ $(function(){
 					//, release_date: $("#release_date" + i.toString()).val()
 					, artist_id: $("#artist_id" + i.toString()).attr("value")
 					, album_id: $("#album_id" + i.toString()).attr("value")
-					, only_library: false}
+					}
 			    });
 
-			}else{
+			}/*else{
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',
@@ -58,7 +69,7 @@ $(function(){
 				    , library: library_value
 					, only_library: true}
 			    });
-			}
+			}*/
 
 		    i++;
 		});

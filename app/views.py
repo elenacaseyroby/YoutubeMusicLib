@@ -255,6 +255,7 @@ def getlistensdata(search_start_date, search_end_date):
    , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
+   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(user_id)+""" AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -267,6 +268,7 @@ def getlistensdata(search_start_date, search_end_date):
    GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
+  print(sql)
 
   results = models.engine.execute(sql)
   for result in results:
@@ -274,7 +276,6 @@ def getlistensdata(search_start_date, search_end_date):
     # var library = 1, else = 0 
     listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
                             , play = 0
-                            , library = 0
                             , music= result[5]
                             , title= result[4]
                             , artist = result[7]
@@ -283,6 +284,7 @@ def getlistensdata(search_start_date, search_end_date):
                             , youtube_id = result[1]
                             , artist_id = result[11]
                             , album_id = result[12]
+                            , library = result[13]
                             )
     listens.append(listen)
 
@@ -294,43 +296,48 @@ def updatedata():
   album_id = 2
   artist_id = 1
   #error: not updating middle row of 3 like the other two
-  if request.form["only_library"] == "false":
-    session.rollback()
-    artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
-    album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
+  #if request.form["only_library"] == "false":
+  session.rollback()
+  artist_by_name = session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
+  album_by_name = session.query(models.Album).filter_by(name = request.form["album"]).first()
 
-    artist_id = updatevideoartist(request.form["artist"])
-    
+  artist_id = updatevideoartist(request.form["artist"])
+  
+  session.rollback()
+  if album_by_name:
+    album_id = album_by_name.id
+  else: 
     session.rollback()
-    if album_by_name:
-      album_id = album_by_name.id
-    else: 
-      session.rollback()
-      new_album = models.Album(name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
-      session.add(new_album)
-      session.commit()
-      new_album_id = session.query(models.Album).filter_by(name = request.form["album"]).first()
-      album_id = int(new_album_id.id)
-    
-    session.rollback()
-    video_update = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-    video_update.title=request.form["title"]
-    video_update.music=request.form["music"]
-    video_update.artist_id=int(artist_id)
-    video_update.album_id=int(album_id)
-    session.commit() 
+    new_album = models.Album(name=request.form["album"])#edit so it only adds vid info if it doesn't already exist
+    session.add(new_album)
+    session.commit()
+    new_album_id = session.query(models.Album).filter_by(name = request.form["album"]).first()
+    album_id = int(new_album_id.id)
+  
+  session.rollback()
+  video_update = session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+  video_update.title=request.form["title"]
+  video_update.music=request.form["music"]
+  video_update.artist_id=int(artist_id)
+  video_update.album_id=int(album_id)
+  session.commit() 
 
   session.rollback()
+  saved_vids = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
+    
   if request.form['library'] == "1": 
   #only updates if add to library was checked,
   #since unchecked is default right now.
-    saved_vids = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
                                      , user_id = user_id)
       session.add(new_saved_vid)
       session.commit()
-
+  else:
+    if saved_vids:
+      delete_vid = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id)
+      delete_vid.delete()
+      session.commit()
   return "success"
 
 def updatevideoartist(artist_artist_name):
@@ -416,23 +423,23 @@ def getlibrary(user_id):
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
    WHERE saved_vids.user_id = """+str(user_id)+"""
-   ORDER BY videos.title DESC;""")
+   ORDER BY artists.artist_name, albums.name ASC;""")
 
     results = models.engine.execute(sql)
     for result in results:
 
       listen = displayupdate_page_row_object( index = ""
-                              , play = 0
-                              , library = 1
-                              , music= result[3]
-                              , title= result[2]
-                              , artist = result[5]
-                              , album = result[7]
-                              , release_date = result[4]
-                              , youtube_id = result[0]
-                              , artist_id = result[9]
-                              , album_id = result[10]
-                              )
+                                , play = 0
+                                , library = 1
+                                , music= result[3]
+                                , title= result[2]
+                                , artist = result[5]
+                                , album = result[7]
+                                , release_date = result[4]
+                                , youtube_id = result[0]
+                                , artist_id = result[9]
+                                , album_id = result[10]
+                                )
       listens.append(listen)
 
   return listens 
