@@ -6,6 +6,7 @@ $(function(){
 		var dataupdated = false;
 
 		$.each($(".row"), function(index, listen){
+			var dataupdated = false;
 			if($("#library" + i.toString()).is(':checked')){
 				library_value = 1
 			}else{
@@ -52,7 +53,7 @@ $(function(){
 			if($("#track_num" + i.toString()).attr("value") != $("#track_num" + i.toString()).val()){
 				dataupdated = true;
 			}	*/
-
+			console.log(dataupdated);
 			if(dataupdated){
 				console.log("~~~~~~~~~updated!~~~~~~~~~~~");
 				$.ajax({
