@@ -62,19 +62,29 @@ def listens():
     search_end_date = today
   else:
     search_end_date = request.args.get("search_end_date")
-  listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date) 
-  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, islistens = "true")
+  search_artist = request.args.get("search_artist", "%")
+  if search_artist == "":
+      search_artist = "%"
+  listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
+  if search_artist == "%":
+      search_artist = ""
+  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true")
 
 
 @app.route('/library')
 
 def library():
   library = list()
-  library = getlibrary(user_id)
+  search_artist = request.args.get("search_artist", "%")
+  if search_artist == "":
+      search_artist = "%"
+  library = getlibrary(user_id, search_artist)
   if not library:
     return render_template('nolibrarymessage.html')
   else:
-    return render_template('displayupdate_data.html', display_update_rows = library, islistens = "false")
+    if search_artist == "%":
+      search_artist = ""
+    return render_template('displayupdate_data.html', display_update_rows = library, search_artist = search_artist, islistens = "false")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -236,7 +246,7 @@ def postartistinfo():
   #find all 4 digits and put smallest in artists.start_year and largest in artists.end_year
   
 #get listens data for listens page
-def getlistensdata(search_start_date, search_end_date):
+def getlistensdata(search_start_date, search_end_date, search_artist):
   session.rollback()
   limit = 30
   listens = list()
@@ -266,6 +276,7 @@ def getlistensdata(search_start_date, search_end_date):
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 
+   AND artists.artist_name LIKE '"""+search_artist+"""'
    GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
@@ -401,7 +412,7 @@ def updategenres(youtube_id, api_genres):
 
 
 #pulls data for library page
-def getlibrary(user_id):
+def getlibrary(user_id, search_artist):
   session.rollback()
   listens = list()
   saved_vids = session.query(models.SavedVid).filter_by(user_id = user_id).first()
@@ -423,6 +434,7 @@ def getlibrary(user_id):
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
    WHERE saved_vids.user_id = """+str(user_id)+"""
+   AND artists.artist_name LIKE '"""+search_artist+"""'
    ORDER BY artists.artist_name, albums.name ASC;""")
 
     results = models.engine.execute(sql)
