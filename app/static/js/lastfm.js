@@ -91,15 +91,12 @@ function lastFMGetGenresByAlbum(album, artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            console.log("lastFMGetGenresByAlbum Data: ");
-            console.log(data);
             if (data.error) {
                 console.log("Last.fm API Error: ");
                 console.log(data.error);
                 console.log(data.message);
             }
             else if (data.album.tags.tag.length > 0){
-                console.log("Last.fm albums tag array not empty");
                 $.each(data.album.tags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
@@ -107,8 +104,6 @@ function lastFMGetGenresByAlbum(album, artistName, callBack) {
             else {
                 tags.push('music');
             }
-            console.log("lastFMGetGenresByAlbum tags: ", tags);
-            console.log(tags);
             callBack(tags); 
         }
     });
@@ -124,15 +119,12 @@ function lastFMGetGenresByArtist(artistName, callBack) {
             "&format=json",
         dataType: "jsonp",
         success: function (data) {
-            console.log("artist data");
-            console.log(data);
             if (data.error) {
                 console.log("Last.fm API Error: ");
                 console.log(data.error);
                 console.log(data.message);
             }
             else if (data.artist.tags.tag.length > 0){
-                console.log("data not null");
                 $.each(data.artist.tags.tag, function(index=100, item){
                     tags.push(item.name);
                 });
@@ -140,8 +132,6 @@ function lastFMGetGenresByArtist(artistName, callBack) {
             else {
                 tags.push('music');
             }
-            console.log("lastFMGetGenresByArtist tags: ");
-            console.log(tags);
             callBack(tags); 
         }
     });
@@ -166,8 +156,6 @@ function lastFMGetBioByArtist(artistName, callBack) {
             else if (data.artist.bio.content){
                 bio = data.artist.bio.content
             }
-            console.log("lastFMGetBioByArtist bio: ");
-            console.log(bio);
             callBack(bio);
         }
     });
