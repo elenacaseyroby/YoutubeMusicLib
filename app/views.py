@@ -66,7 +66,7 @@ def listens():
   listens = getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
   if search_artist == "%":
       search_artist = ""
-  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, searchislistens = "true")
+  return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true")
 
 
 @app.route('/library')
