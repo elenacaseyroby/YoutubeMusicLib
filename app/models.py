@@ -6,6 +6,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref 
 import os
 
+try:
+	engine
+except NameError:
+	pass
+else:
+	engine.close()
+	print("~~~~~~~~~~~~~connection closed~~~~~~~~~~~~~~~~~")
+
 """ DO NOT COMMIT CHANGES TO THIS FILE!! """
 
 if 'CLEARDB_DATABASE_URL' in os.environ and os.environ['CLEARDB_DATABASE_URL']:
