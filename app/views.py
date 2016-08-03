@@ -25,26 +25,7 @@ google = oauth.remote_app('google',
   access_token_method='POST',
   consumer_key=GOOGLE_CLIENT_ID,
   consumer_secret=GOOGLE_CLIENT_SECRET)
-"""
-class user(db.Model):
 
-  __tablename__ = 'users'
-
-  id = db.Column(db.String, primary_key=true)
-  verification_level = db.Column(db.Int)
-  email = db.Column(db.String)
-  first_name = db.Column(db.String)
-  last_name = db.Column(db.String)
-
-  def is_active(self):
-    return True
-  def get_id(self):
-    return self.email
-  def is_authenticated(self):
-    return self.authenticated
-  def is_anonymous(self):
-    return false
-"""
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
         self.index = index
@@ -157,6 +138,7 @@ def authorized(resp):
                               email=session['user_email'])
         sql_session.add(new_user)
         sql_session.commit()
+        session['session_user_id'] = last_id[0] + 1
       else:
         session['session_user_id'] = email_in_db.id
     return redirect('/play')
