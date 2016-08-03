@@ -2,10 +2,16 @@
 
 {% block content %}
 	{% if islistens == "true" %}
-		<form id="searchdates" action="/listens" method="get">
-		View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}">
-		<input type="submit" value="Search Dates" class="pure-button">
-		</form>
+	<form id="searchdates" action="/listens" method="get">
+	View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
+	{% else %}
+	<form id="searchdates" action="/library" method="get">
+	{%endif%}
+	Filter by 
+	<input name="search_artist" id="search_artist" placeholder="Artist" value="{{search_artist}}">
+	<input type="submit" value="Search" class="pure-button">
+	</form>
+	{% if islistens == "true" %}
 	<h3>Recent Listens:</h3>
 	{%endif%}
 	{% if islistens == "false" %}
@@ -19,8 +25,8 @@ make all textbox be search dropdown that fills with db table elements to make it
 		  <tr>
 		  	{% if islistens == "true"%}
 		    <th>Time</th>
-		    <th>Add to Library</th>
 		    {%endif%}
+		    <th>Add to Library</th>
 		    <!--<th>Play</th> -->
 		    <th>Check if Music</th>
 		    <th>Title</th>
@@ -34,21 +40,23 @@ make all textbox be search dropdown that fills with db table elements to make it
 					<tr>
 						{% if islistens == "true"%}
 						<td>{{vid.index}}</td>
-						<td><input type = "checkbox" id = "library{{i | string}}"></td> 
 						{%endif%}
+						<td><input type = "checkbox" id = "library{{i | string}}" value={{vid.library}} {{"checked" if vid.library}}></td> 
 						<!--<td><input type = "checkbox" id = "play{{i | string}}" ></td>-->
-						<td><input type = "checkbox" id = "music{{i | string}}" {{"checked" if vid.music}}></td> 
-						<td><input type="textbox" id="title{{i | string}}" value="{{vid.title}}"></td> 
-						<td><input type="textbox" id="artist{{i | string}}" value="{{vid.artist}}"></td> 
-						<td><input type="textbox" id="album{{i | string}}" value="{{vid.album}}"></td> 
+						<td><input class = "music-{{vid.youtube_id}}" type = "checkbox" id = "music{{i | string}}" value={{vid.music}} {{"checked" if vid.music}}></td> 
+						<td><input class = "title-{{vid.youtube_id}}" type="textbox" id="title{{i | string}}" value="{{vid.title}}"></td> 
+						<td><input class = "artist-{{vid.youtube_id}}" type="textbox" id="artist{{i | string}}" value="{{vid.artist}}"></td> 
+						<td><input class = "album-{{vid.youtube_id}}" type="textbox" id="album{{i | string}}" value="{{vid.album}}"></td> 
 						<!--<td><input type="text" class="datepicker" id="release_date{{i | string}}" value = "{{vid.release_Date if vid.release_date}}"></td>-->
 					</tr>
-					<hidden id="youtube_id{{i | string}}" value="{{vid.youtube_id}}"></hidden>
-					<hidden id="artist_id{{i | string}}" value="{{vid.artist_id}}"></hidden>
-					<hidden id="album_id{{i | string}}" value="{{vid.album_id}}"></hidden>
+					<hidden class = "{{vid.youtube_id}}" id="youtube_id{{i | string}}" value="{{vid.youtube_id}}"></hidden>
+					<hidden class = "artist_id-{{vid.youtube_id}}" id="artist_id{{i | string}}" value="{{vid.artist_id}}"></hidden>
+					<hidden class = "album-{{vid.youtube_id}}" id="album_id{{i | string}}" value="{{vid.album_id}}"></hidden>
 				</div>
 				{%set i = i + 1%}
+				
 			{%endfor%}
+
 		</table>
 
 		<br><input type="submit" value="Submit Updates" class="pure-button">
@@ -57,7 +65,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 	<!--scripts-->
 	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/table.css') }}">
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
-  	<link rel="stylesheet" href="/resources/demos/style.css">
+  	<!--<link rel="stylesheet" href="/resources/demos/style.css">!-->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/displayupdate_data.js') }}"></script> 	
 	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>

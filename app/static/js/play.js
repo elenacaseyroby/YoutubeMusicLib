@@ -42,24 +42,12 @@ $(function(){
 				i++;
 			});
 			renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'));
-			/*
-			//pass to views.py
-			console.log(selected_videos[0]);
-			$.ajax({
-				type: "POST",
-			    url: '/printplaylist',
-			    data: {vid1: JSON.stringify({id: selected_videos[0].id, title: selected_videos[0].title}),
-						vid2: JSON.stringify({id: selected_videos[1].id, title: selected_videos[1].title}),
-						vid3: JSON.stringify({id: selected_videos[2].id, title: selected_videos[2].title})}
-		    });
-			*/
 		});	
 	});	
 });
 
 //loads iframe api scripts on first play and calls iframe api directly on additional plays
 function playVideo(id, title, channel_id, description) {
-	//console.log("made it");
 	current_iframe_video.id = id;
 	current_iframe_video.title = title;
 	current_iframe_video.channel_id = channel_id;
@@ -151,9 +139,6 @@ function parseArtistTitleYear(youtubeTitle) {
     trackInfo.artistName = splitYoutubeTitle[0].trim();
     trackInfo.title = youtubeTitle.replace(trackInfo.artistName, '');
     
-    console.log("title w year");
-    console.log(trackInfo.title);
-
     var years = trackInfo.title.match(/\d{4}/g);
 	if(years == null){
 		trackInfo.year="1900-01-01";
@@ -205,12 +190,6 @@ function parseArtistTitleYear(youtubeTitle) {
 	}else{
 		trackInfo.album = "undefined";
 	}
-	/*
-	console.log(trackInfo.title);
-	console.log("track info year");
-	console.log(trackInfo.year);
-	console.log("album");
-	console.log(trackInfo.album);*/
     return trackInfo;
 }
 
@@ -218,8 +197,6 @@ function parseArtistTitleYear(youtubeTitle) {
 function savePlay(event, end = false) {
 
 	youtube_id = event.target.b.c.videoId;
-	console.log("prepost youtube id");
-	console.log(youtube_id);
 	youtube_id = youtube_id.toString();
 	channel_id = event.target.b.c.channel_id;
 	channel_id = channel_id.toString();
@@ -235,16 +212,11 @@ function savePlay(event, end = false) {
 	title = trackInfo.title;
 	artist = trackInfo.artistName;
 	album = trackInfo.album;
-	console.log("~~~~~~~~~~~album:~~~~~~~~~~");
-	console.log(album);
-	console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 	listened_to_end = 0;
 	if(end){
 		listened_to_end = 1;
 	}
-	console.log("first post dashes?");
-	console.log(youtube_id);
 	//send data to view.py
 	lastFMGetSimilarArtists(encodeURIComponent(trackInfo.artistName), function(similarartiststring) {
 		$.ajax({
@@ -253,17 +225,15 @@ function savePlay(event, end = false) {
 	    	data: {user_id: user_id, youtube_title: youtube_title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring), album : album, title: title, artist: artist, year: year}
 	    });
 		if(!end){
-			play_button = '<li><a type="button" id="'+youtube_id+'" value="'+youtube_id+','+encodeURIComponent(title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+youtube_id+'","'+encodeURIComponent(title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+channel_id+'", "'+encodeURIComponent(description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'>'+youtube_title+'</a></li><br>';
-		
-			$("#record_plays").append(play_button);
+			record_plays = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
+			played_videos = [];
+			played_videos.push(record_plays);
+
+			renderList(vid_list = played_videos, $element_object = $('#record_plays'), empty_element = false);
 		}
 	});
-	console.log("dashes in youtube_id?");
-	console.log(youtube_id)
 	if (album == "undefined"){
-		console.log("post genres");
 		lastFMGetGenresByTrack(encodeURIComponent(title), encodeURIComponent(artist), function(tags) {
-			console.log(youtube_id);
 			
 			if (tags.length >0){
 				$.ajax({
@@ -354,7 +324,6 @@ function renderList(vid_list = selected_videos, $element_object = $('#selectedvi
 	length = vid_list.length;
 	$.each(vid_list, function(length, vid){
 		play_button = '<li><a id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> '+vid.title+'</a></li><br>';
-		//console.log(play_button);
 		if(empty_element){
 			$element_object.append(play_button);
 		}else{
