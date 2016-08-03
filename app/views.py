@@ -82,7 +82,6 @@ def index():
 @app.route('/play')
 def playMusic():
   if 'google_token' in session:
-    flash(session['session_user_id'])
     return render_template('play.html')
 
 @app.route('/listens', methods = ['GET'])
