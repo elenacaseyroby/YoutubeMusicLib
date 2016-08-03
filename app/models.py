@@ -15,6 +15,13 @@ else:
 	print("~~~~~~~~~~~~~connection closed~~~~~~~~~~~~~~~~~")
 
 """ DO NOT COMMIT CHANGES TO THIS FILE!! """
+try:
+ 	engine
+except NameError:
+	pass
+else:
+	engine.dispose()
+	print("~~~~~~~~~~~~~connection closed~~~~~~~~~~~~~~~~~")
 
 if 'CLEARDB_DATABASE_URL' in os.environ and os.environ['CLEARDB_DATABASE_URL']:
     db_url = os.environ['CLEARDB_DATABASE_URL']
