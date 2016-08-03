@@ -134,6 +134,7 @@ def authorized(resp):
     google_object = res.data
     if (len(google_object['emails']) > 0):
       session['user_email'] = (google_object['emails'][0]['value'])
+      sql_session.rollback()
       email_in_db = sql_session.query(models.User).filter_by(email=session['user_email']).first()
       last_id_query = sql_session.query(func.max(models.User.id))
       last_id = last_id_query.one()
@@ -320,7 +321,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist):
    , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
-   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(user_id)+""" AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library
+   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(session['session_user_id'])+""" AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -389,9 +390,9 @@ def updatedata():
   sql_session.commit() 
 
   sql_session.rollback()
-  saved_vids = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id']).first()
+  saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id']).first()
     
-  if request.form['library'] == "1": 
+  if request.form['library'] == "1":
   #only updates if add to library was checked,
   #since unchecked is default right now.
     if not saved_vids:
@@ -401,9 +402,9 @@ def updatedata():
       sql_session.commit()
   else:
     if saved_vids:
-      delete_vid = session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id'])
+      delete_vid = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id'])
       delete_vid.delete()
-      session.commit()
+      sql_session.commit()
   return "success"
 
 def updatevideoartist(artist_artist_name):
