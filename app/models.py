@@ -18,6 +18,7 @@ else:
     db_url = 'mysql+pymysql://root:@127.0.0.1:3306/youtubelib'
 
 engine = create_engine(db_url+'?charset=utf8', convert_unicode=True, echo=False)
+print ("~~~~~~~~~~~~~~connection opened~~~~~~~~~~~~~~~~~~~~~~")
 
 Base = declarative_base()
 Base.metadata.reflect(engine)
