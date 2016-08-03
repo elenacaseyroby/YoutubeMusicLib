@@ -1,13 +1,11 @@
 #!/usr/bin/python
 from flask import render_template, flash, session, redirect, request, Flask, url_for, jsonify
-from flask_login import LoginManager
-from flask_security import login_required
 from flask_oauthlib.client import OAuth
 from app import app, models, sql_session, login_manager
 from .forms import LoginForm
 from json import loads
 from .myfunctions import sortnumbers
-from sqlalchemy import text, update
+from sqlalchemy import text, update, func
 from urllib.request import Request, urlopen
 from urllib.parse import unquote
 from urllib.error import URLError
@@ -16,9 +14,6 @@ import datetime, re
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
  
-#will update once logins have been implemented
-user_id = 1;
-
 oauth = OAuth(app)
 
 google = oauth.remote_app('google',
@@ -87,6 +82,7 @@ def index():
 @app.route('/play')
 def playMusic():
   if 'google_token' in session:
+    flash(session['session_user_id'])
     return render_template('play.html')
 
 @app.route('/listens', methods = ['GET'])
@@ -119,7 +115,7 @@ def listens():
 def library():
   if 'google_token' in session:
     library = list()
-    library = getlibrary(user_id)
+    library = getlibrary(session['session_user_id'])
     if not library:
       return render_template('nolibrarymessage.html')
     else:
@@ -151,7 +147,19 @@ def authorized(resp):
     res = google.get('https://www.googleapis.com/plus/v1/people/me')
     google_object = res.data
     if (len(google_object['emails']) > 0):
-      session['user_email'] = (google_object['emails'][0]['value']) 
+      session['user_email'] = (google_object['emails'][0]['value'])
+      email_in_db = sql_session.query(models.User).filter_by(email=session['user_email']).first()
+      last_id_query = sql_session.query(func.max(models.User.id))
+      last_id = last_id_query.one()
+
+      if not email_in_db:
+        new_user = models.User(id=last_id[0] + 1,
+                              verification_level=100,
+                              email=session['user_email'])
+        sql_session.add(new_user)
+        sql_session.commit()
+      else:
+        session['session_user_id'] = email_in_db.id
     return redirect('/play')
 
 @google.tokengetter
@@ -200,7 +208,7 @@ def postlistens():
     sql_session.add(new_video)
     sql_session.commit()
   #post listen
-  new_listen = models.Listen(user_id=request.form["user_id"],
+  new_listen = models.Listen(user_id=session['session_user_id'],
                 youtube_id=str(request.form["youtube_id"]),
                 listened_to_end=request.form["listened_to_end"])
   sql_session.add(new_listen)
@@ -355,7 +363,7 @@ def getlistensdata(search_start_date, search_end_date):
    JOIN albums ON videos.album_id = albums.id
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
-   WHERE listens.user_id = """+str(user_id)+"""
+   WHERE listens.user_id = """+str(session['session_user_id'])+"""
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 
@@ -419,10 +427,10 @@ def updatedata():
   if request.form['library'] == "1": 
   #only updates if add to library was checked,
   #since unchecked is default right now.
-    saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = user_id).first()
+    saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id']).first()
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
-                                     , user_id = user_id)
+                                     , user_id = session['session_user_id'])
       sql_session.add(new_saved_vid)
       sql_session.commit()
 
