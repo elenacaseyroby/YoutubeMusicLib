@@ -1,4 +1,4 @@
-#!/usr/bin/python
+	#!/usr/bin/python
 # -*- mode: python -*-
 
 from sqlalchemy import create_engine
@@ -22,10 +22,6 @@ except NameError:
 else:
 	engine.dispose()
 	print("~~~~~~~~~~~~~connection closed~~~~~~~~~~~~~~~~~")
-
-if 'CLEARDB_DATABASE_URL' in os.environ and os.environ['CLEARDB_DATABASE_URL']:
-    db_url = os.environ['CLEARDB_DATABASE_URL']
-    db_url = db_url.replace("reconnect=true", "")
 
 elif 'MYSQL_DATABASE_URL' in os.environ and os.environ['MYSQL_DATABASE_URL']:
     db_url = os.environ['MYSQL_DATABASE_URL']
