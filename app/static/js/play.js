@@ -296,7 +296,7 @@ function getRelatedVideos(youtube_id){
 			part: "snippet",
 			type: "video",
 			relatedToVideoId: youtube_id,
-			maxResults: 5
+			maxResults: 10
 			
 	});
 	request.execute(function(response){
