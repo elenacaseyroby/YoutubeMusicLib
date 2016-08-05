@@ -1,8 +1,7 @@
 #!/usr/bin/python
 from flask import render_template, flash, session, redirect, request, Flask, url_for, jsonify
 from flask_oauthlib.client import OAuth
-from app import app, models, sql_session, login_manager
-from .forms import LoginForm
+from app import app, models, sql_session
 from json import loads
 from .myfunctions import sortnumbers
 from sqlalchemy import text, update, func
