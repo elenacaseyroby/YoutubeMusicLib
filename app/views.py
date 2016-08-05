@@ -64,6 +64,7 @@ def index():
 def playMusic():
   if 'google_token' in session:
     return render_template('play.html')
+  return redirect(url_for('login'))
 
 @app.route('/listens', methods = ['GET'])
 def listens():
