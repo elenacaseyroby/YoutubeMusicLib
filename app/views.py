@@ -56,19 +56,19 @@ class displayupdate_page_row_object:
 @app.route('/')
 @app.route('/index')
 def index():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     return redirect(url_for('playMusic'))
   return redirect(url_for('login'))
 
 @app.route('/play')
 def playMusic():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     return render_template('play.html')
   return redirect(url_for('login'))
 
 @app.route('/listens', methods = ['GET'])
 def listens():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     #set dates from form submission 
     #if those are empty set default dates
     now = datetime.datetime.now()
@@ -95,7 +95,7 @@ def listens():
 
 @app.route('/library')
 def library():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     library = list()
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
@@ -118,6 +118,7 @@ def revoke_token():
   if 'google_token' in session: 
     res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
     session.pop('user_email', None)
+    session.pop('session_user_id', None)
     session.pop('google_token', None)
     return redirect('/')
   return redirect(url_for('login'))
