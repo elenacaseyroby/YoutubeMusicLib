@@ -110,7 +110,7 @@ def library():
 
 @app.route('/login')
 def login():
-    return google.authorize(callback=url_for('authorized', _external=True))
+  return render_template('login.html')
 
 @app.route('/logout')
 def revoke_token():
@@ -120,6 +120,10 @@ def revoke_token():
     session.pop('google_token', None)
     return redirect('/')
   return redirect(url_for('login'))
+
+@app.route('/googlelogin')
+def googlelogin():
+  return google.authorize(callback=url_for('authorized', _external=True))
 
 @app.route('/oauth2callback')
 @google.authorized_handler
