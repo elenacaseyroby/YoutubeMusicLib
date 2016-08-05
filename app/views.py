@@ -13,7 +13,8 @@ import datetime, re
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
 
-
+GITHUB_CLIENT_ID = '27f25d90f41d766f7acb'
+GITHUB_CLIENT_SECRET = '523c741710a609e020117fb35ac4561743f031e9'
  
 oauth = OAuth(app)
 
@@ -26,6 +27,15 @@ google = oauth.remote_app('google',
   access_token_method='POST',
   consumer_key=GOOGLE_CLIENT_ID,
   consumer_secret=GOOGLE_CLIENT_SECRET)
+
+github = oauth.remote_app('github',
+  authorize_url='https://github.com/login/oauth/authorize',
+  request_token_url=None,
+  request_token_params={'scope': 'email'},
+  access_token_url='https://github.com/login/oauth/access_token',
+  access_token_method='POST',
+  consumer_key=GITHUB_CLIENT_ID,
+  consumer_secret=GITHUB_CLIENT_SECRET)
 
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
@@ -126,11 +136,15 @@ def revoke_token():
 
 @app.route('/googlelogin')
 def googlelogin():
-  return google.authorize(callback=url_for('authorized', _external=True))
+  return google.authorize(callback=url_for('google_authorized', _external=True))
+
+@app.route('/githublogin')
+def githublogin():
+  return github.authorize(callback=url_for('github_authorized', _external=True))
 
 @app.route('/googleoauth2callback')
 @google.authorized_handler
-def authorized(resp):
+def google_authorized(resp):
     if resp is None:
         return 'Access denied: reason=%s error=%s' % (
             request.args['error'],
@@ -157,9 +171,24 @@ def authorized(resp):
         session['session_user_id'] = email_in_db.id
     return redirect('/play')
 
+@app.route('/githuboauth2callback')
+@github.authorized_handler
+def github_authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error'],
+            request.args['error_description']
+        )
+    session['github_token'] = (resp['access_token'])
+    return redirect('/play')
+
 @google.tokengetter
-def get_access_token(token=None):
+def get_google_access_token(token=None):
     return session.get('google_token')
+
+@github.tokengetter
+def get_github_access_token(token=None):
+    return session.get('github_token')
 
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
