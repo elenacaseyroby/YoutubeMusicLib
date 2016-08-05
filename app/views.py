@@ -6,7 +6,7 @@ from json import loads
 from .myfunctions import sortnumbers
 from sqlalchemy import text, update, func
 from urllib.request import Request, urlopen
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode
 from urllib.error import URLError
 import datetime, re
 
@@ -31,7 +31,7 @@ google = oauth.remote_app('google',
 github = oauth.remote_app('github',
   authorize_url='https://github.com/login/oauth/authorize',
   request_token_url=None,
-  request_token_params={'scope': 'email'},
+  request_token_params={'scope': 'user:email'},
   access_token_url='https://github.com/login/oauth/access_token',
   access_token_method='POST',
   consumer_key=GITHUB_CLIENT_ID,
@@ -128,7 +128,7 @@ def login():
 def revoke_token():
   if 'google_token' in session: 
     res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
-    session.pop('user_email', None)
+    session.pop('google_id', None)
     session.pop('session_user_id', None)
     session.pop('google_token', None)
     return redirect('/')
@@ -154,21 +154,21 @@ def google_authorized(resp):
     res = google.get('https://www.googleapis.com/plus/v1/people/me')
     google_object = res.data
     if (len(google_object['emails']) > 0):
-      session['user_email'] = (google_object['emails'][0]['value'])
+      session['google_id'] = (google_object['emails'][0]['value'])
       sql_session.rollback()
-      email_in_db = sql_session.query(models.User).filter_by(email=session['user_email']).first()
+      google_in_db = sql_session.query(models.User).filter_by(google_id=session['google_id']).first()
       last_id_query = sql_session.query(func.max(models.User.id))
       last_id = last_id_query.one()
 
-      if not email_in_db:
+      if not google_in_db:
         new_user = models.User(id=last_id[0] + 1,
                               verification_level=100,
-                              email=session['user_email'])
+                              google_id=session['google_id'])
         sql_session.add(new_user)
         sql_session.commit()
         session['session_user_id'] = last_id[0] + 1
       else:
-        session['session_user_id'] = email_in_db.id
+        session['session_user_id'] = google_in_db.id
     return redirect('/play')
 
 @app.route('/githuboauth2callback')
@@ -180,6 +180,26 @@ def github_authorized(resp):
             request.args['error_description']
         )
     session['github_token'] = (resp['access_token'])
+    res = urlopen('https://api.github.com/user?access_token=' + session['github_token'])
+    res_string = res.read().decode('utf-8')
+    github_object = loads(res_string)
+    session['github_id'] = github_object['login']
+
+    sql_session.rollback()
+    github_in_db = sql_session.query(models.User).filter_by(github_id=session['github_id']).first()
+    last_id_query = sql_session.query(func.max(models.User.id))
+    last_id = last_id_query.one()
+
+    if not github_in_db:
+      new_user = models.User(id=last_id[0] + 1,
+                              verification_level=100,
+                              github_id=session['github_id'])
+      sql_session.add(new_user)
+      sql_session.commit()
+      session['session_user_id'] = last_id[0] + 1
+    else:
+      session['session_user_id'] = github_in_db.id
+
     return redirect('/play')
 
 @google.tokengetter
