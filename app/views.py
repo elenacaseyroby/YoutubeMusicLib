@@ -12,6 +12,8 @@ import datetime, re
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
+
+
  
 oauth = OAuth(app)
 
@@ -126,7 +128,7 @@ def revoke_token():
 def googlelogin():
   return google.authorize(callback=url_for('authorized', _external=True))
 
-@app.route('/oauth2callback')
+@app.route('/googleoauth2callback')
 @google.authorized_handler
 def authorized(resp):
     if resp is None:
