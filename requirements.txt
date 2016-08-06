@@ -24,7 +24,6 @@ pyasn1==0.1.9
 pyasn1-modules==0.0.8
 PyMySQL==0.7.4
 python3-openid==3.0.10
-requests==2.10.0
 requests-oauthlib==0.6.2
 rsa==3.4.2
 simplejson==3.8.2
