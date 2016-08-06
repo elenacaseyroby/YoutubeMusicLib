@@ -228,6 +228,36 @@ def github_authorized(resp):
 
     return redirect('/play')
 
+@app.route('/facebookoauth2callback')
+@facebook.authorized_handler
+def facebook_authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error'],
+            request.args['error_description']
+        )
+    '''
+    session['facebook_token'] = ''
+    session['facebook_id'] = ''
+
+    sql_session.rollback()
+    github_in_db = sql_session.query(models.User).filter_by(facebook_id=session['facebook_id']).first()
+    last_id_query = sql_session.query(func.max(models.User.id))
+    last_id = last_id_query.one()
+
+    if not facebook_in_db:
+      new_user = models.User(id=last_id[0] + 1,
+                              verification_level=100,
+                              facebook_id=session['facebook_id'])
+      sql_session.add(new_user)
+      sql_session.commit()
+      session['session_user_id'] = last_id[0] + 1
+    else:
+      session['session_user_id'] = facebook_in_db.id
+    '''
+
+    return redirect('/play')
+
 @google.tokengetter
 def get_google_access_token(token=None):
     return session.get('google_token')
