@@ -139,20 +139,17 @@ def login():
 
 @app.route('/logout')
 def revoke_token():
-  if 'google_token' in session: 
+  if 'google_id' in session: 
     session.pop('google_id', None)
     session.pop('session_user_id', None)
-    session.pop('google_token', None)
     return redirect('/')
-  elif 'github_token' in session:
+  elif 'github_id' in session:
     session.pop('github_id', None)
     session.pop('session_user_id', None)
-    session.pop('github_token', None)
     return redirect('/')
-  elif 'facebook_token' in session:
+  elif 'facebook_id' in session:
     session.pop('facebook_id', None)
     session.pop('session_user_id', None)
-    session.pop('facebook_token', None)
     return redirect('/')
   return redirect(url_for('login'))
 
@@ -236,12 +233,19 @@ def facebook_authorized(resp):
             request.args['error'],
             request.args['error_description']
         )
-    '''
-    session['facebook_token'] = ''
+    flash(resp)
+    
+    session['facebook_token'] = resp['access_token']
     session['facebook_id'] = ''
 
+    session['github_token'] = (resp['access_token'])
+    res = urlopen('https://graph.facebook.com/me?access_token=' + session['facebook_token'])
+    res_string = res.read().decode('utf-8')
+    facebook_object = loads(res_string)
+    session['facebook_id'] = facebook_object['name']
+
     sql_session.rollback()
-    github_in_db = sql_session.query(models.User).filter_by(facebook_id=session['facebook_id']).first()
+    facebook_in_db = sql_session.query(models.User).filter_by(facebook_id=session['facebook_id']).first()
     last_id_query = sql_session.query(func.max(models.User.id))
     last_id = last_id_query.one()
 
@@ -254,7 +258,6 @@ def facebook_authorized(resp):
       session['session_user_id'] = last_id[0] + 1
     else:
       session['session_user_id'] = facebook_in_db.id
-    '''
 
     return redirect('/play')
 
