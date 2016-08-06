@@ -14,7 +14,14 @@
        | <a href="{{url_for('listens')}}">Past Listens</a>
        | <a href="{{url_for('library')}}">Library</a>
        {% if session['session_user_id'] %}
-        | <a href="{{url_for('revoke_token')}}">Logout {{ session['user_email'] }}</a>
+        | <a href="{{url_for('revoke_token')}}">Logout 
+        {% if session['google_id'] %}
+          {{ session['google_id'] }} (Google)
+        {% endif %}
+        {% if session['github_id'] %}
+          {{ session['github_id'] }} (GitHub)
+        {% endif %}
+        </a>
        {% endif %} 
     </div>
     <hr> 
