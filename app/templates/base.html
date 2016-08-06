@@ -21,6 +21,9 @@
         {% if session['github_id'] %}
           {{ session['github_id'] }} (GitHub)
         {% endif %}
+        {% if session['facebook_id'] %}
+          {{ session['facebook_id'] }} (Facebook)
+        {% endif %}
         </a>
        {% endif %} 
     </div>
