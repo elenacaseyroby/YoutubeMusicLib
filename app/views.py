@@ -8,6 +8,7 @@ from sqlalchemy import text, update, func
 from urllib.request import Request, urlopen
 from urllib.parse import unquote, urlencode
 from urllib.error import URLError
+import requests
 import datetime, re
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
@@ -127,10 +128,17 @@ def login():
 @app.route('/logout')
 def revoke_token():
   if 'google_token' in session: 
-    res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
+    #res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
     session.pop('google_id', None)
     session.pop('session_user_id', None)
     session.pop('google_token', None)
+    return redirect('/')
+  elif 'github_token' in session:
+    #req = "https://api.github.com/applications/" + GITHUB_CLIENT_ID + "/tokens/" + session['github_token']
+    #r = requests.delete(req, auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET))
+    session.pop('github_id', None)
+    session.pop('session_user_id', None)
+    session.pop('github_token', None)
     return redirect('/')
   return redirect(url_for('login'))
 
