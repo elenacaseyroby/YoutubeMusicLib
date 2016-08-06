@@ -149,6 +149,11 @@ def revoke_token():
     session.pop('session_user_id', None)
     session.pop('github_token', None)
     return redirect('/')
+  elif 'facebook_token' in session:
+    session.pop('facebook_id', None)
+    session.pop('session_user_id', None)
+    session.pop('facebook_token', None)
+    return redirect('/')
   return redirect(url_for('login'))
 
 @app.route('/googlelogin')
@@ -158,6 +163,10 @@ def googlelogin():
 @app.route('/githublogin')
 def githublogin():
   return github.authorize(callback=url_for('github_authorized', _external=True))
+
+@app.route('/facebooklogin')
+def facebooklogin():
+  return facebook.authorize(callback=url_for('facebook_authorized', _external=True))
 
 @app.route('/googleoauth2callback')
 @google.authorized_handler
