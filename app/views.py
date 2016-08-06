@@ -8,7 +8,6 @@ from sqlalchemy import text, update, func
 from urllib.request import Request, urlopen
 from urllib.parse import unquote, urlencode
 from urllib.error import URLError
-import requests
 import datetime, re
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
@@ -17,8 +16,8 @@ GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
 GITHUB_CLIENT_ID = '27f25d90f41d766f7acb'
 GITHUB_CLIENT_SECRET = '523c741710a609e020117fb35ac4561743f031e9'
 
-FACEBOOK_CLIENT_ID =
-FACEBOOK_CLIENT_SECRET = 
+FACEBOOK_CLIENT_ID = '1174913275908570'
+FACEBOOK_CLIENT_SECRET = 'e12c78a048fde200db974acd5080ca77'
  
 oauth = OAuth(app)
 
@@ -141,14 +140,11 @@ def login():
 @app.route('/logout')
 def revoke_token():
   if 'google_token' in session: 
-    #res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
     session.pop('google_id', None)
     session.pop('session_user_id', None)
     session.pop('google_token', None)
     return redirect('/')
   elif 'github_token' in session:
-    #req = "https://api.github.com/applications/" + GITHUB_CLIENT_ID + "/tokens/" + session['github_token']
-    #r = requests.delete(req, auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET))
     session.pop('github_id', None)
     session.pop('session_user_id', None)
     session.pop('github_token', None)
@@ -230,6 +226,10 @@ def get_google_access_token(token=None):
 @github.tokengetter
 def get_github_access_token(token=None):
     return session.get('github_token')
+
+@facebook.tokengetter
+def get_facebook_access_token(token=None):
+    return session.get('facebook_token')
 
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
