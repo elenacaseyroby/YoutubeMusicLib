@@ -16,6 +16,9 @@ GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
 
 GITHUB_CLIENT_ID = '27f25d90f41d766f7acb'
 GITHUB_CLIENT_SECRET = '523c741710a609e020117fb35ac4561743f031e9'
+
+FACEBOOK_CLIENT_ID =
+FACEBOOK_CLIENT_SECRET = 
  
 oauth = OAuth(app)
 
@@ -37,6 +40,16 @@ github = oauth.remote_app('github',
   access_token_method='POST',
   consumer_key=GITHUB_CLIENT_ID,
   consumer_secret=GITHUB_CLIENT_SECRET)
+
+facebook = oauth.remote_app('facebook',
+    base_url='https://graph.facebook.com/',
+    request_token_url=None,
+    access_token_url='/oauth/access_token',
+    authorize_url='https://www.facebook.com/dialog/oauth',
+    consumer_key=FACEBOOK_CLIENT_ID,
+    consumer_secret=FACEBOOK_CLIENT_SECRET,
+    request_token_params={'scope': 'email'}
+)
 
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
