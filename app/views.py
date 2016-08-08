@@ -3,8 +3,8 @@ from flask import render_template, flash, session, redirect, request, Flask, url
 from flask_oauthlib.client import OAuth
 from app import app, sql_session, login_manager, viewsClasses
 from .models import models, viewsModel
-from json import loads
 from .myfunctions import sortnumbers
+from json import loads
 from sqlalchemy import text, update, func
 from urllib.request import Request, urlopen
 from urllib.parse import unquote
@@ -145,7 +145,6 @@ def postlistens():
   else:
     track_num = None
 
-  
   artist_id = viewsModel.updatevideoartist(str(request.form["artist"]))
   sql_session.rollback()
   video_in_db = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
@@ -168,35 +167,31 @@ def postlistens():
                 listened_to_end=request.form["listened_to_end"])
   sql_session.add(new_listen)
   sql_session.commit()
-
   #store lastfm similar artists and match scores
   lastfm_similar_artists_list = list()
   similar_artists_list = list()
   #artist_table_list is a full list of artists in our db
-  artists_table = viewsModel.getArtists(); #trying to find out how to select just artist names so it can be a list of names that can be easily checked
+  artists_table = viewsModel.getArtists(); 
   artist_table_list = list()
   for artist in artists_table:
     artist_table_list.append(artist[5].lower())
-  #similar_artists_list is a list of all the artists that are 
-  #listed as similar to artist_name artist (currently playing artist) in our db
+  #similar_artists_list is a full list of artists listed as similar to
+  #currently playing artist in our db
   similar_artists = viewsModel.getsimilarartistsbyartist(artist_id)
   if similar_artists:
     for artist in similar_artists:
         similar_artists_list.append(artist[0].lower())
-  #lastfm_similar_artists_list is a list of strings. Each string will contain
-  #a similar artist and their match score: "similar_artist,match_score"
   lastfm_similar_artists_list = loads(request.form["similarartiststring"]) 
   for lastfm_artist in lastfm_similar_artists_list:
     artist = lastfm_artist['name']
     match = lastfm_artist['match']
-
+    #add if similar artist not in artists table
     if artist.lower() not in artist_table_list:
       sql_session.rollback()
       new_artist = models.Artist(artist_name = artist)
       sql_session.add(new_artist)
       sql_session.commit()
-    # add if lastfm similar artist isn't listed as artist's similar 
-    # artist in similar_artists table
+    # add if lastfm similar artist isn't listed as similar artist in table
     if artist.lower() not in similar_artists_list:
       lastfm_artist_in_db = sql_session.query(models.Artist).filter_by(artist_name = artist).first()
       sql_session.rollback()
@@ -228,7 +223,6 @@ def postartistinfo():
     now = datetime.datetime.now()
     thisyear = int(str(now.year))
     mentionedyears = []
-
     #if artist doesn't have year stored, store year
     if artist_in_db:
       if not artist_in_db.start_year:
@@ -270,9 +264,6 @@ def postartistinfo():
 def updatedata():
   album_id = 2
   artist_id = 1
-  #error: not updating middle row of 3 like the other two
-
-  #if request.form["only_library"] == "false":
   sql_session.rollback()
   artist_by_name = sql_session.query(models.Artist).filter_by(artist_name = request.form["artist"]).first()
   album_by_name = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
@@ -302,8 +293,6 @@ def updatedata():
   saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id']).first()
     
   if request.form['library'] == "1":
-  #only updates if add to library was checked,
-  #since unchecked is default right now.
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
                                      , user_id = session['session_user_id'])
