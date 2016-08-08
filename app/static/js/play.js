@@ -58,8 +58,8 @@ function playVideo(id, title, channel_id, description) {
 		tag.src = "https://www.youtube.com/iframe_api";
 		var firstScriptTag = document.getElementsByTagName('script')[0];
 		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-	}else{
-		onYouTubeIframeAPIReady()
+  }else{
+    player.loadVideoById(current_iframe_video.id);
 	}
 }
 
