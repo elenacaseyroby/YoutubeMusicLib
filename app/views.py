@@ -61,7 +61,7 @@ def listens():
     listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
-    return render_template('displayupdate_data.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true")
+    return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true")
   return redirect(url_for('login'))
 
 
@@ -78,7 +78,7 @@ def library():
     else:
       if search_artist == "%":
         search_artist = ""
-      return render_template('displayupdate_data.html', display_update_rows = library, search_artist = search_artist, islistens = "false")
+      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false")
   return redirect(url_for('login'))
 
 @app.route('/login')
