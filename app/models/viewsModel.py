@@ -1,9 +1,46 @@
 #!/usr/bin/python
 # -*- mode: python -*-
 
-from app import models, sql_session, viewsClasses
+from app import models, sql_session
+from app.views import viewsClasses
 from sqlalchemy import text, update, func
 from flask import session, request
+
+def getartists(artist_id=None):
+  where = ""
+  if artist_id:
+    where = "WHERE artist_id = "+artist_id
+  sql= text("""SELECT *
+    FROM artists
+    """+where+";")
+  result = models.engine.execute(sql)
+  return result
+
+def getcities(select = "*", artist_id=None):
+  where = ""
+  if artist_id:
+    where = "WHERE cities.artist_id = "+artist_id
+  sql= text("""SELECT """+select+"""
+    FROM cities
+    """+where+";")
+  result = models.engine.execute(sql)
+  return result
+
+#query not in use yet
+def getgenres(youtube_id):
+  sql = text("""SELECT 
+genres.name
+,videos.youtube_title
+,videos.youtube_id
+,videos.title
+,artists.artist_name
+FROM videos
+JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
+JOIN genres ON vids_genres.genre_id = genres.id
+JOIN artists ON videos.artist_id = artists.id
+WHERE videos.youtube_id ='"""+youtube_id+"';")
+  result = models.engine.execute(sql)
+  return result
 
 def getlibrary(user_id, search_artist):
   sql_session.rollback()
@@ -50,7 +87,6 @@ def getlibrary(user_id, search_artist):
   return listens 
 
 #get listens data for listens page
-
 def getlistensdata(search_start_date, search_end_date, search_artist):
   sql_session.rollback()
   limit = 30
@@ -106,43 +142,6 @@ def getlistensdata(search_start_date, search_end_date, search_artist):
 
   return listens 
 
-def getCities(select = "*", artist_id=None):
-  where = ""
-  if artist_id:
-    where = "WHERE cities.artist_id = "+artist_id
-  sql= text("""SELECT """+select+"""
-    FROM cities
-    """+where+";")
-  result = models.engine.execute(sql)
-  return result
-
-
-def getArtists(artist_id=None):
-  where = ""
-  if artist_id:
-    where = "WHERE artist_id = "+artist_id
-  sql= text("""SELECT *
-    FROM artists
-    """+where+";")
-  result = models.engine.execute(sql)
-  return result
-
-#query not in use yet
-def getgenres(youtube_id):
-  sql = text("""SELECT 
-genres.name
-,videos.youtube_title
-,videos.youtube_id
-,videos.title
-,artists.artist_name
-FROM videos
-JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
-JOIN genres ON vids_genres.genre_id = genres.id
-JOIN artists ON videos.artist_id = artists.id
-WHERE videos.youtube_id ='"""+youtube_id+"';")
-  result = models.engine.execute(sql)
-  return result
-
 def getsimilarartistsbyartist(artist_id):
   sql = text("""SELECT artists.artist_name, artists.id
     FROM similar_artists
@@ -151,7 +150,7 @@ def getsimilarartistsbyartist(artist_id):
   result = models.engine.execute(sql)
   return result
 
-#query not in use yet
+#function not used in code yet
 def getsimilarartistsbyvideo(youtube_id):
   sql = text("""SELECT 
 a1.artist_name
@@ -177,24 +176,6 @@ WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   #result = result1 + result2
   #result = list(set(result)) #remove redundancies
   return "success"
-
-
-def updatevideoartist(artist_artist_name):
-  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-  sql_session.rollback()
-  artist_by_name = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
-  if artist_by_name:
-    artist_id = artist_by_name.id
-  #if artist name doesn't exist in db, add new row to artists table
-  else:
-    sql_session.rollback()
-    new_artist = models.Artist(artist_name = artist_artist_name)
-    sql_session.add(new_artist)
-    sql_session.commit()
-    new_artist_id = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
-    artist_id = int(new_artist_id.id)
-
-  return artist_id
 
 def updatealbum(album_name):
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
@@ -236,3 +217,23 @@ def updategenres(youtube_id, api_genres):
       sql_session.add(new_vids_genres)
       sql_session.commit()
   return "success";
+
+
+def updatevideoartist(artist_artist_name):
+  #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
+  sql_session.rollback()
+  artist_by_name = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+  if artist_by_name:
+    artist_id = artist_by_name.id
+  #if artist name doesn't exist in db, add new row to artists table
+  else:
+    sql_session.rollback()
+    new_artist = models.Artist(artist_name = artist_artist_name)
+    sql_session.add(new_artist)
+    sql_session.commit()
+    new_artist_id = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
+    artist_id = int(new_artist_id.id)
+
+  return artist_id
+
+
