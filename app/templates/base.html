@@ -8,7 +8,25 @@
     {% endif %}
   </head>
   <body>
-    <div>Other pages:  <a href="/index">Home</a> | <a href="/play">Play Music</a> | <a href="/listens">Past Listens</a> | <a href="/library">Library</a> | <a href="/logout">Logout {{ session['user_email'] }}</a></div>
+    <div>Other pages:  
+      <a href="{{url_for('index')}}">Home</a>
+       | <a href="{{url_for('playMusic')}}">Play Music</a>
+       | <a href="{{url_for('listens')}}">Past Listens</a>
+       | <a href="{{url_for('library')}}">Library</a>
+       {% if session['session_user_id'] %}
+        | <a href="{{url_for('revoke_token')}}">Logout 
+        {% if session['google_id'] %}
+          {{ session['google_id'] }} (Google)
+        {% endif %}
+        {% if session['github_id'] %}
+          {{ session['github_id'] }} (GitHub)
+        {% endif %}
+        {% if session['facebook_id'] %}
+          {{ session['facebook_id'] }} (Facebook)
+        {% endif %}
+        </a>
+       {% endif %} 
+    </div>
     <hr> 
 
     {% with messages = get_flashed_messages() %}

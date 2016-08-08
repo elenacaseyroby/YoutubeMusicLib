@@ -1,18 +1,23 @@
 #!/usr/bin/python
 from flask import render_template, flash, session, redirect, request, Flask, url_for, jsonify
 from flask_oauthlib.client import OAuth
-from app import app, models, sql_session, login_manager
-from .forms import LoginForm
+from app import app, models, sql_session
 from json import loads
 from .myfunctions import sortnumbers
 from sqlalchemy import text, update, func
 from urllib.request import Request, urlopen
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode
 from urllib.error import URLError
 import datetime, re
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
+
+GITHUB_CLIENT_ID = '27f25d90f41d766f7acb'
+GITHUB_CLIENT_SECRET = '523c741710a609e020117fb35ac4561743f031e9'
+
+FACEBOOK_CLIENT_ID = '1174913275908570'
+FACEBOOK_CLIENT_SECRET = 'e12c78a048fde200db974acd5080ca77'
  
 oauth = OAuth(app)
 
@@ -25,6 +30,25 @@ google = oauth.remote_app('google',
   access_token_method='POST',
   consumer_key=GOOGLE_CLIENT_ID,
   consumer_secret=GOOGLE_CLIENT_SECRET)
+
+github = oauth.remote_app('github',
+  authorize_url='https://github.com/login/oauth/authorize',
+  request_token_url=None,
+  request_token_params={'scope': 'user:email'},
+  access_token_url='https://github.com/login/oauth/access_token',
+  access_token_method='POST',
+  consumer_key=GITHUB_CLIENT_ID,
+  consumer_secret=GITHUB_CLIENT_SECRET)
+
+facebook = oauth.remote_app('facebook',
+    base_url='https://graph.facebook.com/',
+    request_token_url=None,
+    access_token_url='/oauth/access_token',
+    authorize_url='https://www.facebook.com/dialog/oauth',
+    consumer_key=FACEBOOK_CLIENT_ID,
+    consumer_secret=FACEBOOK_CLIENT_SECRET,
+    request_token_params={'scope': 'email'}
+)
 
 class displayupdate_page_row_object:
     def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
@@ -56,18 +80,19 @@ class displayupdate_page_row_object:
 @app.route('/')
 @app.route('/index')
 def index():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     return redirect(url_for('playMusic'))
   return redirect(url_for('login'))
 
 @app.route('/play')
 def playMusic():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     return render_template('play.html')
+  return redirect(url_for('login'))
 
 @app.route('/listens', methods = ['GET'])
 def listens():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     #set dates from form submission 
     #if those are empty set default dates
     now = datetime.datetime.now()
@@ -94,7 +119,7 @@ def listens():
 
 @app.route('/library')
 def library():
-  if 'google_token' in session:
+  if 'session_user_id' in session:
     library = list()
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
@@ -110,20 +135,39 @@ def library():
 
 @app.route('/login')
 def login():
-    return google.authorize(callback=url_for('authorized', _external=True))
+  return render_template('login.html')
 
 @app.route('/logout')
 def revoke_token():
-  if 'google_token' in session: 
-    res = google.get('https://accounts.google.com/o/oauth2/revoke', data={'token': session['google_token'][0]})
-    session.pop('user_email', None)
-    session.pop('google_token', None)
+  if 'google_id' in session: 
+    session.pop('google_id', None)
+    session.pop('session_user_id', None)
+    return redirect('/')
+  elif 'github_id' in session:
+    session.pop('github_id', None)
+    session.pop('session_user_id', None)
+    return redirect('/')
+  elif 'facebook_id' in session:
+    session.pop('facebook_id', None)
+    session.pop('session_user_id', None)
     return redirect('/')
   return redirect(url_for('login'))
 
-@app.route('/oauth2callback')
+@app.route('/googlelogin')
+def googlelogin():
+  return google.authorize(callback=url_for('google_authorized', _external=True))
+
+@app.route('/githublogin')
+def githublogin():
+  return github.authorize(callback=url_for('github_authorized', _external=True))
+
+@app.route('/facebooklogin')
+def facebooklogin():
+  return facebook.authorize(callback=url_for('facebook_authorized', _external=True))
+
+@app.route('/googleoauth2callback')
 @google.authorized_handler
-def authorized(resp):
+def google_authorized(resp):
     if resp is None:
         return 'Access denied: reason=%s error=%s' % (
             request.args['error'],
@@ -133,26 +177,103 @@ def authorized(resp):
     res = google.get('https://www.googleapis.com/plus/v1/people/me')
     google_object = res.data
     if (len(google_object['emails']) > 0):
-      session['user_email'] = (google_object['emails'][0]['value'])
+      session['google_id'] = (google_object['emails'][0]['value'])
       sql_session.rollback()
-      email_in_db = sql_session.query(models.User).filter_by(email=session['user_email']).first()
+      google_in_db = sql_session.query(models.User).filter_by(oauth_id=session['google_id'], oauth_type='Google').first()
       last_id_query = sql_session.query(func.max(models.User.id))
       last_id = last_id_query.one()
 
-      if not email_in_db:
+      if not google_in_db:
         new_user = models.User(id=last_id[0] + 1,
                               verification_level=100,
-                              email=session['user_email'])
+                              oauth_id=session['google_id'],
+                              oauth_type='Google')
         sql_session.add(new_user)
         sql_session.commit()
         session['session_user_id'] = last_id[0] + 1
       else:
-        session['session_user_id'] = email_in_db.id
+        session['session_user_id'] = google_in_db.id
+    return redirect('/play')
+
+@app.route('/githuboauth2callback')
+@github.authorized_handler
+def github_authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error'],
+            request.args['error_description']
+        )
+    session['github_token'] = (resp['access_token'])
+    res = urlopen('https://api.github.com/user?access_token=' + session['github_token'])
+    res_string = res.read().decode('utf-8')
+    github_object = loads(res_string)
+    session['github_id'] = github_object['login']
+
+    sql_session.rollback()
+    github_in_db = sql_session.query(models.User).filter_by(oauth_id=session['github_id'], oauth_type='GitHub').first()
+    last_id_query = sql_session.query(func.max(models.User.id))
+    last_id = last_id_query.one()
+
+    if not github_in_db:
+      new_user = models.User(id=last_id[0] + 1,
+                              verification_level=100,
+                              oauth_id=session['github_id'],
+                              oauth_type='GitHub')
+      sql_session.add(new_user)
+      sql_session.commit()
+      session['session_user_id'] = last_id[0] + 1
+    else:
+      session['session_user_id'] = github_in_db.id
+
+    return redirect('/play')
+
+@app.route('/facebookoauth2callback')
+@facebook.authorized_handler
+def facebook_authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error'],
+            request.args['error_description']
+        )
+            
+    session['facebook_token'] = resp['access_token']
+    session['facebook_id'] = ''
+
+    session['github_token'] = (resp['access_token'])
+    res = urlopen('https://graph.facebook.com/me?access_token=' + session['facebook_token'])
+    res_string = res.read().decode('utf-8')
+    facebook_object = loads(res_string)
+    session['facebook_id'] = facebook_object['name']
+
+    sql_session.rollback()
+    facebook_in_db = sql_session.query(models.User).filter_by(oauth_id=session['facebook_id'], oauth_type='Facebook').first()
+    last_id_query = sql_session.query(func.max(models.User.id))
+    last_id = last_id_query.one()
+
+    if not facebook_in_db:
+      new_user = models.User(id=last_id[0] + 1,
+                              verification_level=100,
+                              oauth_id=session['facebook_id'],
+                              oauth_type='Facebook')
+      sql_session.add(new_user)
+      sql_session.commit()
+      session['session_user_id'] = last_id[0] + 1
+    else:
+      session['session_user_id'] = facebook_in_db.id
+
     return redirect('/play')
 
 @google.tokengetter
-def get_access_token(token=None):
+def get_google_access_token(token=None):
     return session.get('google_token')
+
+@github.tokengetter
+def get_github_access_token(token=None):
+    return session.get('github_token')
+
+@facebook.tokengetter
+def get_facebook_access_token(token=None):
+    return session.get('facebook_token')
 
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])

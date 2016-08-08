@@ -1,9 +1,23 @@
 {% extends "base.html" %}
-<meta name="google-signin-client_id" content="{{ GOOGLE_CLIENT_ID }}.apps.googleusercontent.com">
+
 {% block content %}
 <center>
-
+<p>Sign in with:</p>
+<p>
+<a href= "{{ url_for('googlelogin') }}">
+Google
+</a>
+</p>
+<p>
+<a href= "{{ url_for('githublogin') }}">
+GitHub
+</a>
+</p>
+<a href= "{{ url_for('facebooklogin') }}">
+Facebook
+</a>
+</p>
+</form>
 </center>
-  
 {% endblock %}
 
