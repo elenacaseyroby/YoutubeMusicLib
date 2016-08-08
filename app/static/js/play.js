@@ -60,6 +60,8 @@ function playVideo(id, title, channel_id, description) {
 		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
   }else{
     player.loadVideoById(current_iframe_video.id);
+	  number_of_plays++;
+	  getRelatedVideos(current_iframe_video.id);
 	}
 }
 
