@@ -197,15 +197,12 @@ function parseArtistTitleYear(youtubeTitle) {
 
 //records play at top of page
 function savePlay(event, end = false) {
-
-	youtube_id = event.target.b.c.videoId;
-	youtube_id = youtube_id.toString();
-	channel_id = event.target.b.c.channel_id;
-	channel_id = channel_id.toString();
-
-	description = event.target.b.c.description;
+	youtube_id = current_iframe_video.id;
+	title = current_iframe_video.title;
+	channel_id = current_iframe_video.channel_id;
+	description = current_iframe_video.description;
+	
 	description = decodeURIComponent(description.toString()).replace(/&apos;/g, "'").replace(/&quot;/g, '"');
-	title = event.target.b.c.title;
 	title = decodeURIComponent(title.toString()).replace(/&apos;/g, "'").replace(/&quot;/g, '"');
 	youtube_title = title;
 
