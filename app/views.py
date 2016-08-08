@@ -179,14 +179,15 @@ def google_authorized(resp):
     if (len(google_object['emails']) > 0):
       session['google_id'] = (google_object['emails'][0]['value'])
       sql_session.rollback()
-      google_in_db = sql_session.query(models.User).filter_by(google_id=session['google_id']).first()
+      google_in_db = sql_session.query(models.User).filter_by(oauth_id=session['google_id'], oauth_type='Google').first()
       last_id_query = sql_session.query(func.max(models.User.id))
       last_id = last_id_query.one()
 
       if not google_in_db:
         new_user = models.User(id=last_id[0] + 1,
                               verification_level=100,
-                              google_id=session['google_id'])
+                              oauth_id=session['google_id'],
+                              oauth_type='Google')
         sql_session.add(new_user)
         sql_session.commit()
         session['session_user_id'] = last_id[0] + 1
@@ -209,14 +210,15 @@ def github_authorized(resp):
     session['github_id'] = github_object['login']
 
     sql_session.rollback()
-    github_in_db = sql_session.query(models.User).filter_by(github_id=session['github_id']).first()
+    github_in_db = sql_session.query(models.User).filter_by(oauth_id=session['github_id'], oauth_type='GitHub').first()
     last_id_query = sql_session.query(func.max(models.User.id))
     last_id = last_id_query.one()
 
     if not github_in_db:
       new_user = models.User(id=last_id[0] + 1,
                               verification_level=100,
-                              github_id=session['github_id'])
+                              oauth_id=session['github_id'],
+                              oauth_type='GitHub')
       sql_session.add(new_user)
       sql_session.commit()
       session['session_user_id'] = last_id[0] + 1
@@ -233,8 +235,7 @@ def facebook_authorized(resp):
             request.args['error'],
             request.args['error_description']
         )
-    flash(resp)
-    
+            
     session['facebook_token'] = resp['access_token']
     session['facebook_id'] = ''
 
@@ -245,14 +246,15 @@ def facebook_authorized(resp):
     session['facebook_id'] = facebook_object['name']
 
     sql_session.rollback()
-    facebook_in_db = sql_session.query(models.User).filter_by(facebook_id=session['facebook_id']).first()
+    facebook_in_db = sql_session.query(models.User).filter_by(oauth_id=session['facebook_id'], oauth_type='Facebook').first()
     last_id_query = sql_session.query(func.max(models.User.id))
     last_id = last_id_query.one()
 
     if not facebook_in_db:
       new_user = models.User(id=last_id[0] + 1,
                               verification_level=100,
-                              facebook_id=session['facebook_id'])
+                              oauth_id=session['facebook_id'],
+                              oauth_type='Facebook')
       sql_session.add(new_user)
       sql_session.commit()
       session['session_user_id'] = last_id[0] + 1
