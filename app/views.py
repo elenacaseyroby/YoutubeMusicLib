@@ -5,7 +5,7 @@ from app import app, sql_session, login_manager, viewsClasses
 from .models import models, viewsModel
 from .myfunctions import sortnumbers
 from json import loads
-from sqlalchemy import text, update, func
+from sqlalchemy import update, func
 from urllib.request import Request, urlopen
 from urllib.parse import unquote
 from urllib.error import URLError
