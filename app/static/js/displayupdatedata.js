@@ -1,7 +1,7 @@
 $(function(){
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
-		index = 100;
+		index = $(".row").count();
 		i = 0;
 		var dataupdated = false;
 
@@ -97,6 +97,16 @@ $(function(){
         	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
         
         }
+    });
+    
+    $("#save-playlist").click(function(){
+    	var listItems = $("#sortable li");
+    	var i = 1;
+		listItems.each(function(li) {
+		    console.log(i+". "+$(this).attr('id').replace('playlist-', ''));
+		    i++;
+		});
+
     });
 });
 

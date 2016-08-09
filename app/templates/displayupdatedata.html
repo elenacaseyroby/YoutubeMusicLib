@@ -72,16 +72,16 @@ make all textbox be search dropdown that fills with db table elements to make it
 		<!--<button id="open-playlist-menu" class="pure-button" img="http://www.clker.com/cliparts/G/O/h/M/m/c/cassette-audio-tape-hi.png" ></button>-->
 		<input type="image" id="open-playlist-menu" src="http://www.clker.com/cliparts/G/O/h/M/m/c/cassette-audio-tape-hi.png" />
 		<div class="playlist-menu">
-			<form class="pure-form pure-form-stacked">
+			<form action="#" class="pure-form pure-form-stacked">
 				<select class="pure-dropdown">
 		  			<option value="Playlist 1">Select Playlist</option>
 		  		</select>
 				<input type="text" id="playlist-name" placeholder="Playlist Name">
-				<input type="submit" value="Save" class="pure-button">
+				<input id="save-playlist" type="submit" value="Save" class="pure-button">
 			</form>
 			<ul id="sortable">
+			<!--append playlist list elements-->
 			</ul>
-			<!--<div class="playlist-items"/>-->
 		</div>
 	</div>
 <!--https://jqueryui.com/draggable/#sortable-->
