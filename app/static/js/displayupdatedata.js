@@ -67,6 +67,25 @@ $(function(){
 		});
 		//window.location.reload('/listens');
 	});	
+	$( "#sortable" ).sortable({
+      revert: true
+    });
+    $( "#draggable" ).draggable({
+      connectToSortable: "#sortable",
+      helper: "clone",
+      revert: "invalid"
+    });
+    $( "ul, li" ).disableSelection();
+
+    $("#open-playlist-menu").click(function(){
+    	if ($("#sortable").is(":visible")){
+    		$("#sortable").hide();
+    	}else{
+    		$("#sortable").show();
+    	}
+	});
 });
+
+
 
 
