@@ -78,12 +78,12 @@ $(function(){
     $( "ul, li" ).disableSelection();
 
     $("#open-playlist-menu").click(function(){
-    	if ($("#sortable").is(":visible")){
-    		$("#sortable").hide();
+    	if ($(".playlist-menu").is(":visible")){
+    		$(".playlist-menu").hide();
     		$(".main").css(
     			"width", "100%");
     	}else{
-    		$("#sortable").show();
+    		$(".playlist-menu").show();
     		$(".main").css(
     			"width", "80%");
     	}
