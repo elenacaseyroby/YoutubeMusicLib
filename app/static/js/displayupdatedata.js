@@ -88,6 +88,16 @@ $(function(){
     			"width", "80%");
     	}
 	});
+	$('input[type=checkbox]').change(
+    function(){
+        if (this.checked) {
+            console.log(this.id);
+            $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>")
+        }else{
+        	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
+        
+        }
+    });
 });
 
 
