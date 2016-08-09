@@ -80,8 +80,12 @@ $(function(){
     $("#open-playlist-menu").click(function(){
     	if ($("#sortable").is(":visible")){
     		$("#sortable").hide();
+    		$(".main").css(
+    			"width", "100%");
     	}else{
     		$("#sortable").show();
+    		$(".main").css(
+    			"width", "80%");
     	}
 	});
 });
