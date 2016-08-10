@@ -72,21 +72,27 @@ make all textbox be search dropdown that fills with db table elements to make it
 		<!--<button id="open-playlist-menu" class="pure-button" img="http://www.clker.com/cliparts/G/O/h/M/m/c/cassette-audio-tape-hi.png" ></button>-->
 		<input type="image" id="open-playlist-menu" src="http://www.clker.com/cliparts/G/O/h/M/m/c/cassette-audio-tape-hi.png" />
 		<div class="playlist-menu">
-			<form class="pure-form pure-form-stacked">
-				<select class="pure-dropdown">
+			<form id="select-playlist-form" class="pure-form pure-form-stacked" methods="GET">
+				<select name = "playlist_title" id="playlist-dropdown" class="pure-dropdown">
 					<option value="Select Playlist">Select Playlist</option>
-					{% for title in playlisttitles %}
+					{% for title in playlist_titles %}
 		  			<option value="{{title}}">{{title}}</option>
 					{% endfor %}
 		  		</select>
+		  	</form>
+		  	<form id="update-playlist-form" class="pure-form pure-form-stacked">
 				<input type="text" id="playlist-name" placeholder="Playlist Name">
 				<input id="save-playlist" type="submit" value="Save" class="pure-button">
 			</form>
 			<ul id="sortable">
+			{% for track in playlist_tracks %}
+				<li id='playlist-{{track.youtube_id}}' class='ui-state-default' value='{{track.artist}} - {{track.title}}'>{{track.artist}} - {{track.title}}</li>
+			{% endfor %}
 			<!--append playlist list elements-->
 			</ul>
 		</div>
 	</div>
+	<hidden id = "islistens" value="{{islistens}}">
 <!--https://jqueryui.com/draggable/#sortable-->
 	<!--scripts-->
 	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/table.css') }}">

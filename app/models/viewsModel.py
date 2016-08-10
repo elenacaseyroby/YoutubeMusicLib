@@ -250,6 +250,35 @@ def getplaylisttitles(user_id):
       
   return playlisttitles
 
+def getplaylisttracks(user_id, title):
+  
+  playlist_tracks = []
+  playlist = sql_session.query(models.Playlist).filter_by(user_id = user_id, title = title).first()
+  
+  sql = text("""SELECT playlist_tracks.*
+    , videos.title
+    , artists.artist_name
+            FROM playlist_tracks
+            JOIN playlists ON playlist_tracks.playlist_id = playlists.id
+            JOIN videos ON playlist_tracks.youtube_id = videos.youtube_id
+            JOIN artists ON videos.artist_id = artists.id
+            WHERE playlists.id = '"""+str(playlist.id)+""""'
+            ORDER BY playlist_tracks.track_num;""");
+  print(sql);
+  results = models.engine.execute(sql)
+  rows = results.fetchall()
+  for row in rows:
+      track = viewsClasses.playlist_track(youtube_id = row[2], title = row[5], artist = row[6], track_num = row[3])
+      playlist_tracks.append(track)
+  #playlist = viewsClasses.playlist(title = playlist_title, tracks = playlist_tracks)
+  """
+  for playlist in playlists:
+    print(playlist.title)
+    for track in playlist.tracks:
+      print(track.title)
+  """
+  return playlist_tracks
+
 def getplaylists2(user_id):
   playlists = []
   playlist_tracks = []

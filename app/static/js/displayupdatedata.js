@@ -122,6 +122,23 @@ $(function(){
 	    });
 		//send array and to views.py through ajax request
     });
+    $("#playlist-dropdown").change(function(){
+    	console.log("playlist selected!");
+    	$("#select-playlist-form").submit();
+    	if($("#islistens").attr("value") == "true"){
+    		console.log("is listens page");
+    		post_url = "/listens"
+    	}else{
+    		post_url = "/library"
+    	}
+    	/*
+    	$.ajax({
+			type: "GET",
+	    	url: post_url,
+	    	data: {playlist_title: $("#playlist-dropdown").attr("value")
+	    	}
+	    });*/
+    });
 });
 
 
