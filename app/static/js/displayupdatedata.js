@@ -102,11 +102,25 @@ $(function(){
     $("#save-playlist").click(function(){
     	var listItems = $("#sortable li");
     	var i = 1;
+    	var playlist_title = $("#playlist-name").val();
+    	var playlist_tracks = [];
 		listItems.each(function(li) {
 		    console.log(i+". "+$(this).attr('id').replace('playlist-', ''));
+		    youtube_id = $(this).attr('id').replace('playlist-', '');
+		    playlist_tracks.push(youtube_id);
 		    i++;
+		    //create array
 		});
-
+		console.log(playlist_title);
+		console.log(playlist_tracks);
+		$.ajax({
+			type: "POST",
+	    	url: '/postplaylist',
+	    	data: {playlist_title: playlist_title, 
+	    		tracks: JSON.stringify(playlist_tracks)
+	    	}
+	    });
+		//send array and to views.py through ajax request
     });
 });
 
