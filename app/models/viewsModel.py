@@ -236,4 +236,60 @@ def updatevideoartist(artist_artist_name):
 
   return artist_id
 
+def getplaylisttitles(user_id):
+  playlisttitles = []
+  sql = text("""SELECT playlists.title, playlists.id
+                FROM playlists
+                WHERE user_id = '"""+str(user_id)+"';");
+  results = models.engine.execute(sql)
+  rows = results.fetchall()
+  if len(rows) > 0:
+    for row in rows: #row[0]
+      playlist_title = row[0]
+      playlisttitles.append(playlist_title)
+      
+  return playlisttitles
+
+def getplaylists2(user_id):
+  playlists = []
+  playlist_tracks = []
+  sql = text("""SELECT playlists.title, playlists.id
+                FROM playlists
+                WHERE user_id = '"""+str(user_id)+"';");
+  results = models.engine.execute(sql)
+  rows = results.fetchall()
+  if len(rows) > 0:
+    for row in rows: #row[0]
+      playlist_title = row[0]
+      playlist_id = row[1]
+      sql = text("""SELECT playlist_tracks.*
+        , videos.title
+        , artists.artist_name
+                FROM playlist_tracks
+                JOIN playlists ON playlist_tracks.playlist_id = playlists.id
+                JOIN videos ON playlist_tracks.youtube_id = videos.youtube_id
+                JOIN artists ON videos.artist_id = artists.id
+                WHERE playlists.id = '"""+str(playlist_id)+""""'
+                ORDER BY playlist_tracks.track_num;""");
+      print(sql);
+      results = models.engine.execute(sql)
+      rows = results.fetchall()
+      for row in rows:
+          track = viewsClasses.playlist_track(youtube_id = row[2], title = row[5], artist = row[6], track_num = row[3])
+          playlist_tracks.append(track)
+      playlist = viewsClasses.playlist(title = playlist_title, tracks = playlist_tracks)
+      playlists.append(playlist)
+      """
+      for playlist in playlists:
+        print(playlist.title)
+        for track in playlist.tracks:
+          print(track.title)
+      """
+  return playlists
+
+
+
+
+
+
 

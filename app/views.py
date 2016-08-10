@@ -41,6 +41,7 @@ def playMusic():
 @app.route('/listens', methods = ['GET'])
 def listens():
   if 'google_token' in session:
+    playlisttitles = viewsModel.getplaylisttitles(session['session_user_id'])
     #set dates from form submission 
     #if those are empty set default dates
     now = datetime.datetime.now()
@@ -61,13 +62,14 @@ def listens():
     listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
-    return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true")
+    return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true", playlisttitles = playlisttitles)
   return redirect(url_for('login'))
 
 
 @app.route('/library')
 def library():
   if 'google_token' in session:
+    playlisttitles = viewsModel.getplaylisttitles(session['session_user_id'])
     library = list()
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
@@ -78,7 +80,7 @@ def library():
     else:
       if search_artist == "%":
         search_artist = ""
-      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false")
+      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlisttitles = playlisttitles)
   return redirect(url_for('login'))
 
 @app.route('/login')

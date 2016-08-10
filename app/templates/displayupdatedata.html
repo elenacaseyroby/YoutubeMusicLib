@@ -74,7 +74,10 @@ make all textbox be search dropdown that fills with db table elements to make it
 		<div class="playlist-menu">
 			<form class="pure-form pure-form-stacked">
 				<select class="pure-dropdown">
-		  			<option value="Playlist 1">Select Playlist</option>
+					<option value="Select Playlist">Select Playlist</option>
+					{% for title in playlisttitles %}
+		  			<option value="{{title}}">{{title}}</option>
+					{% endfor %}
 		  		</select>
 				<input type="text" id="playlist-name" placeholder="Playlist Name">
 				<input id="save-playlist" type="submit" value="Save" class="pure-button">
