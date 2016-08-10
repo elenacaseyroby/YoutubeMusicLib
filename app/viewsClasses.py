@@ -1,10 +1,11 @@
 
 class display_update_row_object:
-    def __init__(self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
+    def __init__(self, index, play, library, music, playlist, title, artist, album, release_date, youtube_id, artist_id, album_id):
         self.index = index
         self.play = play
         self.library = library
         self.music = music
+        self.playlist = playlist
         self.title = title
         self.artist = artist
         self.album = album
@@ -13,11 +14,12 @@ class display_update_row_object:
         self.artist_id = artist_id
         self.album_id = album_id
 
-    def __getitem__ (self, index, play, library, music, title, artist, album, release_date, youtube_id, artist_id, album_id):
+    def __getitem__ (self, index, play, library, music, playlist, title, artist, album, release_date, youtube_id, artist_id, album_id):
         return self.index 
         return self.play 
         return self.library 
         return self.music 
+        return self.playlist
         return self.title 
         return self.artist 
         return self.album 

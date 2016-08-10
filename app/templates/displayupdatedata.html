@@ -46,7 +46,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 							{% if islistens == "true"%}
 							<td>{{vid.index}}</td>
 							{%endif%}
-							<td><input class="play-checkbox" type = "checkbox" id = "{{i | string}}"></td>
+							<td><input class="play-checkbox" type = "checkbox" id = "{{i | string}}" {{"checked" if vid.playlist}}></td>
 							<td><input type = "checkbox" id = "library{{i | string}}" value={{vid.library}} {{"checked" if vid.library}}></td> 
 							<!--<td><input type = "checkbox" id = "play{{i | string}}" ></td>-->
 							<td><input class = "music-{{vid.youtube_id}}" type = "checkbox" id = "music{{i | string}}" value={{vid.music}} {{"checked" if vid.music}}></td> 
@@ -81,7 +81,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 		  		</select>
 		  	</form>
 		  	<form id="update-playlist-form" class="pure-form pure-form-stacked">
-				<input type="text" id="playlist-name" placeholder="Playlist Name">
+				<input type="text" id="playlist-name" value = "{{request.args.get('playlist_title') if request.args.get('playlist_title')}}" placeholder="Playlist Name">
 				<input id="save-playlist" type="submit" value="Save" class="pure-button">
 			</form>
 			<ul id="sortable">

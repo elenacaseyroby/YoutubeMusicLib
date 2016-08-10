@@ -44,8 +44,11 @@ def listens():
   if 'google_token' in session:
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
+    selected_playlist_id=None
     if request.args.get("playlist_title"):
       print("made it to playlist title")
+      playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
+      selected_playlist_id = playlist.id
       playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
       for track in playlist_tracks:
         print(track)
@@ -66,7 +69,7 @@ def listens():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
+    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
     if search_artist == "%":
         search_artist = ""
     return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true", playlist_titles = playlist_titles, playlist_tracks = playlist_tracks)
@@ -76,18 +79,27 @@ def listens():
 @app.route('/library')
 def library():
   if 'google_token' in session:
-    playlisttitles = viewsModel.getplaylisttitles(session['session_user_id'])
+    playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
+    playlist_tracks = []
+    selected_playlist_id=None
+    if request.args.get("playlist_title"):
+      print("made it to playlist title")
+      playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
+      selected_playlist_id = playlist.id
+      playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
+      for track in playlist_tracks:
+        print(track)
     library = list()
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    library = viewsModel.getlibrary(session['session_user_id'], search_artist)
+    library = viewsModel.getlibrary(session['session_user_id'], search_artist, playlist_id = selected_playlist_id)
     if not library:
       return render_template('nolibrarymessage.html')
     else:
       if search_artist == "%":
         search_artist = ""
-      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlisttitles = playlisttitles)
+      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlist_titles = playlist_titles, playlist_tracks = playlist_tracks)
   return redirect(url_for('login'))
 
 @app.route('/login')

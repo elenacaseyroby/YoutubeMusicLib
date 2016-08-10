@@ -42,9 +42,11 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-def getlibrary(user_id, search_artist):
+def getlibrary(user_id, search_artist, playlist_id = None):
   sql_session.rollback()
   listens = list()
+  if not playlist_id:
+    playlist_id = "-1"
   saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if saved_vids:
     sql = text("""SELECT videos.youtube_id
@@ -58,6 +60,7 @@ def getlibrary(user_id, search_artist):
    , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
+   , CASE WHEN (SELECT COUNT(*) FROM playlist_tracks WHERE playlist_tracks.playlist_id = """+str(playlist_id)+""" AND playlist_tracks.youtube_id = saved_vids.youtube_id ) > 0 THEN 1 ELSE 0 END AS playlist
    FROM saved_vids
    JOIN videos ON saved_vids.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -74,6 +77,7 @@ def getlibrary(user_id, search_artist):
                                 , play = 0
                                 , library = 1
                                 , music= result[3]
+                                , playlist= result[11]
                                 , title= result[2]
                                 , artist = result[5]
                                 , album = result[7]
@@ -87,12 +91,14 @@ def getlibrary(user_id, search_artist):
   return listens 
 
 #get listens data for listens page
-def getlistensdata(search_start_date, search_end_date, search_artist):
+def getlistensdata(search_start_date, search_end_date, search_artist, playlist_id = None):
   sql_session.rollback()
   limit = 30
   listens = list()
   start_date = search_start_date
   end_date = search_end_date
+  if not playlist_id:
+    playlist_id = "-1"
 
   sql = text("""SELECT listens.id
    , listens.youtube_id
@@ -108,6 +114,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist):
    , artists.id as artist_id
    , albums.id as album_id
    , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(session['session_user_id'])+""" AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library
+   , CASE WHEN (SELECT COUNT(*) FROM playlist_tracks WHERE playlist_tracks.playlist_id = """+str(playlist_id)+""" AND playlist_tracks.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS playlist
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -121,6 +128,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist):
    GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC
    LIMIT """+str(limit)+";""")
+  print(sql)
 
   results = models.engine.execute(sql)
   for result in results:
@@ -129,6 +137,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist):
     listen = viewsClasses.display_update_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
                             , play = 0
                             , music= result[5]
+                            , playlist = result[14]
                             , title= result[4]
                             , artist = result[7]
                             , album = result[9]

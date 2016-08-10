@@ -125,12 +125,13 @@ $(function(){
     $("#playlist-dropdown").change(function(){
     	console.log("playlist selected!");
     	$("#select-playlist-form").submit();
+/*
     	if($("#islistens").attr("value") == "true"){
     		console.log("is listens page");
     		post_url = "/listens"
     	}else{
     		post_url = "/library"
-    	}
+    	}*/
     	/*
     	$.ajax({
 			type: "GET",
