@@ -138,6 +138,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist, playlist_i
         listen = {'index': result[2].strftime('%a %I:%M %p') #time_of_listen
                 , 'play': 0
                 , 'music': result[5]
+                , 'playlist' : result[14]
                 , 'title': result[4]
                 , 'artist': result[7]
                 , 'album': result[9]
@@ -148,9 +149,10 @@ def getlistensdata(search_start_date, search_end_date, search_artist, playlist_i
                 , 'library': result[13]
                 }
     else:
-        listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
+        listen = viewsClasses.display_update_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
                             , play = 0
                             , music= result[5]
+                            , playlist = result[14]
                             , title= result[4]
                             , artist = result[7]
                             , album = result[9]
