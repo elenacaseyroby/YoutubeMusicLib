@@ -52,6 +52,7 @@ def listens():
       playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
       for track in playlist_tracks:
         print(track)
+    print("finished rendering playlist")
     #set dates from form submission 
     #if those are empty set default dates
     now = datetime.datetime.now()
@@ -256,14 +257,14 @@ def postartistinfo():
           if len(mentionedyears) >0:
             years = sortnumbers(mentionedyears)
             if years.low and years.high:
-              q = sql_session.query(models.Artist).filter_by(id=artist_in_db.id).one()
-              if q != []:
-                  q.start_year = str(years.low)+'-01-01'
+              artist = sql_session.query(models.Artist).filter_by(id=artist_in_db.id).one()
+              if artist != []:
+                  artist.start_year = str(years.low)+'-01-01'
                   #set end date if inactive for 10+ yr
                   
                   if thisyear - int(years.high) > 10:
-                    q.end_year = str(years.high)+'-01-01'
-                  sql_session.add(q)
+                    artist.end_year = str(years.high)+'-01-01'
+                  sql_session.add(artist)
                   sql_session.commit()
 
       #if artist doesn't have city, store city
@@ -272,10 +273,10 @@ def postartistinfo():
         for city in cities_results:
             if str(city.city_or_state) in bio:
               sql_session.rollback()
-              q = sql_session.query(models.Artist).filter_by(id=artist_in_db.id).one()
-              if q != []:
-                  q.city_id= str(city.id)
-                  sql_session.add(q)
+              artist = sql_session.query(models.Artist).filter_by(id=artist_in_db.id).one()
+              if artist != []:
+                  artist.city_id= str(city.id)
+                  sql_session.add(artist)
                   sql_session.commit()
 
     return "success"
@@ -352,7 +353,26 @@ def postplaylist():
       #post track.youtube_id & track_num to db
       track_num = track_num +1
 
+    track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(models.PlaylistTracks.track_num >= track_num)
+    print("~~before~~")
+    track_update.delete()
+    #sql_session.delete(track_update)
+    sql_session.commit()
+    print("~~after~~")
+
     #after for loop, delete all rows with playlist id and track_num (db) >=track_num (python counter)
+    #delete_vids = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(track_num >= 5)
+    #print("~~~~~~sqlalchemy objects")
+    #playlist_tracks = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
+    #print(playlist_tracks)
+    """
+    print("~~~~~ind tracks~~~~~~~")
+    for track in playlist_tracks:
+      print(track)"""
+    #sql_session.delete(delete_vids)
+    #sql_session.commit()
+    #deletes all tracks in playlist
+
     """
     delete_vid = sql_session.query(models.PlaylistTracks).filter_by(track_num > 2)
     delete_vid.delete()
