@@ -1,5 +1,106 @@
 $(function(){
-	getDataRowData();
+	function getDataRowData(){
+		if ($("#search_artist").attr("value")){
+			artist = $("#search_artist").attr("value");
+		}else{
+			artist = "";
+		}
+		console.log("~~~~~~~~~~~~~~~~~~~");
+		console.log($("#playlist-name").val());
+		console.log("~~~~~~~~~~~~~~~~~~~");
+		var results = $.ajax({
+			type: "GET",
+		    url: '/search-listens',
+		    data: {search_start_date: $("#search_start_date").attr("value")
+		    , search_send_date: $("#search_end_date").attr("value")
+		    , search_artist: artist
+		    , playlist_title: $("#playlist-name").val()
+		    }
+		    ,dataType: 'json'
+	    }).done(function(results){
+	    	renderDataRow(results, isListens = true);
+	    });
+	}
+
+	function renderDataRow($display_data_rows, isListens = false){
+		console.log("before table !!");
+		index = $display_data_rows.length
+		$.each($display_data_rows, function(index, vid){
+			if(isListens){
+				listens_index = '<td>'+vid.index+'</td>';
+			}else{
+				listens_index = '';
+			}
+			//console.log(vid.playlist);
+			//console.log(vid.music);
+			//console.log(vid.library);
+			var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
+			var checkedIfMusic = ((vid.music==1) ? "checked" : "");
+			var checkedIfLib = ((vid.library==1) ? "checked" : "");
+			//console.log(checkedIfPlaylist);
+			var row = '<tr class="row">'
+			  + listens_index
+			  + '<td><input class="play-checkbox" type = "checkbox" id = "'
+			  + index.toString()
+			  + '" '
+			  + checkedIfPlaylist
+			  +'></td><td><input type = "checkbox" id = "library'
+			  + index.toString()
+			  + '" value="'
+			  + vid.library
+			  + '" '
+			  + checkedIfLib
+			  + '></td><td><input class = "music-'
+			  + vid.youtube_id
+			  + '" type = "checkbox" id = "music'
+			  + index.toString()
+			  + '" value="'
+			  + vid.music
+			  + '" '
+			  + checkedIfMusic
+			  + '></td><td><input class = "title-'
+			  + vid.youtube_id
+			  + '" type="textbox" id="title'
+			  + index.toString()
+			  + '" value="'
+			  + vid.title
+			  + '"></td> <td><input class = "artist-'
+			  + vid.youtube_id
+			  + '" type="textbox" id="artist'
+			  + index.toString()
+			  + '" value="'
+			  + vid.artist
+			  + '"></td><td><input class = "album-'
+			  + vid.youtube_id
+			  + '" type="textbox" id="album'
+			  + index.toString()
+			  + '" value="'
+			  + vid.album
+			  + '"></td><hidden class = "'
+			  + vid.youtube_id
+			  + '" id="youtube_id'
+			  + index.toString()
+			  + '" value="'
+			  + vid.youtube_id
+			  + '"></hidden><hidden class = "artist_id-'
+			  + vid.youtube_id
+			  + '" id="artist_id'
+			  + index.toString()
+			  + '" value="'
+			  + vid.artist_id
+			  + '"></hidden><hidden class = "album-'
+			  + vid.youtube_id
+			  + '" id="album_id'
+			  + index.toString()
+			  + '" value="'
+			  + vid.album_id
+			  + '"></hidden></tr>';
+			
+			$("#table").append(row);
+
+		});
+	}
+	
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = $(".row").count();
@@ -81,16 +182,7 @@ $(function(){
     			"width", "80%");
     	}
 	});
-	$('input[type=checkbox]').change(
-    function(){
-        if (this.checked) {
-            console.log(this.id);
-            $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>")
-        }else{
-        	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
-        
-        }
-    });
+
     
     $("#save-playlist").click(function(){
     	var listItems = $("#sortable li");
@@ -104,8 +196,6 @@ $(function(){
 		    i++;
 		    //create array
 		});
-		console.log(playlist_title);
-		console.log(playlist_tracks);
 		$.ajax({
 			type: "POST",
 	    	url: '/postplaylist',
@@ -125,108 +215,27 @@ $(function(){
         	$(this).remove();
     	}
     });
+    //$('input[type=checkbox]').change(function(){
+    getDataRowData();
+    console.log("before checkbox !!");
+    //$('input[type=checkbox]').onClick(function(){
+    $('body').on('click', '.play-checkbox', function (){
+		console.log("checkbox changed!");
+	    if (this.checked) {
+		        console.log(this.id);
+		        $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>")
+	    }else{
+	    	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
+		}
+		
+	});
 });
 
-function getDataRowData(){
-	if ($("#search_artist").attr("value")){
-		artist = $("#search_artist").attr("value");
-	}else{
-		artist = "";
-	}
-	console.log("~~~~~~~~~~~~~~~~~~~");
-	console.log($("#playlist-name").val());
-	console.log("~~~~~~~~~~~~~~~~~~~");
-	var results = $.ajax({
-		type: "GET",
-	    url: '/search-listens',
-	    data: {search_start_date: $("#search_start_date").attr("value")
-	    , search_send_date: $("#search_end_date").attr("value")
-	    , search_artist: artist
-	    , playlist_title: $("#playlist-name").val()
-	    }
-	    ,dataType: 'json'
-    }).done(function(results){
-    	renderDataRow(results, isListens = true);
-    });
-}
 
-function renderDataRow($display_data_rows, isListens = false){
-	index = $display_data_rows.length
-	$.each($display_data_rows, function(index, vid){
-		if(isListens){
-			listens_index = '<td>'+vid.index+'</td>';
-		}else{
-			listens_index = '';
-		}
-		console.log(vid.playlist);
-		console.log(vid.music);
-		console.log(vid.library);
-		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
-		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
-		var checkedIfLib = ((vid.library==1) ? "checked" : "");
-		console.log(checkedIfPlaylist);
-		var row = '<tr class="row">'
-		  + listens_index
-		  + '<td><input class="play-checkbox" type = "checkbox" id = "'
-		  + index.toString()
-		  + '" '
-		  + checkedIfPlaylist
-		  +'></td><td><input type = "checkbox" id = "library'
-		  + index.toString()
-		  + '" value="'
-		  + vid.library
-		  + '" '
-		  + checkedIfLib
-		  + '></td><td><input class = "music-'
-		  + vid.youtube_id
-		  + '" type = "checkbox" id = "music'
-		  + index.toString()
-		  + '" value="'
-		  + vid.music
-		  + '" '
-		  + checkedIfMusic
-		  + '></td><td><input class = "title-'
-		  + vid.youtube_id
-		  + '" type="textbox" id="title'
-		  + index.toString()
-		  + '" value="'
-		  + vid.title
-		  + '"></td> <td><input class = "artist-'
-		  + vid.youtube_id
-		  + '" type="textbox" id="artist'
-		  + index.toString()
-		  + '" value="'
-		  + vid.artist
-		  + '"></td><td><input class = "album-'
-		  + vid.youtube_id
-		  + '" type="textbox" id="album'
-		  + index.toString()
-		  + '" value="'
-		  + vid.album
-		  + '"></td><hidden class = "'
-		  + vid.youtube_id
-		  + '" id="youtube_id'
-		  + index.toString()
-		  + '" value="'
-		  + vid.youtube_id
-		  + '"></hidden><hidden class = "artist_id-'
-		  + vid.youtube_id
-		  + '" id="artist_id'
-		  + index.toString()
-		  + '" value="'
-		  + vid.artist_id
-		  + '"></hidden><hidden class = "album-'
-		  + vid.youtube_id
-		  + '" id="album_id'
-		  + index.toString()
-		  + '" value="'
-		  + vid.album_id
-		  + '"></hidden></tr>';
-		
-		$("#table").append(row);
+//now that form is appended in javascript, changes to divs are not registered and saved.
 
-	});
-}
+
+
 
 
 		/*
