@@ -53,15 +53,7 @@ $(function(){
 					}
 			    });
 
-			}/*else{
-				$.ajax({
-					type: "POST",
-				    url: '/updatedata',
-				    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")
-				    , library: library_value
-					, only_library: true}
-			    });
-			}*/
+			}
 
 		    i++;
 		});
@@ -123,23 +115,25 @@ $(function(){
 		//send array and to views.py through ajax request
     });
     $("#playlist-dropdown").change(function(){
-    	console.log("playlist selected!");
     	$("#select-playlist-form").submit();
-/*
-    	if($("#islistens").attr("value") == "true"){
-    		console.log("is listens page");
-    		post_url = "/listens"
-    	}else{
-    		post_url = "/library"
-    	}*/
-    	/*
-    	$.ajax({
-			type: "GET",
-	    	url: post_url,
-	    	data: {playlist_title: $("#playlist-dropdown").attr("value")
-	    	}
-	    });*/
     });
+    $( "li" ).dblclick( function(){
+    	if (confirm("Are you sure you want to delete '"+$(this).attr("value")+"' from your playlist? You must click the Save button to make this change permanent.")) {
+        // your deletion code
+        	$(this).remove();
+    	}
+
+
+    });
+    /*
+    $(".ui-state-default").dblclick(){
+    	alert("hi!");
+
+
+    };*/
+
+
+
 });
 
 

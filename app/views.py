@@ -338,11 +338,21 @@ def postplaylist():
   track_num = 1
   sql_session.rollback()
   playlist_in_db = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = title).first()
+  print(playlist_in_db )
   if playlist_in_db:
+    sql_session.rollback()
+    set_temp_track_nums = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
+    for set_temp_track_num in set_temp_track_nums:
+      set_temp_track_num.track_num = -1
+      sql_session.commit()
+
+      
+    print("playlist is in db")
     for track in tracks:
       sql_session.rollback()
       track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id, youtube_id = track).first()
       if track_update:
+        print("track update!")
         track_update.track_num=track_num
         sql_session.commit() 
       else:
@@ -352,34 +362,13 @@ def postplaylist():
 
       #post track.youtube_id & track_num to db
       track_num = track_num +1
-
-    track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(models.PlaylistTracks.track_num >= track_num)
+    print(track_num)
+    track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(models.PlaylistTracks.track_num == -1)
+    print(track_update)
     print("~~before~~")
     track_update.delete()
-    #sql_session.delete(track_update)
     sql_session.commit()
     print("~~after~~")
-
-    #after for loop, delete all rows with playlist id and track_num (db) >=track_num (python counter)
-    #delete_vids = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(track_num >= 5)
-    #print("~~~~~~sqlalchemy objects")
-    #playlist_tracks = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
-    #print(playlist_tracks)
-    """
-    print("~~~~~ind tracks~~~~~~~")
-    for track in playlist_tracks:
-      print(track)"""
-    #sql_session.delete(delete_vids)
-    #sql_session.commit()
-    #deletes all tracks in playlist
-
-    """
-    delete_vid = sql_session.query(models.PlaylistTracks).filter_by(track_num > 2)
-    delete_vid.delete()
-    sql_session.commit()
-    sql_session.execute(models.PlaylistTracks).delete().where(track_num >= track_num)
-    sql_session.commit()
-    """
   else:
     print("else~~~~~~~~~~~~~~")
     print (title)
