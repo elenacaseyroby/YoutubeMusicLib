@@ -97,6 +97,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist, playlist_i
   listens = list()
   start_date = search_start_date
   end_date = search_end_date
+  print("~~~~~~~~~~~"+str(playlist_id)+"~~~~~~~~~~~~~~~")
   if not playlist_id:
     playlist_id = "-1"
 

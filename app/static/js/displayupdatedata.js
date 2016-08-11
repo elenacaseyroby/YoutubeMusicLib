@@ -133,22 +133,21 @@ function getDataRowData(){
 	}else{
 		artist = "";
 	}
-
+	console.log("~~~~~~~~~~~~~~~~~~~");
+	console.log($("#playlist-name").val());
+	console.log("~~~~~~~~~~~~~~~~~~~");
 	var results = $.ajax({
 		type: "GET",
 	    url: '/search-listens',
 	    data: {search_start_date: $("#search_start_date").attr("value")
 	    , search_send_date: $("#search_end_date").attr("value")
 	    , search_artist: artist
+	    , playlist_title: $("#playlist-name").val()
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
     	renderDataRow(results, isListens = true);
     });
-
-
-    
-
 }
 
 function renderDataRow($display_data_rows, isListens = false){
@@ -159,22 +158,26 @@ function renderDataRow($display_data_rows, isListens = false){
 		}else{
 			listens_index = '';
 		}
-		var checkedIfPlaylist = vid.playlist ? "checked" : "";
-		var checkedIfMusic = vid.music ? "checked" : "";
-		var checkedIfLib = vid.library ? "checked" : "";
+		console.log(vid.playlist);
+		console.log(vid.music);
+		console.log(vid.library);
+		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
+		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
+		var checkedIfLib = ((vid.library==1) ? "checked" : "");
+		console.log(checkedIfPlaylist);
 		var row = '<tr class="row">'
 		  + listens_index
 		  + '<td><input class="play-checkbox" type = "checkbox" id = "'
 		  + index.toString()
 		  + '" '
 		  + checkedIfPlaylist
-		  +'"></td><td><input type = "checkbox" id = "library'
+		  +'></td><td><input type = "checkbox" id = "library'
 		  + index.toString()
 		  + '" value="'
 		  + vid.library
 		  + '" '
 		  + checkedIfLib
-		  + '</td><td><input class = "music-'
+		  + '></td><td><input class = "music-'
 		  + vid.youtube_id
 		  + '" type = "checkbox" id = "music'
 		  + index.toString()
@@ -219,7 +222,7 @@ function renderDataRow($display_data_rows, isListens = false){
 		  + '" value="'
 		  + vid.album_id
 		  + '"></hidden></tr>';
-		  console.log(row);
+		
 		$("#table").append(row);
 
 	});

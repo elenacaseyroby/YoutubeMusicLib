@@ -84,6 +84,17 @@ def searchlistens():
     #set dates from form submission 
     #if those are empty set default dates
     
+    playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
+    playlist_tracks = []
+    selected_playlist_id=None
+    if request.args.get("playlist_title"):
+      print("made it to playlist title")
+      playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
+      selected_playlist_id = playlist.id
+      playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
+      for track in playlist_tracks:
+        print(track)
+    print("finished rendering playlist")
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
     oneweekago = datetime.date.today() - datetime.timedelta(days=7)
@@ -95,7 +106,7 @@ def searchlistens():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, just_dict = True)
+    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id, just_dict = True)
     if search_artist == "%":
         search_artist = ""
     test = [1, 2, 3]
