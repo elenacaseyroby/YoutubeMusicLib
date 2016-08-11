@@ -220,7 +220,7 @@ function renderDataRow($display_data_rows, isListens = false){
 		  + '"></hidden></div>';
 
 		$("#rows").append(row);
-
+		console.log(row);
 		console.log("loop");
 
 	});
