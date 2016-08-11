@@ -162,7 +162,7 @@ function renderDataRow($display_data_rows, isListens = false){
 		var checkedIfPlaylist = vid.playlist ? "checked" : "";
 		var checkedIfMusic = vid.music ? "checked" : "";
 		var checkedIfLib = vid.library ? "checked" : "";
-		var row = '<div class="row"><tr>'
+		var row = '<tr class="row">'
 		  + listens_index
 		  + '<td><input class="play-checkbox" type = "checkbox" id = "'
 		  + index.toString()
@@ -172,6 +172,7 @@ function renderDataRow($display_data_rows, isListens = false){
 		  + index.toString()
 		  + '" value="'
 		  + vid.library
+		  + '" '
 		  + checkedIfLib
 		  + '</td><td><input class = "music-'
 		  + vid.youtube_id
@@ -199,7 +200,7 @@ function renderDataRow($display_data_rows, isListens = false){
 		  + index.toString()
 		  + '" value="'
 		  + vid.album
-		  + '"></td></tr><hidden class = "'
+		  + '"></td><hidden class = "'
 		  + vid.youtube_id
 		  + '" id="youtube_id'
 		  + index.toString()
@@ -217,11 +218,9 @@ function renderDataRow($display_data_rows, isListens = false){
 		  + index.toString()
 		  + '" value="'
 		  + vid.album_id
-		  + '"></hidden></div>';
-
-		$("#rows").append(row);
-		console.log(row);
-		console.log("loop");
+		  + '"></hidden></tr>';
+		  console.log(row);
+		$("#table").append(row);
 
 	});
 }

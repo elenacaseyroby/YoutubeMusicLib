@@ -25,21 +25,21 @@
 make all textbox be search dropdown that fills with db table elements to make it harder to write one band name a million ways-->
 	<div class="main">
 		<form id="updatelistens" action="#">
-			<table style="width:100%">
-			  <tr>
-			  	{% if islistens == "true"%}
-			    <th>Time</th>
-			    {%endif%}
-			    <th>Playlist</th>
-			    <th>Saved To Library</th>
-			    <!--<th>Play</th> -->
-			    <th>Verifed Music</th>
-			    <th>Title</th>
-			    <th>Artist</th> 
-			    <th>Album</th>
-			    <!--<th>Release Date</th> -->
-			  </tr>
-			  <div id="rows"></div>
+			<table id="table" style="width:100%">
+				<tr>
+					{% if islistens == "true"%}
+						<th>Time</th>
+					{%endif%}
+						<th>Playlist</th>
+						<th>Saved To Library</th>
+						<!--<th>Play</th> -->
+						<th>Verifed Music</th>
+						<th>Title</th>
+						<th>Artist</th> 
+						<th>Album</th>
+						<!--<th>Release Date</th> -->
+				</tr>
+
 
 			</table>
 
