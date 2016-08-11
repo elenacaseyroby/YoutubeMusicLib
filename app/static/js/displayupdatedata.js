@@ -117,23 +117,13 @@ $(function(){
     $("#playlist-dropdown").change(function(){
     	$("#select-playlist-form").submit();
     });
+    /* double click to delete
     $( "li" ).dblclick( function(){
     	if (confirm("Are you sure you want to delete '"+$(this).attr("value")+"' from your playlist? You must click the Save button to make this change permanent.")) {
-        // your deletion code
+        	// your deletion code
         	$(this).remove();
     	}
-
-
-    });
-    /*
-    $(".ui-state-default").dblclick(){
-    	alert("hi!");
-
-
-    };*/
-
-
-
+    });*/
 });
 
 
