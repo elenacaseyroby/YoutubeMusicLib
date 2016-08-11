@@ -91,7 +91,7 @@ def getlibrary(user_id, search_artist, playlist_id = None):
   return listens 
 
 #get listens data for listens page
-def getlistensdata(search_start_date, search_end_date, search_artist, playlist_id = None):
+def getlistensdata(search_start_date, search_end_date, search_artist, playlist_id=None, just_dict=False):
   sql_session.rollback()
   limit = 30
   listens = list()
@@ -134,10 +134,23 @@ def getlistensdata(search_start_date, search_end_date, search_artist, playlist_i
   for result in results:
     #if result[1] (youtube_id) is in list of user's saved vids, then 
     # var library = 1, else = 0 
-    listen = viewsClasses.display_update_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
+    if just_dict:
+        listen = {'index': result[2].strftime('%a %I:%M %p') #time_of_listen
+                , 'play': 0
+                , 'music': result[5]
+                , 'title': result[4]
+                , 'artist': result[7]
+                , 'album': result[9]
+                , 'release_date': result[6]
+                , 'youtube_id': result[1]
+                , 'artist_id': result[11]
+                , 'album_id': result[12]
+                , 'library': result[13]
+                }
+    else:
+        listen = displayupdate_page_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
                             , play = 0
                             , music= result[5]
-                            , playlist = result[14]
                             , title= result[4]
                             , artist = result[7]
                             , album = result[9]
@@ -150,7 +163,6 @@ def getlistensdata(search_start_date, search_end_date, search_artist, playlist_i
     listens.append(listen)
 
   return listens 
-
 def getsimilarartistsbyartist(artist_id):
   sql = text("""SELECT artists.artist_name, artists.id
     FROM similar_artists

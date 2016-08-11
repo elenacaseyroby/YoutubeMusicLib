@@ -79,30 +79,30 @@ def listens():
 @app.route('/search-listens', methods = ['GET'])
 
 def searchlistens():
+  print("made it to searchlistens");
   if 'google_token' in session:
     #set dates from form submission 
     #if those are empty set default dates
+    
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
     oneweekago = datetime.date.today() - datetime.timedelta(days=7)
     oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
-    if not request.args.get("search_start_date"):
-      search_start_date = oneweekago
-    else:
-      search_start_date = request.args.get("search_start_date");
-    if not request.args.get("search_end_date"):
-      search_end_date = today
-    else:
-      search_end_date = request.args.get("search_end_date")
+
+    search_start_date = request.args.get("search_start_date", oneweekago)
+    
+    search_end_date = request.args.get("search_end_date", today)
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
+    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, just_dict = True)
     if search_artist == "%":
         search_artist = ""
-    return flask.jsonify({listens: listens, search_artist: search_artist, search_end_date: search_end_date, islistens: true})
+    test = [1, 2, 3]
+    return jsonify(listens)
   else:
     return redirect(url_for('login'))
+  return "success"
 
 
 @app.route('/library')

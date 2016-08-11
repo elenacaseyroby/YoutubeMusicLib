@@ -1,4 +1,5 @@
 $(function(){
+	getDataRowData();
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = $(".row").count();
@@ -125,6 +126,43 @@ $(function(){
     	}
     });
 });
+
+function getDataRowData(){
+	if ($("#search_artist").attr("value")){
+		artist = $("#search_artist").attr("value");
+	}else{
+		artist = "";
+	}
+
+	var results = $.ajax({
+		type: "GET",
+	    url: '/search-listens',
+	    data: {search_start_date: $("#search_start_date").attr("value")
+	    , search_send_date: $("#search_end_date").attr("value")
+	    , search_artist: artist
+	    }
+	    ,dataType: 'json'
+    }).done(function(results){
+    	console.log(results);
+    });
+
+
+    
+
+}
+
+function renderDataRow($display_data_rows, isListens){
+	index = $display_data_rows.length
+	$.each($display_data_rows, function(index, vid){
+		if(isListens){
+			listens_index = '<td>'+vid.index+'</td>';
+		}else{
+			listens_index = '';
+		}
+		
+
+	});
+}
 
 
 
