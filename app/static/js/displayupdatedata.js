@@ -143,7 +143,7 @@ function getDataRowData(){
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
-    	console.log(results);
+    	renderDataRow(results, isListens = true);
     });
 
 
@@ -151,7 +151,7 @@ function getDataRowData(){
 
 }
 
-function renderDataRow($display_data_rows, isListens){
+function renderDataRow($display_data_rows, isListens = false){
 	index = $display_data_rows.length
 	$.each($display_data_rows, function(index, vid){
 		if(isListens){
@@ -159,11 +159,89 @@ function renderDataRow($display_data_rows, isListens){
 		}else{
 			listens_index = '';
 		}
-		
+		var checkedIfPlaylist = vid.playlist ? "checked" : "";
+		var checkedIfMusic = vid.music ? "checked" : "";
+		var checkedIfLib = vid.library ? "checked" : "";
+		var row = '<div class="row"><tr>'
+		  + listens_index
+		  + '<td><input class="play-checkbox" type = "checkbox" id = "'
+		  + index.toString()
+		  + '" '
+		  + checkedIfPlaylist
+		  +'"></td><td><input type = "checkbox" id = "library'
+		  + index.toString()
+		  + '" value="'
+		  + vid.library
+		  + checkedIfLib
+		  + '</td><td><input class = "music-'
+		  + vid.youtube_id
+		  + '" type = "checkbox" id = "music'
+		  + index.toString()
+		  + '" value="'
+		  + vid.music
+		  + '" '
+		  + checkedIfMusic
+		  + '></td><td><input class = "title-'
+		  + vid.youtube_id
+		  + '" type="textbox" id="title'
+		  + index.toString()
+		  + '" value="'
+		  + vid.title
+		  + '"></td> <td><input class = "artist-'
+		  + vid.youtube_id
+		  + '" type="textbox" id="artist'
+		  + index.toString()
+		  + '" value="'
+		  + vid.artist
+		  + '"></td><td><input class = "album-'
+		  + vid.youtube_id
+		  + '" type="textbox" id="album'
+		  + index.toString()
+		  + '" value="'
+		  + vid.album
+		  + '"></td></tr><hidden class = "'
+		  + vid.youtube_id
+		  + '" id="youtube_id'
+		  + index.toString()
+		  + '" value="'
+		  + vid.youtube_id
+		  + '"></hidden><hidden class = "artist_id-'
+		  + vid.youtube_id
+		  + '" id="artist_id'
+		  + index.toString()
+		  + '" value="'
+		  + vid.artist_id
+		  + '"></hidden><hidden class = "album-'
+		  + vid.youtube_id
+		  + '" id="album_id'
+		  + index.toString()
+		  + '" value="'
+		  + vid.album_id
+		  + '"></hidden></div>';
+
+		$("#rows").append(row);
+
+		console.log("loop");
 
 	});
 }
 
+
+		/*
+		var row = '<div class="row">\
+					<tr>\
+						'+listens_index+'\
+						<td><input class="play-checkbox" type = "checkbox" id = "'+index.toString()+'" '+ vid.playlist ? "checked" +'></td>\
+						<td><input type = "checkbox" id = "library'+index.toString()+'" value='+vid.library+' '+ vid.library ? "checked"+'></td> \
+						<td><input class = "music-'+vid.youtube_id+'" type = "checkbox" id = "music'+index.toString()+'" value="'+vid.music+'"" '+ vid.music ? "checked"+'></td> \
+						<td><input class = "title-'+vid.youtube_id+'" type="textbox" id="title'+index.toString()+'" value="'+vid.title+'"></td> \
+						<td><input class = "artist-'+vid.youtube_id+'" type="textbox" id="artist'+index.toString()+'" value="'+vid.artist+'"></td> \
+						<td><input class = "album-'+vid.youtube_id+'" type="textbox" id="album'+index.toString()+'" value="'+vid.album+'"></td> \
+					</tr>\
+					<hidden class = "'+vid.youtube_id+'" id="youtube_id'+index.toString()+'" value="'+vid.youtube_id+'"></hidden>\
+					<hidden class = "artist_id-'+vid.youtube_id+'" id="artist_id'+index.toString()+'" value="'+vid.artist_id+'"></hidden>\
+					<hidden class = "album-'+vid.youtube_id+'" id="album_id'+index.toString()+'" value="'+vid.album_id+'"></hidden>\
+				</div>';*/
 
 
 
