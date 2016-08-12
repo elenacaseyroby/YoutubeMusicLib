@@ -40,11 +40,7 @@ $(function(){
 			//console.log(checkedIfPlaylist);
 			var row = '<tr id="listen_row">'
 			  + listens_index
-			  + '<td><input class="play-checkbox" type = "checkbox" id = "'
-			  + index.toString()
-			  + '" '
-			  + checkedIfPlaylist
-			  +'></td><td><input type = "checkbox" id = "library'
+			  + '<td><input type = "checkbox" id = "library'
 			  + index.toString()
 			  + '" value="'
 			  + vid.library
@@ -76,7 +72,11 @@ $(function(){
 			  + index.toString()
 			  + '" value="'
 			  + vid.album
-			  + '"></td><hidden class = "'
+			  + '"></td><td><input class="play-checkbox" type = "checkbox" id = "'
+			  + index.toString()
+			  + '" '
+			  + checkedIfPlaylist
+			  +'></td><hidden class = "'
 			  + vid.youtube_id
 			  + '" id="youtube_id'
 			  + index.toString()
