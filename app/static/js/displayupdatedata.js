@@ -222,12 +222,14 @@ $(function(){
     $('body').on('click', '.play-checkbox', function (){
 		console.log("checkbox changed!");
 	    if (this.checked) {
-		        console.log(this.id);
-		        $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>")
+    		console.log("checked!"); //is registering when checked
+	        console.log(this.id);
+	        $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
 	    }else{
 	    	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
+	    	console.log(" not checked!");
 		}
-		
+
 	});
 });
 
