@@ -26,7 +26,7 @@ $(function(){
 		console.log("before table !!");
 		index = $display_data_rows.length
 		$.each($display_data_rows, function(index, vid){
-			if($("#islistens").attr("value")){
+			if($("#islistens").attr("value")=="true"){
 				listens_index = '<td>'+vid.index+'</td>';
 			}else{
 				listens_index = '';
