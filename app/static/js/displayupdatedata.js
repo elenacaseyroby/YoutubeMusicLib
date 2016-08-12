@@ -26,7 +26,7 @@ $(function(){
 		console.log("before table !!");
 		index = $display_data_rows.length
 		$.each($display_data_rows, function(index, vid){
-			if(isListens){
+			if($("#islistens").attr("value")){
 				listens_index = '<td>'+vid.index+'</td>';
 			}else{
 				listens_index = '';
@@ -38,7 +38,7 @@ $(function(){
 			var checkedIfMusic = ((vid.music==1) ? "checked" : "");
 			var checkedIfLib = ((vid.library==1) ? "checked" : "");
 			//console.log(checkedIfPlaylist);
-			var row = '<tr class="row">'
+			var row = '<tr id="listen_row">'
 			  + listens_index
 			  + '<td><input class="play-checkbox" type = "checkbox" id = "'
 			  + index.toString()
@@ -107,7 +107,7 @@ $(function(){
 		i = 0;
 		var dataupdated = false;
 
-		$.each($(".row"), function(index, listen){
+		$.each($("#listen_row"), function(index, listen){ //used to use ".row"
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -233,28 +233,12 @@ $(function(){
 	});
 });
 
+//Bugs:
+//won't update vids
+//only adds and deletes new vids from playlist ~ won't affect old vids
+//http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xii-facelift
 
-//now that form is appended in javascript, changes to divs are not registered and saved.
 
-
-
-
-
-		/*
-		var row = '<div class="row">\
-					<tr>\
-						'+listens_index+'\
-						<td><input class="play-checkbox" type = "checkbox" id = "'+index.toString()+'" '+ vid.playlist ? "checked" +'></td>\
-						<td><input type = "checkbox" id = "library'+index.toString()+'" value='+vid.library+' '+ vid.library ? "checked"+'></td> \
-						<td><input class = "music-'+vid.youtube_id+'" type = "checkbox" id = "music'+index.toString()+'" value="'+vid.music+'"" '+ vid.music ? "checked"+'></td> \
-						<td><input class = "title-'+vid.youtube_id+'" type="textbox" id="title'+index.toString()+'" value="'+vid.title+'"></td> \
-						<td><input class = "artist-'+vid.youtube_id+'" type="textbox" id="artist'+index.toString()+'" value="'+vid.artist+'"></td> \
-						<td><input class = "album-'+vid.youtube_id+'" type="textbox" id="album'+index.toString()+'" value="'+vid.album+'"></td> \
-					</tr>\
-					<hidden class = "'+vid.youtube_id+'" id="youtube_id'+index.toString()+'" value="'+vid.youtube_id+'"></hidden>\
-					<hidden class = "artist_id-'+vid.youtube_id+'" id="artist_id'+index.toString()+'" value="'+vid.artist_id+'"></hidden>\
-					<hidden class = "album-'+vid.youtube_id+'" id="album_id'+index.toString()+'" value="'+vid.album_id+'"></hidden>\
-				</div>';*/
 
 
 
