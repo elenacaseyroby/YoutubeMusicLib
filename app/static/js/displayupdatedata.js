@@ -133,7 +133,14 @@ $(function(){
 		}
 
 	});
-	
+	$('tbody').hover(function() {
+		$(".add-to-playlist-button").append('<i class="fa fa-plus" aria-hidden="true"></i>');
+	    console.log("on hover");//$(this).addClass('hover');
+	}, function() {
+		console.log("off hover");
+		$(".add-to-playlist-button").empty();
+	    //$(this).removeClass('hover');
+	});
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
