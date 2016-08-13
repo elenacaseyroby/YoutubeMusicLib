@@ -59,6 +59,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 				<input type="text" id="playlist-name" value = "{{request.args.get('playlist_title') if request.args.get('playlist_title')}}" placeholder="Playlist Name">
 				<input id="save-playlist" type="submit" value="Save" class="pure-button">
 			</form>
+			<div id="confirm-save-message"></div>
 			<ul id="sortable">
 			<!--append playlist list elements-->
 			</ul>

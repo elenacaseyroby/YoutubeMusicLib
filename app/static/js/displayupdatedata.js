@@ -64,6 +64,8 @@ $(function(){
 	});
 	$("#update-playlist-form").on("submit", function(event) {
 		event.preventDefault();
+		$("#confirm-save-message").append("<font color='purple'><center>Saved.</center></font>");
+	    setTimeout($("#confirm-save-message").fadeOut(), 3000);
     	var listItems = $("#sortable li");
     	var i = 1;
     	var playlist_title = $("#playlist-name").val();
@@ -81,6 +83,8 @@ $(function(){
 	    		tracks: JSON.stringify(playlist_tracks)
 	    	}
 	    });
+	    getPlaylistTitles($selected_playlist = playlist_title);
+	    
 		//send array and to views.py through ajax request
     });
 	$( "#sortable" ).sortable({
@@ -262,22 +266,27 @@ function renderPlaylistTrack($playlist_tracks){
 	});
 }
 
-function getPlaylistTitles(){
+function getPlaylistTitles($selected_playlist = null){
 	console.log("get titles!");
 	var results = $.ajax({
 		type: "GET",
 	    url: '/get-playlist-titles',
 	    dataType: 'json'
     }).done(function(results){ 
-    	renderPlaylistDropDown(results);
+    	renderPlaylistDropDown(results, $selected_playlist);
     });
 }
 
-function renderPlaylistDropDown($playlists){
+function renderPlaylistDropDown($playlists, $selected_playlist = null){
 	$("#playlist-dropdown").empty();
 	index = $playlists.length
 	$.each($playlists, function(index, title){
-		var selected = ( ($("#playlist-dropdown").attr("value") == title ) ? "selected" : "")
+		if($selected_playlist){
+			var selected = ( ( $selected_playlist == title ) ? "selected" : "");
+		}else{
+			var selected = ( ($("#playlist-dropdown").attr("value") == title ) ? "selected" : "");
+		}
+		
 		var title = '<option value="'
 		+ title
 		+'" '
