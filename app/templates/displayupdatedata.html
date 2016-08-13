@@ -53,9 +53,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 			<form id="select-playlist-form" class="pure-form pure-form-stacked" methods="GET">
 				<select name = "playlist_title" id="playlist-dropdown" class="pure-dropdown">
 					<!--<option value="Select Playlist">Select Playlist</option>-->
-					{% for title in playlist_titles %}
-		  			<option value="{{title}}" {{'selected' if request.args.get('playlist_title') == title}}>{{title}}</option>
-					{% endfor %}
+					
 		  		</select>
 		  	</form>
 		  	<form id="update-playlist-form" class="pure-form pure-form-stacked">

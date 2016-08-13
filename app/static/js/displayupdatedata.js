@@ -117,7 +117,7 @@ $(function(){
     });
     //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
-    
+    getPlaylistTitles()
     //$('input[type=checkbox]').onClick(function(){
     $('body').on('click', '.play-checkbox', function (){
 	    if (this.checked) {
@@ -257,6 +257,35 @@ function renderPlaylistTrack($playlist_tracks){
 		+ '</li>';
 
 		$("#sortable").append(track);
+
+	});
+}
+
+function getPlaylistTitles(){
+	console.log("get titles!");
+	var results = $.ajax({
+		type: "GET",
+	    url: '/get-playlist-titles',
+	    dataType: 'json'
+    }).done(function(results){ 
+    	renderPlaylistDropDown(results);
+    });
+}
+
+function renderPlaylistDropDown($playlists){
+	$("#playlist-dropdown").empty();
+	index = $playlists.length
+	$.each($playlists, function(index, title){
+		var selected = ( ($("#playlist-dropdown").attr("value") == title ) ? "selected" : "")
+		var title = '<option value="'
+		+ title
+		+'" '
+		+ selected
+		+ '>'
+		+ title
+		+ '</option>';
+
+		$("#playlist-dropdown").append(title);
 
 	});
 }

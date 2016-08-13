@@ -350,6 +350,12 @@ def updatedata():
       sql_session.commit()
   return "success"
 
+@app.route('/get-playlist-titles', methods = ['GET'])
+def get_playlist_titles():
+  user_id = session['session_user_id']
+  playlist_titles = viewsModel.getplaylisttitles(user_id)
+  return jsonify(playlist_titles)
+
 @app.route('/get-playlist-tracks', methods = ['GET'])
 def get_playlist_tracks():
   user_id = session['session_user_id']

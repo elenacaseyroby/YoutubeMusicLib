@@ -245,7 +245,7 @@ def getplaylisttitles(user_id):
   results = models.engine.execute(sql)
   rows = results.fetchall()
   if len(rows) > 0:
-    for row in rows: #row[0]
+    for row in rows: 
       playlist_title = row[0]
       playlisttitles.append(playlist_title)
       
