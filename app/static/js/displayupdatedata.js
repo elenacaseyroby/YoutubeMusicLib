@@ -109,7 +109,9 @@ $(function(){
 		//send array and to views.py through ajax request
     });
     $("#playlist-dropdown").change(function(){
-    	$("#select-playlist-form").submit();
+    	console.log("dropdown triggered!");
+    	console.log($("#playlist-dropdown").val());
+    	getPlaylistData($("#playlist-dropdown").val());
     });
     // double click to delete
     $( "li" ).dblclick( function(){
@@ -237,11 +239,44 @@ function renderDataRow($display_data_rows, islistens = "false"){
 
 	});
 }
+function getPlaylistData($playlist_title){
+	var results = $.ajax({
+		type: "GET",
+	    url: '/get-playlist-tracks',
+	    data: {playlist_title: $playlist_title
+	    }
+	    ,dataType: 'json'
+    }).done(function(results){ //efs up before here
+    	console.log(results);
+    	renderPlaylistTrack(results);
+    });
+}
 
-//Bugs:
-//won't update vids
-//only adds and deletes new vids from playlist ~ won't affect old vids
-//http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xii-facelift
+
+function renderPlaylistTrack($playlist_tracks){
+	console.log("render!!");
+	$("#sortable").empty();
+	index = $playlist_tracks.length
+	$.each($playlist_tracks, function(index, track){
+		
+		var track = '<li id="playlist-'
+		+ track['youtube_id']
+		+ '" class="ui-state-default" value="'
+		+ track['artist']
+		+ ' - '
+		+ track['title']
+		+ '">'
+		+ track['artist']
+		+ ' - '
+		+ track['title']
+		+ '</li>';
+
+		$("#sortable").append(track);
+
+	});
+}
+//playlist_title
+
 
 
 

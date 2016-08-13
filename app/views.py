@@ -124,27 +124,20 @@ def searchlistens():
 @app.route('/library')
 def library():
   if 'google_token' in session:
-    playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
-    playlist_tracks = []
-    selected_playlist_id=None
-    if request.args.get("playlist_title"):
-      print("made it to playlist title")
-      playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
-      selected_playlist_id = playlist.id
-      playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
-      for track in playlist_tracks:
-        print(track)
+    user_id = session['session_user_id']
     library = list()
+    playlist_titles = viewsModel.getplaylisttitles(user_id)
+    selected_playlist_id=None
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    library = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id)
+    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist, playlist_id = selected_playlist_id)
     if not library:
       return render_template('nolibrarymessage.html')
     else:
       if search_artist == "%":
         search_artist = ""
-      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlist_titles = playlist_titles, playlist_tracks = playlist_tracks)
+      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlist_titles = playlist_titles)
   return redirect(url_for('login'))
 
 @app.route('/login')
@@ -368,9 +361,22 @@ def updatedata():
       delete_vid = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id'])
       delete_vid.delete()
       sql_session.commit()
-
-
   return "success"
+
+@app.route('/get-playlist-tracks', methods = ['GET'])
+def get_playlist_tracks():
+  user_id = session['session_user_id']
+  playlist_title = request.args.get('playlist_title')
+  playlist_tracks = []
+  if playlist_title:
+    print("made it to playlist title")
+    playlist = sql_session.query(models.Playlist).filter_by(user_id = user_id, title = playlist_title).first()
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(playlist.id)
+    if playlist:
+      selected_playlist_id = playlist.id
+      playlist_tracks = viewsModel.getplaylisttracks(playlist_id = selected_playlist_id)
+  return jsonify(playlist_tracks)
 
 #/postplaylist
 @app.route('/postplaylist', methods = ['POST'])
