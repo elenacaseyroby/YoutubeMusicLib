@@ -26,7 +26,8 @@ make all textbox be search dropdown that fills with db table elements to make it
 	<div class="main">
 		<form id="updatelistens" action="#">
 			<table id="table" class="table table-striped table-hover" >
-				<tr>
+				<thead class="thead-inverse">
+					<tr>
 					{% if islistens == "true"%}
 						<th>Time</th>
 					{%endif%}
@@ -38,7 +39,10 @@ make all textbox be search dropdown that fills with db table elements to make it
 						<th>Album</th>
 						<th>Playlist</th>
 						<!--<th>Release Date</th> -->
-				</tr>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
 
 
 			</table>
@@ -71,7 +75,7 @@ make all textbox be search dropdown that fills with db table elements to make it
 	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/table.css') }}">
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
-  	<link rel="stylesheet" href="/resources/demos/style.css">
+  	<!--<link rel="stylesheet" href="/resources/demos/style.css">-->
   	<!--<link rel="stylesheet" href="/resources/demos/style.css">!-->
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/displayupdatedata.js') }}"></script> 	
