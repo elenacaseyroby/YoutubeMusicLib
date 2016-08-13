@@ -3,11 +3,11 @@ $(function(){
 	
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
-		index = $(".row").count();
+		index = $(".listen_row").length;
 		i = 0;
 		var dataupdated = false;
 
-		$.each($("#listen_row"), function(index, listen){ //used to use ".row"
+		$.each($(".listen_row"), function(index, listen){ //used to use ".row"
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -36,20 +36,22 @@ $(function(){
 			if($("#library" + i.toString()).attr("value") != library_value){
 				dataupdated = true;
 			}	
-
+			
+			console.log("#youtube_id" + i.toString());
+			console.log($("#youtube_id" + i.toString()).attr("value"));
+			console.log("#artist" + i.toString());
+			console.log($("#artist" + i.toString()).val());
 			if(dataupdated){
+				console.log("updated data.");
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',
 				    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")
-				    //, play: $("#play" + i.toString()).is(':checked') //returns true or false
 				    , library: library_value
 				    , music: music_value
 				    , title: $("#title" + i.toString()).val()
 				    , artist: $("#artist" + i.toString()).val()
 				    , album: $("#album" + i.toString()).val()
-				    //, track_num: $("#track_num" + i.toString()).val()
-					//, release_date: $("#release_date" + i.toString()).val()
 					, artist_id: $("#artist_id" + i.toString()).attr("value")
 					, album_id: $("#album_id" + i.toString()).attr("value")
 					}
@@ -176,7 +178,7 @@ function renderDataRow($display_data_rows, isListens = false){
 		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
 		var checkedIfLib = ((vid.library==1) ? "checked" : "");
 		//console.log(checkedIfPlaylist);
-		var row = '<tr id="listen_row">'
+		var row = '<tr class="listen_row">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
@@ -214,25 +216,25 @@ function renderDataRow($display_data_rows, isListens = false){
 		  + index.toString()
 		  + '" '
 		  + checkedIfPlaylist
-		  +'></td><hidden class = "'
+		  +'></td><input type="hidden" class = "'
 		  + vid.youtube_id
 		  + '" id="youtube_id'
 		  + index.toString()
 		  + '" value="'
 		  + vid.youtube_id
-		  + '"></hidden><hidden class = "artist_id-'
+		  + '"><input type="hidden" class = "artist_id-'
 		  + vid.youtube_id
 		  + '" id="artist_id'
 		  + index.toString()
 		  + '" value="'
 		  + vid.artist_id
-		  + '"></hidden><hidden class = "album-'
+		  + '"><input type="hidden" class = "album-'
 		  + vid.youtube_id
 		  + '" id="album_id'
 		  + index.toString()
 		  + '" value="'
 		  + vid.album_id
-		  + '"></hidden></tr>';
+		  + '"></tr>';
 		
 		$("#table").append(row);
 

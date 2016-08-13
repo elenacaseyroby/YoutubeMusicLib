@@ -8,7 +8,7 @@
     {% endif %}
   </head>
   <body>
-    <div><a href="/index">Home</a> | <a href="/play">Play Music</a> | <a href="/listens">Past Listens</a> | <a href="/library">Library</a> | <a href="/logout">Logout {{ session['user_email'] }}</a></div>
+    <div><a href="/index">Home</a> | <a href="/play">Search</a> | <a href="/listens">Listens</a> | <a href="/library">Library</a> | <a href="/logout">Logout {{ session['user_email'] }}</a></div>
     <br><br><br>
 
     {% with messages = get_flashed_messages() %}

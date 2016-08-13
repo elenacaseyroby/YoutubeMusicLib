@@ -323,6 +323,7 @@ def postartistinfo():
 #update data from listens and library pages
 @app.route('/updatedata', methods = ['POST'])
 def updatedata():
+  print("~~~~~~~~~~update data!!!!!~~~~~~~~~~~~~~~~~")
   album_id = 2
   artist_id = 1
   sql_session.rollback()
@@ -330,6 +331,7 @@ def updatedata():
   album_by_name = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
 
   artist_id = viewsModel.updatevideoartist(request.form["artist"])
+  print("goood here")
   
   sql_session.rollback()
   if album_by_name:
@@ -341,18 +343,22 @@ def updatedata():
     sql_session.commit()
     new_album_id = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
     album_id = int(new_album_id.id)
-  
+  print("goood here")#fucks up here
+  print(request.form["youtube_id"])
   sql_session.rollback()
   video_update = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+  print(video_update)
+  print("goood here")
   video_update.title=request.form["title"]
   video_update.music=request.form["music"]
   video_update.artist_id=int(artist_id)
   video_update.album_id=int(album_id)
   sql_session.commit() 
+  
 
   sql_session.rollback()
   saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id']).first()
-    
+  print("goood here")
   if request.form['library'] == "1":
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
@@ -364,6 +370,8 @@ def updatedata():
       delete_vid = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id'])
       delete_vid.delete()
       sql_session.commit()
+
+
   return "success"
 
 #/postplaylist
