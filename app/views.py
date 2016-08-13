@@ -83,7 +83,6 @@ def searchlistens():
   if 'google_token' in session:
     #set dates from form submission 
     #if those are empty set default dates
-    isListens = request.args.get('isListens');
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
     selected_playlist_id=None
@@ -104,13 +103,16 @@ def searchlistens():
     
     search_end_date = request.args.get("search_end_date", today)
     search_artist = request.args.get("search_artist", "%")
+
     if search_artist == "":
         search_artist = "%"
     if(request.args.get("islistens")=="true"):
-      data = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id, just_dict = True)
+      print("~~~~~~~~~~~~~~artist: "+search_artist+"~~~~~~~~~~~")
+      data = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
     else:
       print("~~~~~~library~~~~~~~~~~")
-      data = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id, just_dict = True)
+      print("~~~~~~~~~~~~~~artist: "+search_artist+"~~~~~~~~~~~")
+      data = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id)
     if search_artist == "%":
         search_artist = ""
     return jsonify(data)

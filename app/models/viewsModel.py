@@ -42,7 +42,7 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-def getlibrary(user_id, search_artist, playlist_id = None, just_dict=False):
+def getlibrary(user_id, search_artist, playlist_id = None):
   sql_session.rollback()
   library = list()
   if not playlist_id:
@@ -72,7 +72,6 @@ def getlibrary(user_id, search_artist, playlist_id = None, just_dict=False):
 
     results = models.engine.execute(sql)
     for result in results:
-      if just_dict:
         video = {'index': ""
                 , 'play': 0
                 , 'library': 1
@@ -86,32 +85,17 @@ def getlibrary(user_id, search_artist, playlist_id = None, just_dict=False):
                 , 'artist_id': result[9]
                 , 'album_id': result[10]
                 }
-      else:
-        video = viewsClasses.display_update_row_object( index = ""
-                                  , play = 0
-                                  , library = 1
-                                  , music= result[3]
-                                  , playlist= result[11]
-                                  , title= result[2]
-                                  , artist = result[5]
-                                  , album = result[7]
-                                  , release_date = result[4]
-                                  , youtube_id = result[0]
-                                  , artist_id = result[9]
-                                  , album_id = result[10]
-                                  )
-      library.append(video)
 
   return library 
 
 #get listens data for listens page
-def getlistensdata(user_id, search_start_date, search_end_date, search_artist, playlist_id=None, just_dict=False):
+def getlistensdata(user_id, search_start_date, search_end_date, search_artist, playlist_id=None):
   sql_session.rollback()
   limit = 30
   listens = list()
   start_date = search_start_date
   end_date = search_end_date
-  print("~~~~~~~~~~~"+str(playlist_id)+"~~~~~~~~~~~~~~~")
+  print("~~~~~~~~~~~"+str(search_artist)+"~~~~~~~~~~~~~~~")
   if not playlist_id:
     playlist_id = "-1"
 
@@ -147,37 +131,23 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
 
   results = models.engine.execute(sql)
   for result in results:
-    #if result[1] (youtube_id) is in list of user's saved vids, then 
-    # var library = 1, else = 0 
-    if just_dict:
-        listen = {'index': result[2].strftime('%a %I:%M %p') #time_of_listen
-                , 'play': 0
-                , 'music': result[5]
-                , 'playlist' : result[14]
-                , 'title': result[4]
-                , 'artist': result[7]
-                , 'album': result[9]
-                , 'release_date': result[6]
-                , 'youtube_id': result[1]
-                , 'artist_id': result[11]
-                , 'album_id': result[12]
-                , 'library': result[13]
-                }
-    else:
-        listen = viewsClasses.display_update_row_object(index = result[2].strftime('%a %I:%M %p') #time_of_listen
-                            , play = 0
-                            , music= result[5]
-                            , playlist = result[14]
-                            , title= result[4]
-                            , artist = result[7]
-                            , album = result[9]
-                            , release_date = result[6]
-                            , youtube_id = result[1]
-                            , artist_id = result[11]
-                            , album_id = result[12]
-                            , library = result[13]
-                            )
-    listens.append(listen)
+      #if result[1] (youtube_id) is in list of user's saved vids, then 
+      # var library = 1, else = 0 
+      listen = {'index': result[2].strftime('%a %I:%M %p') #time_of_listen
+              , 'play': 0
+              , 'music': result[5]
+              , 'playlist' : result[14]
+              , 'title': result[4]
+              , 'artist': result[7]
+              , 'album': result[9]
+              , 'release_date': result[6]
+              , 'youtube_id': result[1]
+              , 'artist_id': result[11]
+              , 'album_id': result[12]
+              , 'library': result[13]
+              }
+                  
+      listens.append(listen)
 
   return listens 
 def getsimilarartistsbyartist(artist_id):

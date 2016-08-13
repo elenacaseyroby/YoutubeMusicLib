@@ -59,8 +59,9 @@ $(function(){
 	});	
 	$("#search-data").on("submit", function(event) {
 		event.preventDefault();
-		console.log("clicked!!!!!!!");
-		getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val(), $("#islistens").attr("value"));
+		console.log("search clicked!");
+		console.log($("#search_artist").val());
+		getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
 
 	});
 	$( "#sortable" ).sortable({
@@ -118,7 +119,7 @@ $(function(){
     	}
     });
     //$('input[type=checkbox]').change(function(){
-    getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val(), $("#islistens").attr("value"));
+    getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     
     //$('input[type=checkbox]').onClick(function(){
     $('body').on('click', '.play-checkbox', function (){
@@ -136,6 +137,9 @@ $(function(){
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
+	console.log("search artist");
+	console.log(search_artist);
+	
 	if (search_artist){
 		artist = search_artist;
 	}else{
@@ -153,16 +157,18 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
+    	console.log(results);
     	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
 
 function renderDataRow($display_data_rows, islistens = "false"){
-	
+	console.log("render!!");
+	$("#table").empty();
 	index = $display_data_rows.length
 	$.each($display_data_rows, function(index, vid){
 		if(islistens=="true"){
-			listens_index = '<td>'+vid.index+'</td>';
+			listens_index = '<td>'+vid['index']+'</td>';
 		}else{
 			listens_index = '';
 		}
@@ -174,57 +180,57 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
 		  + '" value="'
-		  + vid.library
+		  + vid['library']
 		  + '" '
 		  + checkedIfLib
 		  + '></td><td><input class = "music-'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" type = "checkbox" id = "music'
 		  + index.toString()
 		  + '" value="'
-		  + vid.music
+		  + vid['music']
 		  + '" '
 		  + checkedIfMusic
 		  + '></td><td><input class = "title-'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" type="textbox" id="title'
 		  + index.toString()
 		  + '" value="'
-		  + vid.title
+		  + vid['title']
 		  + '"></td> <td><input class = "artist-'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" type="textbox" id="artist'
 		  + index.toString()
 		  + '" value="'
-		  + vid.artist
+		  + vid['artist']
 		  + '"></td><td><input class = "album-'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" type="textbox" id="album'
 		  + index.toString()
 		  + '" value="'
-		  + vid.album
+		  + vid['album']
 		  + '"></td><td><input class="play-checkbox" type = "checkbox" id = "'
 		  + index.toString()
 		  + '" '
 		  + checkedIfPlaylist
 		  +'></td><input type="hidden" class = "'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" id="youtube_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '"><input type="hidden" class = "artist_id-'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" id="artist_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid.artist_id
+		  + vid['artist_id']
 		  + '"><input type="hidden" class = "album-'
-		  + vid.youtube_id
+		  + vid['youtube_id']
 		  + '" id="album_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid.album_id
+		  + vid['album_id']
 		  + '"></tr>';
 		
 		$("#table").append(row);
