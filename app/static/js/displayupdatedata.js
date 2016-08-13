@@ -276,7 +276,7 @@ function renderPlaylistTrack($playlist_tracks){
 		+ track['artist']
 		+ ' - '
 		+ track['title']
-		+ '</li>';
+		+ '<span class="close">&times;</span></li>';
 
 		$("#sortable").append(track);
 

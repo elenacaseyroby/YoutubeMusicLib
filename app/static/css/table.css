@@ -38,6 +38,7 @@ ul {
 }
 li { 
 	float: right;
+    position: relative;
 	margin: 3%; 
 	padding: 2%; 
 	width: 100%; 
@@ -45,5 +46,12 @@ li {
 }
 td.add-to-playlist-button {
   cursor: pointer;
+}
+li .close {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 100;
+
 }
 
