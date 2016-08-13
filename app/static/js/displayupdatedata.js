@@ -1,105 +1,5 @@
 $(function(){
-	function getDataRowData(){
-		if ($("#search_artist").attr("value")){
-			artist = $("#search_artist").attr("value");
-		}else{
-			artist = "";
-		}
-		console.log("~~~~~~~~~~~~~~~~~~~");
-		console.log($("#playlist-name").val());
-		console.log("~~~~~~~~~~~~~~~~~~~");
-		var results = $.ajax({
-			type: "GET",
-		    url: '/search-listens',
-		    data: {search_start_date: $("#search_start_date").attr("value")
-		    , search_send_date: $("#search_end_date").attr("value")
-		    , search_artist: artist
-		    , playlist_title: $("#playlist-name").val()
-		    }
-		    ,dataType: 'json'
-	    }).done(function(results){
-	    	renderDataRow(results, isListens = true);
-	    });
-	}
 
-	function renderDataRow($display_data_rows, isListens = false){
-		console.log("before table !!");
-		index = $display_data_rows.length
-		$.each($display_data_rows, function(index, vid){
-			if($("#islistens").attr("value")=="true"){
-				listens_index = '<td>'+vid.index+'</td>';
-			}else{
-				listens_index = '';
-			}
-			//console.log(vid.playlist);
-			//console.log(vid.music);
-			//console.log(vid.library);
-			var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
-			var checkedIfMusic = ((vid.music==1) ? "checked" : "");
-			var checkedIfLib = ((vid.library==1) ? "checked" : "");
-			//console.log(checkedIfPlaylist);
-			var row = '<tr id="listen_row">'
-			  + listens_index
-			  + '<td><input type = "checkbox" id = "library'
-			  + index.toString()
-			  + '" value="'
-			  + vid.library
-			  + '" '
-			  + checkedIfLib
-			  + '></td><td><input class = "music-'
-			  + vid.youtube_id
-			  + '" type = "checkbox" id = "music'
-			  + index.toString()
-			  + '" value="'
-			  + vid.music
-			  + '" '
-			  + checkedIfMusic
-			  + '></td><td><input class = "title-'
-			  + vid.youtube_id
-			  + '" type="textbox" id="title'
-			  + index.toString()
-			  + '" value="'
-			  + vid.title
-			  + '"></td> <td><input class = "artist-'
-			  + vid.youtube_id
-			  + '" type="textbox" id="artist'
-			  + index.toString()
-			  + '" value="'
-			  + vid.artist
-			  + '"></td><td><input class = "album-'
-			  + vid.youtube_id
-			  + '" type="textbox" id="album'
-			  + index.toString()
-			  + '" value="'
-			  + vid.album
-			  + '"></td><td><input class="play-checkbox" type = "checkbox" id = "'
-			  + index.toString()
-			  + '" '
-			  + checkedIfPlaylist
-			  +'></td><hidden class = "'
-			  + vid.youtube_id
-			  + '" id="youtube_id'
-			  + index.toString()
-			  + '" value="'
-			  + vid.youtube_id
-			  + '"></hidden><hidden class = "artist_id-'
-			  + vid.youtube_id
-			  + '" id="artist_id'
-			  + index.toString()
-			  + '" value="'
-			  + vid.artist_id
-			  + '"></hidden><hidden class = "album-'
-			  + vid.youtube_id
-			  + '" id="album_id'
-			  + index.toString()
-			  + '" value="'
-			  + vid.album_id
-			  + '"></hidden></tr>';
-			
-			$("#table").append(row);
-
-		});
-	}
 	
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
@@ -161,6 +61,12 @@ $(function(){
 		});
 		//window.location.reload('/listens');
 	});	
+	$("#search-data").on("submit", function(event) {
+		event.preventDefault();
+		console.log("clicked!!!!!!!");
+		getDataRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val());
+
+	});
 	$( "#sortable" ).sortable({
       revert: true
     });
@@ -216,7 +122,7 @@ $(function(){
     	}
     });
     //$('input[type=checkbox]').change(function(){
-    getDataRowData();
+    getDataRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val());
     console.log("before checkbox !!");
     //$('input[type=checkbox]').onClick(function(){
     $('body').on('click', '.play-checkbox', function (){
@@ -232,6 +138,106 @@ $(function(){
 
 	});
 });
+//getDataRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
+function getDataRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null){
+	if (search_artist){
+		artist = search_artist;
+	}else{
+		artist = "";
+	}
+
+	var results = $.ajax({
+		type: "GET",
+	    url: '/search-listens',
+	    data: {search_start_date: search_start_date
+	    , search_end_date: search_end_date
+	    , search_artist: artist
+	    , playlist_title: playlist_title
+	    }
+	    ,dataType: 'json'
+    }).done(function(results){
+    	renderDataRow(results, isListens = true);
+    });
+}
+
+function renderDataRow($display_data_rows, isListens = false){
+	console.log("before table !!");
+	index = $display_data_rows.length
+	$.each($display_data_rows, function(index, vid){
+		if($("#islistens").attr("value")=="true"){
+			listens_index = '<td>'+vid.index+'</td>';
+		}else{
+			listens_index = '';
+		}
+		//console.log(vid.playlist);
+		//console.log(vid.music);
+		//console.log(vid.library);
+		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
+		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
+		var checkedIfLib = ((vid.library==1) ? "checked" : "");
+		//console.log(checkedIfPlaylist);
+		var row = '<tr id="listen_row">'
+		  + listens_index
+		  + '<td><input type = "checkbox" id = "library'
+		  + index.toString()
+		  + '" value="'
+		  + vid.library
+		  + '" '
+		  + checkedIfLib
+		  + '></td><td><input class = "music-'
+		  + vid.youtube_id
+		  + '" type = "checkbox" id = "music'
+		  + index.toString()
+		  + '" value="'
+		  + vid.music
+		  + '" '
+		  + checkedIfMusic
+		  + '></td><td><input class = "title-'
+		  + vid.youtube_id
+		  + '" type="textbox" id="title'
+		  + index.toString()
+		  + '" value="'
+		  + vid.title
+		  + '"></td> <td><input class = "artist-'
+		  + vid.youtube_id
+		  + '" type="textbox" id="artist'
+		  + index.toString()
+		  + '" value="'
+		  + vid.artist
+		  + '"></td><td><input class = "album-'
+		  + vid.youtube_id
+		  + '" type="textbox" id="album'
+		  + index.toString()
+		  + '" value="'
+		  + vid.album
+		  + '"></td><td><input class="play-checkbox" type = "checkbox" id = "'
+		  + index.toString()
+		  + '" '
+		  + checkedIfPlaylist
+		  +'></td><hidden class = "'
+		  + vid.youtube_id
+		  + '" id="youtube_id'
+		  + index.toString()
+		  + '" value="'
+		  + vid.youtube_id
+		  + '"></hidden><hidden class = "artist_id-'
+		  + vid.youtube_id
+		  + '" id="artist_id'
+		  + index.toString()
+		  + '" value="'
+		  + vid.artist_id
+		  + '"></hidden><hidden class = "album-'
+		  + vid.youtube_id
+		  + '" id="album_id'
+		  + index.toString()
+		  + '" value="'
+		  + vid.album_id
+		  + '"></hidden></tr>';
+		
+		$("#table").append(row);
+
+	});
+}
 
 //Bugs:
 //won't update vids

@@ -83,7 +83,7 @@ def searchlistens():
   if 'google_token' in session:
     #set dates from form submission 
     #if those are empty set default dates
-    
+    isListens = request.args.get('isListens');
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
     selected_playlist_id=None

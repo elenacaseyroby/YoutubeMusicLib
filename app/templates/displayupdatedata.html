@@ -3,14 +3,14 @@
 {% block content %}
 	<div class="top">
 		{% if islistens == "true" %}
-		<form id="searchdates" action="/listens" method="get">
-		View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
+		<form id="search-data" action="#">
+			View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
 		{% else %}
-		<form id="searchdates" action="/library" method="get">
+		<form id="search-data" action="#">
 		{%endif%}
-		Filter by 
-		<input name="search_artist" id="search_artist" placeholder="Artist" value="{{search_artist}}">
-		<input value="Search" class="pure-button">
+			Filter by 
+			<input name="search_artist" id="search_artist" placeholder="Artist" value="{{search_artist}}">
+			<input type="submit" value="Search" class="pure-button">
 		</form>
 		</div><br><br>
 		{% if islistens == "true" %}
