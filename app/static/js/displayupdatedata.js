@@ -123,6 +123,7 @@ $(function(){
     //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     getPlaylistTitles()
+
     //$('input[type=checkbox]').onClick(function(){
     $('body').on('click', '.play-checkbox', function (){
 	    if (this.checked) {
@@ -132,6 +133,7 @@ $(function(){
 		}
 
 	});
+	
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
@@ -158,7 +160,7 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
 }
 
 function renderDataRow($display_data_rows, islistens = "false"){
-	$("#table").empty();
+	$("tbody").empty();
 	index = $display_data_rows.length
 	$.each($display_data_rows, function(index, vid){
 		if(islistens=="true"){
@@ -203,11 +205,9 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		  + index.toString()
 		  + '" value="'
 		  + vid['album']
-		  + '"></td><td><input class="play-checkbox" type = "checkbox" id = "'
+		  + '"></td><td class = "add-to-playlist-button" id = "playlist'
 		  + index.toString()
-		  + '" '
-		  + checkedIfPlaylist
-		  +'></td><input type="hidden" class = "'
+		  + '"></td><input type="hidden" class = "'
 		  + vid['youtube_id']
 		  + '" id="youtube_id'
 		  + index.toString()
@@ -227,7 +227,7 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		  + vid['album_id']
 		  + '"></tr>';
 		
-		$("#table").append(row);
+		$("tbody").append(row);
 
 	});
 }
@@ -300,6 +300,7 @@ function renderPlaylistDropDown($playlists, $selected_playlist = null){
 	});
 }
 //playlist_title
+//http://stackoverflow.com/questions/25074450/div-appear-disappear-on-mouse-enter-leave
 
 
 
