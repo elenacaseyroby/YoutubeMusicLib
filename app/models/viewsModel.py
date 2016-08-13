@@ -45,6 +45,8 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
 def getlibrary(user_id, search_artist, playlist_id = None):
   sql_session.rollback()
   library = list()
+  if search_artist:
+    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
   if not playlist_id:
     playlist_id = "-1"
   saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
@@ -67,7 +69,7 @@ def getlibrary(user_id, search_artist, playlist_id = None):
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
    WHERE saved_vids.user_id = """+str(user_id)+"""
-   AND artists.artist_name LIKE '"""+search_artist+"""'
+   """+artist+"""
    ORDER BY artists.artist_name, albums.name ASC;""")
 
     results = models.engine.execute(sql)
@@ -94,6 +96,8 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
   listens = list()
   start_date = search_start_date
   end_date = search_end_date
+  if search_artist:
+    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
   if not playlist_id:
     playlist_id = "-1"
 
@@ -121,7 +125,7 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 
-   AND artists.artist_name LIKE '"""+search_artist+"""'
+   """+artist+"""
    GROUP BY listens.id 
    ORDER BY listens.time_of_listen DESC;""")
 
