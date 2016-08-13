@@ -40,19 +40,14 @@ def playMusic():
 
 @app.route('/listens', methods = ['GET'])
 def listens():
-  print("made it to listens view after playlist change~~~~~~~~~~~~~~~")
   if 'google_token' in session:
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
     selected_playlist_id=None
     if request.args.get("playlist_title"):
-      print("made it to playlist title")
       playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
       selected_playlist_id = playlist.id
       playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
-      for track in playlist_tracks:
-        print(track)
-    print("finished rendering playlist")
     #set dates from form submission 
     #if those are empty set default dates
     now = datetime.datetime.now()
@@ -79,7 +74,6 @@ def listens():
 @app.route('/search-listens', methods = ['GET'])
 
 def searchlistens():
-  print("made it to searchlistens");
   if 'google_token' in session:
     #set dates from form submission 
     #if those are empty set default dates
@@ -87,13 +81,9 @@ def searchlistens():
     playlist_tracks = []
     selected_playlist_id=None
     if request.args.get("playlist_title"):
-      print("made it to playlist title")
       playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
       selected_playlist_id = playlist.id
       playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
-      for track in playlist_tracks:
-        print(track)
-    print("finished rendering playlist")
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
     oneweekago = datetime.date.today() - datetime.timedelta(days=7)
@@ -107,11 +97,8 @@ def searchlistens():
     if search_artist == "":
         search_artist = "%"
     if(request.args.get("islistens")=="true"):
-      print("~~~~~~~~~~~~~~artist: "+search_artist+"~~~~~~~~~~~")
       data = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
     else:
-      print("~~~~~~library~~~~~~~~~~")
-      print("~~~~~~~~~~~~~~artist: "+search_artist+"~~~~~~~~~~~")
       data = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id)
     if search_artist == "%":
         search_artist = ""
@@ -369,10 +356,7 @@ def get_playlist_tracks():
   playlist_title = request.args.get('playlist_title')
   playlist_tracks = []
   if playlist_title:
-    print("made it to playlist title")
     playlist = sql_session.query(models.Playlist).filter_by(user_id = user_id, title = playlist_title).first()
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print(playlist.id)
     if playlist:
       selected_playlist_id = playlist.id
       playlist_tracks = viewsModel.getplaylisttracks(playlist_id = selected_playlist_id)
@@ -381,55 +365,38 @@ def get_playlist_tracks():
 #/postplaylist
 @app.route('/postplaylist', methods = ['POST'])
 def postplaylist():
-  print("made it~~~~~~~~~~~~~~~~~~~~~")
   title = request.form['playlist_title']
   tracks = loads(request.form['tracks'])
-  print(title)
-  print(tracks)
   track_num = 1
   sql_session.rollback()
   playlist_in_db = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = title).first()
-  print(playlist_in_db )
   if playlist_in_db:
     sql_session.rollback()
     set_temp_track_nums = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
     for set_temp_track_num in set_temp_track_nums:
       set_temp_track_num.track_num = -1
       sql_session.commit()
-
-      
-    print("playlist is in db")
     for track in tracks:
       sql_session.rollback()
       track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id, youtube_id = track).first()
       if track_update:
-        print("track update!")
         track_update.track_num=track_num
         sql_session.commit() 
       else:
         new_track = models.PlaylistTracks(playlist_id = playlist_in_db.id, youtube_id = track, track_num = track_num)#edit so it only adds vid info if it doesn't already exist
         sql_session.add(new_track)
         sql_session.commit()
-
       #post track.youtube_id & track_num to db
       track_num = track_num +1
-    print(track_num)
     track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(models.PlaylistTracks.track_num == -1)
-    print(track_update)
-    print("~~before~~")
     track_update.delete()
     sql_session.commit()
-    print("~~after~~")
   else:
-    print("else~~~~~~~~~~~~~~")
-    print (title)
-    print (session['session_user_id'])
     sql_session.rollback()
     new_playlist = models.Playlist(user_id = int(session['session_user_id']), title = str(title))#edit so it only adds vid info if it doesn't already exist
     sql_session.add(new_playlist)
     sql_session.commit()
     new_playlist_id = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = title).first()
-    print("made it here~~~~~~~~~~")
     for track in tracks:
       sql_session.rollback()
       new_track = models.PlaylistTracks(playlist_id = new_playlist_id.id, youtube_id = track, track_num = track_num)#edit so it only adds vid info if it doesn't already exist
