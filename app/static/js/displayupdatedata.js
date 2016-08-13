@@ -59,8 +59,6 @@ $(function(){
 	});	
 	$("#search-data").on("submit", function(event) {
 		event.preventDefault();
-		console.log("search clicked!");
-		console.log($("#search_artist").val());
 		getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
 
 	});
@@ -93,7 +91,6 @@ $(function(){
     	var playlist_title = $("#playlist-name").val();
     	var playlist_tracks = [];
 		listItems.each(function(li) {
-		    console.log(i+". "+$(this).attr('id').replace('playlist-', ''));
 		    youtube_id = $(this).attr('id').replace('playlist-', '');
 		    playlist_tracks.push(youtube_id);
 		    i++;
@@ -109,8 +106,6 @@ $(function(){
 		//send array and to views.py through ajax request
     });
     $("#playlist-dropdown").change(function(){
-    	console.log("dropdown triggered!");
-    	console.log($("#playlist-dropdown").val());
     	getPlaylistData($("#playlist-dropdown").val());
     });
     // double click to delete
@@ -125,22 +120,16 @@ $(function(){
     
     //$('input[type=checkbox]').onClick(function(){
     $('body').on('click', '.play-checkbox', function (){
-		console.log("checkbox changed!");
 	    if (this.checked) {
-    		console.log("checked!"); //is registering when checked
-	        console.log(this.id);
 	        $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
 	    }else{
 	    	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
-	    	console.log(" not checked!");
 		}
 
 	});
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
-	console.log("search artist");
-	console.log(search_artist);
 	
 	if (search_artist){
 		artist = search_artist;
@@ -159,13 +148,11 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
-    	console.log(results);
     	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
 
 function renderDataRow($display_data_rows, islistens = "false"){
-	console.log("render!!");
 	$("#table").empty();
 	index = $display_data_rows.length
 	$.each($display_data_rows, function(index, vid){
@@ -246,15 +233,13 @@ function getPlaylistData($playlist_title){
 	    data: {playlist_title: $playlist_title
 	    }
 	    ,dataType: 'json'
-    }).done(function(results){ //efs up before here
-    	console.log(results);
+    }).done(function(results){ 
     	renderPlaylistTrack(results);
     });
 }
 
 
 function renderPlaylistTrack($playlist_tracks){
-	console.log("render!!");
 	$("#sortable").empty();
 	index = $playlist_tracks.length
 	$.each($playlist_tracks, function(index, track){
