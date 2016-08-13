@@ -85,7 +85,7 @@ def getlibrary(user_id, search_artist, playlist_id = None):
                 , 'artist_id': result[9]
                 , 'album_id': result[10]
                 }
-
+        library.append(video)
   return library 
 
 #get listens data for listens page
@@ -146,7 +146,7 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
               , 'album_id': result[12]
               , 'library': result[13]
               }
-                  
+
       listens.append(listen)
 
   return listens 
