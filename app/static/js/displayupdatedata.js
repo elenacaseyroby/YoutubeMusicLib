@@ -120,10 +120,12 @@ $(function(){
         	$(this).remove();
     	}
     });
+    
+    /*
     $("td.add-to-playlist-button").click(function(){
     	console.log("clicked!");
 	    //$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
-	});
+	});*/
     //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     getPlaylistTitles()
@@ -172,8 +174,12 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
     	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
-function addTrackToPlaylist($index){
-	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+$index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+$index).attr("value")+"'>"+$("#artist"+$index).val()+" - "+$("#title"+$index).val()+"</li>");
+function addTrackToPlaylist(index){
+	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"</li>");
+}
+function deleteTrackFromPlaylist(youtube_id){
+    	
+    	$("#playlist-" + youtube_id).remove();
 }
 
 function renderDataRow($display_data_rows, islistens = "false"){
@@ -248,11 +254,11 @@ function renderDataRow($display_data_rows, islistens = "false"){
 
 	});
 }
-function getPlaylistData($playlist_title){
+function getPlaylistData(playlist_title){
 	var results = $.ajax({
 		type: "GET",
 	    url: '/get-playlist-tracks',
-	    data: {playlist_title: $playlist_title
+	    data: {playlist_title: playlist_title
 	    }
 	    ,dataType: 'json'
     }).done(function(results){ 
@@ -261,10 +267,10 @@ function getPlaylistData($playlist_title){
 }
 
 
-function renderPlaylistTrack($playlist_tracks){
+function renderPlaylistTrack(playlist_tracks){
 	$("#sortable").empty();
-	index = $playlist_tracks.length
-	$.each($playlist_tracks, function(index, track){
+	index = playlist_tracks.length
+	$.each(playlist_tracks, function(index, track){
 		
 		var track = '<li id="playlist-'
 		+ track['youtube_id']
@@ -276,30 +282,34 @@ function renderPlaylistTrack($playlist_tracks){
 		+ track['artist']
 		+ ' - '
 		+ track['title']
-		+ '<span class="close">&times;</span></li>';
+		+ '<span class="close" id=close-"'
+		+ track['youtube_id']
+		+ '"><i class="fa fa-trash-o" aria-hidden="true" onclick="deleteTrackFromPlaylist(\''
+		+ track['youtube_id']
+		+'\')"></i></span></li>';
 
 		$("#sortable").append(track);
 
 	});
 }
 
-function getPlaylistTitles($selected_playlist = null){
+function getPlaylistTitles(selected_playlist = null){
 	console.log("get titles!");
 	var results = $.ajax({
 		type: "GET",
 	    url: '/get-playlist-titles',
 	    dataType: 'json'
     }).done(function(results){ 
-    	renderPlaylistDropDown(results, $selected_playlist);
+    	renderPlaylistDropDown(results, selected_playlist);
     });
 }
 
-function renderPlaylistDropDown($playlists, $selected_playlist = null){
+function renderPlaylistDropDown(playlists, selected_playlist = null){
 	$("#playlist-dropdown").empty();
-	index = $playlists.length
-	$.each($playlists, function(index, title){
-		if($selected_playlist){
-			var selected = ( ( $selected_playlist == title ) ? "selected" : "");
+	index = playlists.length
+	$.each(playlists, function(index, title){
+		if(selected_playlist){
+			var selected = ( ( selected_playlist == title ) ? "selected" : "");
 		}else{
 			var selected = ( ($("#playlist-dropdown").attr("value") == title ) ? "selected" : "");
 		}
