@@ -7,7 +7,7 @@ $(function(){
 		i = 0;
 		var dataupdated = false;
 
-		$.each($(".listen_row"), function(index, listen){ //used to use ".row"
+		$.each($("#hi"), function(index, listen){ //used to use ".row"
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -120,11 +120,16 @@ $(function(){
         	$(this).remove();
     	}
     });
+    $("td.add-to-playlist-button").click(function(){
+    	console.log("clicked!");
+	    //$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
+	});
     //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     getPlaylistTitles()
 
     //$('input[type=checkbox]').onClick(function(){
+    /*
     $('body').on('click', '.play-checkbox', function (){
 	    if (this.checked) {
 	        $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
@@ -132,15 +137,17 @@ $(function(){
 	    	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
 		}
 
-	});
-	$('tbody').hover(function() {
-		$(".add-to-playlist-button").append('<i class="fa fa-plus" aria-hidden="true"></i>');
+	});*/
+	/*
+	$('#hi').hover(function() {
+		
 	    console.log("on hover");//$(this).addClass('hover');
+	    $('.add-to-playlist-button').append('<i class="fa fa-plus" aria-hidden="true"></i>');
 	}, function() {
 		console.log("off hover");
-		$(".add-to-playlist-button").empty();
+		$('.add-to-playlist-button').empty();
 	    //$(this).removeClass('hover');
-	});
+	});*/
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
@@ -165,6 +172,9 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
     	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
+function addTrackToPlaylist($index){
+	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+$index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+$index).attr("value")+"'>"+$("#artist"+$index).val()+" - "+$("#title"+$index).val()+"</li>");
+}
 
 function renderDataRow($display_data_rows, islistens = "false"){
 	$("tbody").empty();
@@ -178,7 +188,7 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
 		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
 		var checkedIfLib = ((vid.library==1) ? "checked" : "");
-		var row = '<tr class="listen_row">'
+		var row = '<tr id="hi">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
@@ -212,9 +222,9 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		  + index.toString()
 		  + '" value="'
 		  + vid['album']
-		  + '"></td><td class = "add-to-playlist-button" id = "playlist'
+		  + '"></td><td class = "add-to-playlist-button" onclick="addTrackToPlaylist(\''
 		  + index.toString()
-		  + '"></td><input type="hidden" class = "'
+		  + '\')"><i class="fa fa-plus" aria-hidden="true"></i></td><input type="hidden" class = "'
 		  + vid['youtube_id']
 		  + '" id="youtube_id'
 		  + index.toString()
