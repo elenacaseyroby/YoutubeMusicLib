@@ -42,9 +42,9 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-def getlibrary(user_id, search_artist, playlist_id = None):
+def getlibrary(user_id, search_artist, playlist_id = None, just_dict=False):
   sql_session.rollback()
-  listens = list()
+  library = list()
   if not playlist_id:
     playlist_id = "-1"
   saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
@@ -72,26 +72,40 @@ def getlibrary(user_id, search_artist, playlist_id = None):
 
     results = models.engine.execute(sql)
     for result in results:
+      if just_dict:
+        video = {'index': ""
+                , 'play': 0
+                , 'library': 1
+                , 'music': result[3]
+                , 'playlist': result[11]
+                , 'title': result[2]
+                , 'artist': result[5]
+                , 'album': result[7]
+                , 'release_date': result[4]
+                , 'youtube_id': result[0]
+                , 'artist_id': result[9]
+                , 'album_id': result[10]
+                }
+      else:
+        video = viewsClasses.display_update_row_object( index = ""
+                                  , play = 0
+                                  , library = 1
+                                  , music= result[3]
+                                  , playlist= result[11]
+                                  , title= result[2]
+                                  , artist = result[5]
+                                  , album = result[7]
+                                  , release_date = result[4]
+                                  , youtube_id = result[0]
+                                  , artist_id = result[9]
+                                  , album_id = result[10]
+                                  )
+      library.append(video)
 
-      listen = viewsClasses.display_update_row_object( index = ""
-                                , play = 0
-                                , library = 1
-                                , music= result[3]
-                                , playlist= result[11]
-                                , title= result[2]
-                                , artist = result[5]
-                                , album = result[7]
-                                , release_date = result[4]
-                                , youtube_id = result[0]
-                                , artist_id = result[9]
-                                , album_id = result[10]
-                                )
-      listens.append(listen)
-
-  return listens 
+  return library 
 
 #get listens data for listens page
-def getlistensdata(search_start_date, search_end_date, search_artist, playlist_id=None, just_dict=False):
+def getlistensdata(user_id, search_start_date, search_end_date, search_artist, playlist_id=None, just_dict=False):
   sql_session.rollback()
   limit = 30
   listens = list()
@@ -121,7 +135,7 @@ def getlistensdata(search_start_date, search_end_date, search_artist, playlist_i
    JOIN albums ON videos.album_id = albums.id
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
-   WHERE listens.user_id = """+str(session['session_user_id'])+"""
+   WHERE listens.user_id = """+str(user_id)+"""
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 

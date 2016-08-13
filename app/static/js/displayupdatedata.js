@@ -36,13 +36,7 @@ $(function(){
 			if($("#library" + i.toString()).attr("value") != library_value){
 				dataupdated = true;
 			}	
-			
-			console.log("#youtube_id" + i.toString());
-			console.log($("#youtube_id" + i.toString()).attr("value"));
-			console.log("#artist" + i.toString());
-			console.log($("#artist" + i.toString()).val());
 			if(dataupdated){
-				console.log("updated data.");
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',
@@ -66,7 +60,7 @@ $(function(){
 	$("#search-data").on("submit", function(event) {
 		event.preventDefault();
 		console.log("clicked!!!!!!!");
-		getDataRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val());
+		getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val(), $("#islistens").attr("value"));
 
 	});
 	$( "#sortable" ).sortable({
@@ -124,8 +118,8 @@ $(function(){
     	}
     });
     //$('input[type=checkbox]').change(function(){
-    getDataRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val());
-    console.log("before checkbox !!");
+    getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val(), $("#islistens").attr("value"));
+    
     //$('input[type=checkbox]').onClick(function(){
     $('body').on('click', '.play-checkbox', function (){
 		console.log("checkbox changed!");
@@ -140,8 +134,8 @@ $(function(){
 
 	});
 });
-//getDataRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
-function getDataRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null){
+//getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
+function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
 	if (search_artist){
 		artist = search_artist;
 	}else{
@@ -155,29 +149,26 @@ function getDataRowData(search_artist=null, search_start_date=null, search_end_d
 	    , search_end_date: search_end_date
 	    , search_artist: artist
 	    , playlist_title: playlist_title
+	    , islistens: islistens
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
-    	renderDataRow(results, isListens = true);
+    	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
 
-function renderDataRow($display_data_rows, isListens = false){
-	console.log("before table !!");
+function renderDataRow($display_data_rows, islistens = "false"){
+	
 	index = $display_data_rows.length
 	$.each($display_data_rows, function(index, vid){
-		if($("#islistens").attr("value")=="true"){
+		if(islistens=="true"){
 			listens_index = '<td>'+vid.index+'</td>';
 		}else{
 			listens_index = '';
 		}
-		//console.log(vid.playlist);
-		//console.log(vid.music);
-		//console.log(vid.library);
 		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
 		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
 		var checkedIfLib = ((vid.library==1) ? "checked" : "");
-		//console.log(checkedIfPlaylist);
 		var row = '<tr class="listen_row">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'

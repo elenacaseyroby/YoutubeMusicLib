@@ -70,7 +70,7 @@ def listens():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
+    listens = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
     if search_artist == "%":
         search_artist = ""
     return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true", playlist_titles = playlist_titles, playlist_tracks = playlist_tracks)
@@ -106,11 +106,14 @@ def searchlistens():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id, just_dict = True)
+    if(request.args.get("islistens")=="true"):
+      data = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id, just_dict = True)
+    else:
+      print("~~~~~~library~~~~~~~~~~")
+      data = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id, just_dict = True)
     if search_artist == "%":
         search_artist = ""
-    test = [1, 2, 3]
-    return jsonify(listens)
+    return jsonify(data)
   else:
     return redirect(url_for('login'))
   return "success"
@@ -133,7 +136,7 @@ def library():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    library = viewsModel.getlibrary(session['session_user_id'], search_artist, playlist_id = selected_playlist_id)
+    library = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id)
     if not library:
       return render_template('nolibrarymessage.html')
     else:
@@ -323,7 +326,6 @@ def postartistinfo():
 #update data from listens and library pages
 @app.route('/updatedata', methods = ['POST'])
 def updatedata():
-  print("~~~~~~~~~~update data!!!!!~~~~~~~~~~~~~~~~~")
   album_id = 2
   artist_id = 1
   sql_session.rollback()
@@ -331,7 +333,6 @@ def updatedata():
   album_by_name = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
 
   artist_id = viewsModel.updatevideoartist(request.form["artist"])
-  print("goood here")
   
   sql_session.rollback()
   if album_by_name:
@@ -343,12 +344,8 @@ def updatedata():
     sql_session.commit()
     new_album_id = sql_session.query(models.Album).filter_by(name = request.form["album"]).first()
     album_id = int(new_album_id.id)
-  print("goood here")#fucks up here
-  print(request.form["youtube_id"])
   sql_session.rollback()
   video_update = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-  print(video_update)
-  print("goood here")
   video_update.title=request.form["title"]
   video_update.music=request.form["music"]
   video_update.artist_id=int(artist_id)
@@ -358,7 +355,6 @@ def updatedata():
 
   sql_session.rollback()
   saved_vids = sql_session.query(models.SavedVid).filter_by(youtube_id = request.form["youtube_id"], user_id = session['session_user_id']).first()
-  print("goood here")
   if request.form['library'] == "1":
     if not saved_vids:
       new_saved_vid = models.SavedVid(youtube_id = request.form["youtube_id"]
