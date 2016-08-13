@@ -91,11 +91,9 @@ def getlibrary(user_id, search_artist, playlist_id = None):
 #get listens data for listens page
 def getlistensdata(user_id, search_start_date, search_end_date, search_artist, playlist_id=None):
   sql_session.rollback()
-  limit = 30
   listens = list()
   start_date = search_start_date
   end_date = search_end_date
-  print("~~~~~~~~~~~"+str(search_artist)+"~~~~~~~~~~~~~~~")
   if not playlist_id:
     playlist_id = "-1"
 
@@ -125,9 +123,7 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
    AND listens.listened_to_end != 1 
    AND artists.artist_name LIKE '"""+search_artist+"""'
    GROUP BY listens.id 
-   ORDER BY listens.time_of_listen DESC
-   LIMIT """+str(limit)+";""")
-  print(sql)
+   ORDER BY listens.time_of_listen DESC;""")
 
   results = models.engine.execute(sql)
   for result in results:
@@ -167,9 +163,6 @@ JOIN similar_artists s1 ON videos.artist_id = s1.artist_id1
 JOIN artists a1 ON s1.artist_id2 = a1.id
 WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result1 = models.engine.execute(sql)
-
-  #for result in result1:
-    #print(result)
 
   sql = text("""SELECT 
 a2.artist_name
@@ -269,11 +262,9 @@ def getplaylisttracks(playlist_id):
             JOIN artists ON videos.artist_id = artists.id
             WHERE playlists.id = '"""+str(playlist_id)+""""'
             ORDER BY playlist_tracks.track_num;""");
-  print(sql);
   results = models.engine.execute(sql)
   rows = results.fetchall()
   for row in rows:
-      #track = viewsClasses.playlist_track(youtube_id = row[2], title = row[5], artist = row[6], track_num = row[3])
       track = {'youtube_id': row[2]
       , 'title': row[5]
       , 'artist': row[6]
