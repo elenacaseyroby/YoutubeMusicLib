@@ -96,7 +96,7 @@ $(function(){
 		}
 	});
 	$("#delete-playlist").click( function(){
-		if (confirm("Are you sure you want to delete '"+$("#playlist-dropdown").val()+"' from your playlist? You must click the Save button to make this change permanent.")) {
+		if (confirm("Are you sure you want to delete '"+$("#playlist-dropdown").val()+"' from your playlist? If you click OK this change will be permanent.")) {
         // your deletion code
 			var playlist_title = $("#playlist-name").val();
 			var playlist_tracks = [];
