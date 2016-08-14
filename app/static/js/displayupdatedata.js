@@ -2,6 +2,8 @@ $.getScript("static/js/playvideo.js", function(){
 	console.log("playvideo.js loaded");
 });
 
+var current_playlist_tracks = [];
+
 $(function(){
 
 	
@@ -249,9 +251,12 @@ function getPlaylistData(playlist_title){
 
 
 function renderPlaylistTrack(playlist_tracks){
+	current_playlist_tracks = [];
 	$("#sortable").empty();
 	index = playlist_tracks.length
 	$.each(playlist_tracks, function(index, track){
+		video = new YoutubeVideo(track['youtube_id']);
+		current_playlist_tracks.push(video);
 		
 		var track = '<li id="playlist-'
 		+ track['youtube_id']
@@ -311,7 +316,7 @@ function renderPlaylistDropDown(playlists, selected_playlist = null){
 $(document).on('dblclick', 'li', function() {
     console.log("play!");
 	var youtube_id = this.id.replace("playlist-", "");
-	playVideo(youtube_id);
+	playVideo(youtube_id, current_playlist_tracks);
 });
 
 
