@@ -1,3 +1,7 @@
+$.getScript("static/js/playvideo.js", function(){
+	console.log("playvideo.js loaded");
+});
+
 $(function(){
 
 	
@@ -87,6 +91,11 @@ $(function(){
 	    
 		//send array and to views.py through ajax request
     });
+    $( "li" ).dblclick( function(){
+    	console.log("play!");
+    	var youtube_id = this.id.replace("playlist-", "");
+    	playVideo(youtube_id);
+    });
 	$( "#sortable" ).sortable({
       revert: true
     });
@@ -113,43 +122,17 @@ $(function(){
     	getPlaylistData($("#playlist-dropdown").val());
     	$("#playlist-name").val($("#playlist-dropdown").val());
     });
-    // double click to delete
+    // double click to play
     $( "li" ).dblclick( function(){
-    	if (confirm("Are you sure you want to delete '"+$(this).attr("value")+"' from your playlist? You must click the Save button to make this change permanent.")) {
-        	// your deletion code
-        	$(this).remove();
-    	}
+    	console.log("play!");
+    	var youtube_id = this.id.replace("playlist-", "");
+    	playVideo(youtube_id);
     });
-    
-    /*
-    $("td.add-to-playlist-button").click(function(){
-    	console.log("clicked!");
-	    //$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
-	});*/
+
     //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     getPlaylistTitles()
 
-    //$('input[type=checkbox]').onClick(function(){
-    /*
-    $('body').on('click', '.play-checkbox', function (){
-	    if (this.checked) {
-	        $("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+this.id).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+this.id).attr("value")+"'>"+$("#artist"+this.id).val()+" - "+$("#title"+this.id).val()+"</li>");
-	    }else{
-	    	$("#playlist-"+$("#youtube_id"+this.id).attr("value")).remove();
-		}
-
-	});*/
-	/*
-	$('#hi').hover(function() {
-		
-	    console.log("on hover");//$(this).addClass('hover');
-	    $('.add-to-playlist-button').append('<i class="fa fa-plus" aria-hidden="true"></i>');
-	}, function() {
-		console.log("off hover");
-		$('.add-to-playlist-button').empty();
-	    //$(this).removeClass('hover');
-	});*/
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
@@ -175,7 +158,9 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
     });
 }
 function addTrackToPlaylist(index){
-	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"</li>");
+	//<span class="close" id=close-"'
+	console.log("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"<span class='close' id='close-"+ $("#youtube_id"+index).attr("value") + "'><i class='fa fa-trash-o' aria-hidden='true' onclick='deleteTrackFromPlaylist(\""+ $("#youtube_id"+index).attr("value")+"\")></i></span>"+"</li>");
+	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"<span class='close' id='close-"+ $("#youtube_id"+index).attr("value") + "'><i class='fa fa-trash-o' aria-hidden='true' onclick='deleteTrackFromPlaylist(\""+ $("#youtube_id"+index).attr("value")+"\")'></i></span>"+"</li>");
 }
 function deleteTrackFromPlaylist(youtube_id){
     	
@@ -326,8 +311,7 @@ function renderPlaylistDropDown(playlists, selected_playlist = null){
 
 	});
 }
-//playlist_title
-//http://stackoverflow.com/questions/25074450/div-appear-disappear-on-mouse-enter-leave
+
 
 
 

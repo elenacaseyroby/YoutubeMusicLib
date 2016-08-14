@@ -221,7 +221,17 @@ function savePlay(event, end = false) {
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
-	    	data: {user_id: user_id, youtube_title: youtube_title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring), album : album, title: title, artist: artist, year: year}
+	    	data: {user_id: user_id
+	    		, youtube_title: youtube_title
+	    		, youtube_id: youtube_id
+	    		, listened_to_end: listened_to_end
+	    		, channel_id: channel_id
+	    		, description: description
+	    		, similarartiststring: JSON.stringify(similarartiststring)
+	    		, album : album
+	    		, title: title
+	    		, artist: artist
+	    		, year: year}
 	    });
 		if(!end){
 			record_plays = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
