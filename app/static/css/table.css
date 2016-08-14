@@ -44,6 +44,7 @@ li {
 	width: 100%; 
 	list-style-type:none;
 }
+li,
 td.add-to-playlist-button {
   cursor: pointer;
 }

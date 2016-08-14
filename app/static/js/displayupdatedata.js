@@ -91,11 +91,7 @@ $(function(){
 	    
 		//send array and to views.py through ajax request
     });
-    $( "li" ).dblclick( function(){
-    	console.log("play!");
-    	var youtube_id = this.id.replace("playlist-", "");
-    	playVideo(youtube_id);
-    });
+    
 	$( "#sortable" ).sortable({
       revert: true
     });
@@ -105,7 +101,6 @@ $(function(){
       revert: "invalid"
     });
     $( "ul, li" ).disableSelection();
-
     $("#open-playlist-menu").click(function(){
     	if ($(".playlist-menu").is(":visible")){
     		$(".playlist-menu").hide();
@@ -122,16 +117,14 @@ $(function(){
     	getPlaylistData($("#playlist-dropdown").val());
     	$("#playlist-name").val($("#playlist-dropdown").val());
     });
-    // double click to play
-    $( "li" ).dblclick( function(){
-    	console.log("play!");
-    	var youtube_id = this.id.replace("playlist-", "");
-    	playVideo(youtube_id);
-    });
-
     //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     getPlaylistTitles()
+    $( "li" ).dblclick( function(){
+    	console.log("play!");/*
+    	var youtube_id = this.id.replace("playlist-", "");
+    	playVideo(youtube_id);*/
+    });
 
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
@@ -157,9 +150,12 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
     	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
+
+
+
+
 function addTrackToPlaylist(index){
 	//<span class="close" id=close-"'
-	console.log("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"<span class='close' id='close-"+ $("#youtube_id"+index).attr("value") + "'><i class='fa fa-trash-o' aria-hidden='true' onclick='deleteTrackFromPlaylist(\""+ $("#youtube_id"+index).attr("value")+"\")></i></span>"+"</li>");
 	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"<span class='close' id='close-"+ $("#youtube_id"+index).attr("value") + "'><i class='fa fa-trash-o' aria-hidden='true' onclick='deleteTrackFromPlaylist(\""+ $("#youtube_id"+index).attr("value")+"\")'></i></span>"+"</li>");
 }
 function deleteTrackFromPlaylist(youtube_id){
@@ -311,6 +307,12 @@ function renderPlaylistDropDown(playlists, selected_playlist = null){
 
 	});
 }
+
+$(document).on('dblclick', 'li', function() {
+    console.log("play!");
+	var youtube_id = this.id.replace("playlist-", "");
+	playVideo(youtube_id);
+});
 
 
 

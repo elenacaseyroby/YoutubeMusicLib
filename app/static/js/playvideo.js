@@ -1,6 +1,7 @@
 $.getScript("static/js/lastfm.js", function(){
 	console.log("lastfm.js loaded");
 });
+number_of_plays = 0;
 function YoutubeVideo(id){
 	this.id = id;
 	this.title = "";
@@ -30,7 +31,8 @@ function playVideo(id, title=null, channel_id=null, description=null) {
 		var firstScriptTag = document.getElementsByTagName('script')[0];
 		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
   	}else{
-    	player.loadVideoById(current_iframe_video.id);
+    	//player.loadVideoById(current_iframe_video.id);
+    	onYouTubeIframeAPIReady();
 	  	number_of_plays++;
 		/*
 		getRelatedVideos(current_iframe_video.id);
