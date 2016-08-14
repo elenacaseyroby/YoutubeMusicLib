@@ -384,7 +384,6 @@ def postplaylist():
   sql_session.rollback()
   playlist_in_db = sql_session.query(models.Playlist).filter_by(user_id = user_id, title = title).first()
   if len(tracks) == 0:
-    print("MADE IT")
     if playlist_in_db:
       sql_session.rollback()
       delete_playlist_tracks = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)

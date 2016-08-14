@@ -5,8 +5,6 @@ $.getScript("static/js/playvideo.js", function(){
 var current_playlist_tracks = [];
 
 $(function(){
-
-	
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = $(".listen_row").length;
@@ -56,12 +54,9 @@ $(function(){
 					, album_id: $("#album_id" + i.toString()).attr("value")
 					}
 			    });
-
 			}
-
 		    i++;
 		});
-		//window.location.reload('/listens');
 	});	
 	$("#search-data").on("submit", function(event) {
 		event.preventDefault();
@@ -121,32 +116,6 @@ $(function(){
 		getPlaylistTitlesAndRender();
 
 	})
-	/*
-	$("#update-playlist-form").on("submit", function(event) {
-		event.preventDefault();
-		$("#confirm-save-message").append("<font color='purple'><center>Saved.</center></font>");
-	    setTimeout($("#confirm-save-message").fadeOut(), 3000);
-    	var listItems = $("#sortable li");
-    	var i = 1;
-    	var playlist_title = $("#playlist-name").val();
-    	var playlist_tracks = [];
-		listItems.each(function(li) {
-		    youtube_id = $(this).attr('id').replace('playlist-', '');
-		    playlist_tracks.push(youtube_id);
-		    i++;
-		    //create array
-		});
-		$.ajax({
-			type: "POST",
-	    	url: '/postplaylist',
-	    	data: {playlist_title: playlist_title, 
-	    		tracks: JSON.stringify(playlist_tracks)
-	    	}
-	    });
-	    getPlaylistTitlesAndRender($selected_playlist = playlist_title);
-	    
-		//send array and to views.py through ajax request
-    });*/
     
 	$( "#sortable" ).sortable({
       revert: true
@@ -179,31 +148,8 @@ $(function(){
     	}
     	
     });
-    //$('input[type=checkbox]').change(function(){
     getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
     getPlaylistTitlesAndRender();
-    /*
-    $(".playlist-action-buttons i").hover(
-    	
-    	function(){
-    		var small_image = $(this).attr("class").replace(/ fa-lg/g, "");
-    		var big_image = $(this).attr("class")+" fa-lg";
-    		console.log("hover in");
-    		console.log(big_image);
-    		console.log(small_image);
-    		$(this).switchClass( small_image, big_image);
-    	},
-    	function(){
-
-    		var small_image = $(this).attr("class").replace(/ fa-lg/g, "");
-    		var big_image = $(this).attr("class")+" fa-lg";
-    		console.log("hover out");
-    		console.log(big_image);
-    		console.log(small_image);
-    		$(this).switchClass( big_image, small_image);
-    	}
-    );
-    */
 
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
@@ -229,9 +175,6 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
     	renderDataRow(results, islistens = $("#islistens").attr("value"));
     });
 }
-
-
-
 
 function addTrackToPlaylist(index){
 	//<span class="close" id=close-"'
@@ -389,10 +332,6 @@ function renderPlaylistDropDown(playlists, selected_playlist = null){
 		$("#playlist-dropdown").append(title);
 
 	});
-
-		
-		//update texbox
-	
 }
 
 $(document).on('dblclick', 'li', function() {

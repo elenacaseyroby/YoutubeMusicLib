@@ -2,16 +2,6 @@ $.getScript("static/js/lastfm.js", function(){
 	console.log("lastfm.js loaded");
 });
 
-
-//var user_id = 1;
-/*
-function YoutubeVideo(id){
-	this.id = id;
-	this.title = "";
-	this.channel_id = "";
-	this.description = "";
-}
-*/
 function YoutubeVideo(id, title, channel_id, description){
 	this.id = id;
 	this.title = title;

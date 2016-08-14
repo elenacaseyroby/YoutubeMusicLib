@@ -17,7 +17,6 @@ function playVideo(id, current_playlist_tracks = null, title=null, channel_id=nu
 	current_iframe_video.id = id;
 	if(current_playlist_tracks){
 		vids_up_next = current_playlist_tracks;
-		console.log(vids_up_next);
 	}
 	if(title){
 		current_iframe_video.title = title;
@@ -36,21 +35,11 @@ function playVideo(id, current_playlist_tracks = null, title=null, channel_id=nu
 		var firstScriptTag = document.getElementsByTagName('script')[0];
 		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
   	}else{
-    	//player.loadVideoById(current_iframe_video.id);
     	onYouTubeIframeAPIReady();
 	  	number_of_plays++;
-		/*
-		getRelatedVideos(current_iframe_video.id);
-		*/
 	}
 }
-/*
-	  	title: current_iframe_video.title,
-	  	channel_id: current_iframe_video.channel_id,
-	  	description: current_iframe_video.description,
-	  	*/
 function onYouTubeIframeAPIReady() {
-	console.log("ready");
 	$("#iframe").empty();
 
 	$("<div></div>").attr('id','rendered_iframe').appendTo('#iframe');
@@ -72,13 +61,10 @@ function onYouTubeIframeAPIReady() {
 
 //play on iframe load
 function onPlayerReady(event){
-	console.log(event);
 	event.target.playVideo();
 }
 
 function onPlayerStateChange(event) { 
-	console.log(event);
-	console.log("state change!");
 	
 	//if vid is playing from first 2 secs, save to list after 1 second this avoids tracking pauses
 	if(event.data == YT.PlayerState.PLAYING && event.target.j.currentTime <= 2.0){
@@ -91,7 +77,6 @@ function onPlayerStateChange(event) {
 }
 
 function playNextVidInList(){
-	console.log("playn next vid!");
 	place_in_list = -1;
 		length = vids_up_next.length;
 		i=0;
