@@ -2,9 +2,6 @@ $.getScript("static/js/lastfm.js", function(){
 	console.log("lastfm.js loaded");
 });
 
-number_of_plays = 0; 
-var user_id = 1;
-
 function YoutubeVideo(id, title, channel_id, description){
 	this.id = id;
 	this.title = title;
@@ -12,11 +9,10 @@ function YoutubeVideo(id, title, channel_id, description){
 	this.description = description;
 }
 
-current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991", null, null);
-
+current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
+var number_of_plays = 0; 
+var search_page = true;
 var selected_videos = [];
-
-var search_page = true;//eventually python should send this value if its a search page and false if its a playlist page
 var vids_up_next = [];
 
 $(function(){
@@ -221,7 +217,16 @@ function savePlay(event, end = false) {
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
-	    	data: {user_id: user_id, youtube_title: youtube_title, youtube_id: youtube_id, listened_to_end: listened_to_end, channel_id: channel_id, description: description, similarartiststring: JSON.stringify(similarartiststring), album : album, title: title, artist: artist, year: year}
+	    	data: {youtube_title: youtube_title
+	    		, youtube_id: youtube_id
+	    		, listened_to_end: listened_to_end
+	    		, channel_id: channel_id
+	    		, description: description
+	    		, similarartiststring: JSON.stringify(similarartiststring)
+	    		, album : album
+	    		, title: title
+	    		, artist: artist
+	    		, year: year}
 	    });
 		if(!end){
 			record_plays = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);

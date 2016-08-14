@@ -8,8 +8,8 @@
     {% endif %}
   </head>
   <body>
-    <div>Other pages:  <a href="/index">Home</a> | <a href="/play">Play Music</a> | <a href="/listens">Past Listens</a> | <a href="/library">Library</a> | <a href="/logout">Logout {{ session['user_email'] }}</a></div>
-    <hr> 
+    <div><a href="/index">Home</a> | <a href="/play">Search</a> | <a href="/listens">Listens</a> | <a href="/library">Library</a> | <a href="/logout">Logout {{ session['user_email'] }}</a></div>
+    <br><br><br>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -23,8 +23,19 @@
     
 
     {% block content %}{% endblock %} 
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    
     <link href='https://fonts.googleapis.com/css?family=Quicksand' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ url_for('static', filename = 'css/base.css') }}">
     <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
   </body>
 </html>

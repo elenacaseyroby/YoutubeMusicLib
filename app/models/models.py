@@ -45,6 +45,12 @@ class Genre(Base):
 class Listen(Base):
 	__table__ = Base.metadata.tables['listens']
 
+class Playlist(Base):
+	__table__ = Base.metadata.tables['playlists']
+
+class PlaylistTracks(Base):
+	__table__ = Base.metadata.tables['playlist_tracks']
+
 class Rating(Base):
 	__table__ = Base.metadata.tables['ratings']
 

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<center><div id="iframe"></div></center>
+	<div class="top">
+		{% if islistens == "true" %}
+		<form id="search-data" action="#">
+			View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
+		{% else %}
+		<form id="search-data" action="#">
+		{%endif%}
+			Filter by 
+			<input name="search_artist" id="search_artist" placeholder="Artist" value="{{search_artist}}">
+			<input type="submit" value="Search" class="pure-button">
+		</form>
+		</div><br><br>
+		{% if islistens == "true" %}
+		<h3>Recent Listens:</h3>
+		{%endif%}
+		{% if islistens == "false" %}
+		<h3>Your Library:</h3>
+		{%endif%}
+
+	
+<!--updates:
+make all textbox be search dropdown that fills with db table elements to make it harder to write one band name a million ways style="width:100%"-->
+	<div class="main">
+		<form id="updatelistens" action="#">
+			<table id="table" class="table table-striped table-hover" >
+				<thead class="thead-inverse">
+					<tr>
+					{% if islistens == "true"%}
+						<th>Time</th>
+					{%endif%}
+						<th>Saved To Library</th>
+						<!--<th>Play</th> -->
+						<th>Verifed Music</th>
+						<th>Title</th>
+						<th>Artist</th> 
+						<th>Album</th>
+						<th>Playlist</th>
+						<!--<th>Release Date</th> -->
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+
+			<br><input type="submit" value="Submit Updates" class="pure-button">
+		</form>
+	</div>
+	<div class="right">
+		<!--<button id="open-playlist-menu" class="pure-button" img="http://www.clker.com/cliparts/G/O/h/M/m/c/cassette-audio-tape-hi.png" ></button>-->
+		<input type="image" id="open-playlist-menu" src="http://www.clker.com/cliparts/G/O/h/M/m/c/cassette-audio-tape-hi.png" />
+		<div class="playlist-menu">
+			<form id="select-playlist-form" class="pure-form pure-form-stacked" methods="GET">
+				<select name = "playlist_title" id="playlist-dropdown" class="pure-dropdown">
+					<!--append playlist titles-->
+		  		</select>
+		  	</form>
+		  	<form id="update-playlist-form" class="pure-form pure-form-stacked">
+				<input type="text" id="playlist-name" value = "{{request.args.get('playlist_title') if request.args.get('playlist_title')}}" placeholder="Playlist Name">
+				<!--<input id="save-playlist" type="submit" value="Save" class="pure-button">-->
+				<div class="playlist-action-buttons">
+				<br><i id="add-playlist" class="fa fa-plus" aria-hidden="true"></i><i id="save-playlist" class="fa fa-floppy-o" aria-hidden="true"></i><i id="delete-playlist" class="fa fa-trash-o" aria-hidden="true"></i>
+				</div>
+			</form>
+			<div id="confirm-save-message"></div>
+			<ul id="sortable">
+			<!--append playlist list elements-->
+			</ul>
+		</div>
+	</div>
+	<hidden id = "islistens" value="{{islistens}}">
+<!--https://jqueryui.com/draggable/#sortable-->
+	<!--scripts-->
+	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/table.css') }}">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+  	<!--<link rel="stylesheet" href="/resources/demos/style.css">-->
+  	<!--<link rel="stylesheet" href="/resources/demos/style.css">!-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/displayupdatedata.js') }}"></script> 	
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  	<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+	<!--end scripts-->
+
+  
+{% endblock %}

@@ -1,3 +1,82 @@
 table, th, td{
 	text-align: center;
 }
+.top {
+    position:absolute;
+    left:3.5%; right:0;
+    height: 92px;
+}
+.main {
+    left:178px;
+    top:92px; 
+    padding-right:5%; 
+    bottom:0;
+    width: 80%;
+}
+.right {
+    position:absolute;
+    right:3.5%; 
+    top:92px; 
+    bottom: 0;
+    width: 20%;
+    padding-left: 2%;
+}
+.right #open-playlist-menu {
+	float:right;
+    height: 5%;
+    width: 20%;
+}
+.playlist-menu{
+	width:100%;
+	margin: 10%;
+}
+ul { 
+	list-style-type: none; 
+	margin: 10%; 
+	padding: 5%; 
+	margin-bottom: 10%; 
+}
+li { 
+	float: right;
+    position: relative;
+	margin: 3%; 
+	padding: 2%; 
+	width: 100%; 
+	list-style-type:none;
+}
+li,
+#save-playlist,
+#add-playlist,
+#delete-playlist,
+td.add-to-playlist-button {
+  cursor: pointer;
+
+}
+
+#save-playlist:hover,
+#add-playlist:hover,
+#delete-playlist:hover {
+
+    border-radius: 25px;
+    background: #f0f5f5;
+    
+}
+li .close {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 100;
+
+}
+.playlist-action-buttons{
+    width:100%;
+}
+#save-playlist{
+    width:33%;
+}
+#add-playlist{
+    width:33%;
+}
+#delete-playlist{
+    width:33%;
+}
