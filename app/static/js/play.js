@@ -226,8 +226,7 @@ function savePlay(event, end = false) {
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
-	    	data: {user_id: user_id
-	    		, youtube_title: youtube_title
+	    	data: {youtube_title: youtube_title
 	    		, youtube_id: youtube_id
 	    		, listened_to_end: listened_to_end
 	    		, channel_id: channel_id

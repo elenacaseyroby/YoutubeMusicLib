@@ -79,13 +79,13 @@ function onPlayerReady(event){
 function onPlayerStateChange(event) { 
 	console.log(event);
 	console.log("state change!");
-	/*
+	
 	//if vid is playing from first 2 secs, save to list after 1 second this avoids tracking pauses
 	if(event.data == YT.PlayerState.PLAYING && event.target.j.currentTime <= 2.0){
 		setTimeout(savePlay(event), 1000);
-	}*/
+	}
 	if(event.data == YT.PlayerState.ENDED){
-		//savePlay(event, end = true);
+		savePlay(event, end = true);
 		playNextVidInList();
 	}
 }
@@ -111,8 +111,8 @@ function playNextVidInList(){
 			playVideo(vids_up_next[place_in_list].id, vids_up_next[place_in_list].title, vids_up_next[place_in_list].channel_id, vids_up_next[place_in_list].description);
 		}
 }
-function savePlay(user_id, end = false){
-
+function savePlay(event, end = false){
+		youtube_id = current_iframe_video.id;
 		listened_to_end = 0;
 		if(end){
 			listened_to_end = 1;
@@ -120,10 +120,9 @@ function savePlay(user_id, end = false){
 		$.ajax({
 			type: "POST",
 	    	url: '/postlistens',
-	    	data: {user_id: user_id
-	    		, youtube_title: ""
-	    		, youtube_id: ""
-	    		, listened_to_end: ""
+	    	data: {youtube_title: ""
+	    		, youtube_id: current_iframe_video.id
+	    		, listened_to_end: listened_to_end
 	    		, channel_id: ""
 	    		, description: ""
 	    		, similarartiststring: ""

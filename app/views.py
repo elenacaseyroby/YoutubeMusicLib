@@ -176,7 +176,7 @@ def get_access_token(token=None):
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
-  if (request.form["listened_to_end"] == "") and (request.form["channel_id"] == "") and (request.form["description"] == "") and (request.form["similarartiststring"] == "") and (request.form["album"] == "") and (request.form["title"] == "") and (request.form["artist"] == "") and (request.form["year"] == ""):
+  if (request.form["channel_id"] == "") and (request.form["description"] == "") and (request.form["similarartiststring"] == "") and (request.form["album"] == "") and (request.form["title"] == "") and (request.form["artist"] == "") and (request.form["year"] == ""):
       new_listen = models.Listen(user_id=session['session_user_id'],
                 youtube_id=str(request.form["youtube_id"]),
                 listened_to_end=request.form["listened_to_end"])
@@ -223,7 +223,7 @@ def postlistens():
     lastfm_similar_artists_list = list()
     similar_artists_list = list()
     #artist_table_list is a full list of artists in our db
-    artists_table = viewsModel.getArtists(); 
+    artists_table = viewsModel.getartists(); 
     artist_table_list = list()
     for artist in artists_table:
       artist_table_list.append(artist[5].lower())
