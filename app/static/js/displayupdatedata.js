@@ -115,6 +115,12 @@ $(function(){
 		}
 
 	});
+	$("#add-playlist").click( function(){
+		$("#playlist-name").val("");
+		$("#sortable").empty();
+		getPlaylistTitlesAndRender();
+
+	})
 	/*
 	$("#update-playlist-form").on("submit", function(event) {
 		event.preventDefault();
