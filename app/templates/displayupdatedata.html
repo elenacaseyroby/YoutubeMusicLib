@@ -60,7 +60,10 @@ make all textbox be search dropdown that fills with db table elements to make it
 		  	</form>
 		  	<form id="update-playlist-form" class="pure-form pure-form-stacked">
 				<input type="text" id="playlist-name" value = "{{request.args.get('playlist_title') if request.args.get('playlist_title')}}" placeholder="Playlist Name">
-				<input id="save-playlist" type="submit" value="Save" class="pure-button">
+				<!--<input id="save-playlist" type="submit" value="Save" class="pure-button">-->
+				<div class="playlist-action-buttons">
+				<br><i id="add-playlist" class="fa fa-plus" aria-hidden="true"></i><i id="save-playlist" class="fa fa-floppy-o" aria-hidden="true"></i><i id="delete-playlist" class="fa fa-trash-o" aria-hidden="true"></i>
+				</div>
 			</form>
 			<div id="confirm-save-message"></div>
 			<ul id="sortable">

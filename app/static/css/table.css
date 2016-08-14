@@ -45,8 +45,21 @@ li {
 	list-style-type:none;
 }
 li,
+#save-playlist,
+#add-playlist,
+#delete-playlist,
 td.add-to-playlist-button {
   cursor: pointer;
+
+}
+
+#save-playlist:hover,
+#add-playlist:hover,
+#delete-playlist:hover {
+
+    border-radius: 25px;
+    background: #f0f5f5;
+    
 }
 li .close {
     position: absolute;
@@ -55,4 +68,15 @@ li .close {
     z-index: 100;
 
 }
-
+.playlist-action-buttons{
+    width:100%;
+}
+#save-playlist{
+    width:33%;
+}
+#add-playlist{
+    width:33%;
+}
+#delete-playlist{
+    width:33%;
+}

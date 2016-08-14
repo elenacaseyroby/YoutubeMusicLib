@@ -377,45 +377,56 @@ def get_playlist_tracks():
 #/postplaylist
 @app.route('/postplaylist', methods = ['POST'])
 def postplaylist():
+  user_id = session['session_user_id']
   title = request.form['playlist_title']
   tracks = loads(request.form['tracks'])
   track_num = 1
   sql_session.rollback()
-  playlist_in_db = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = title).first()
-  if playlist_in_db:
-    sql_session.rollback()
-    set_temp_track_nums = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
-    for set_temp_track_num in set_temp_track_nums:
-      set_temp_track_num.track_num = -1
-      sql_session.commit()
-    for track in tracks:
+  playlist_in_db = sql_session.query(models.Playlist).filter_by(user_id = user_id, title = title).first()
+  if len(tracks) == 0:
+    print("MADE IT")
+    if playlist_in_db:
       sql_session.rollback()
-      track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id, youtube_id = track).first()
-      if track_update:
-        track_update.track_num=track_num
-        sql_session.commit() 
-      else:
-        new_track = models.PlaylistTracks(playlist_id = playlist_in_db.id, youtube_id = track, track_num = track_num)#edit so it only adds vid info if it doesn't already exist
+      delete_playlist_tracks = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
+      delete_playlist_tracks.delete()
+      sql_session.commit()
+      delete_playlist = sql_session.query(models.Playlist).filter_by(id = playlist_in_db.id)
+      delete_playlist.delete()
+      sql_session.commit()
+  else:
+    if playlist_in_db:
+      sql_session.rollback()
+      set_temp_track_nums = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id)
+      for set_temp_track_num in set_temp_track_nums:
+        set_temp_track_num.track_num = -1
+        sql_session.commit()
+      for track in tracks:
+        sql_session.rollback()
+        track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id, youtube_id = track).first()
+        if track_update:
+          track_update.track_num=track_num
+          sql_session.commit() 
+        else:
+          new_track = models.PlaylistTracks(playlist_id = playlist_in_db.id, youtube_id = track, track_num = track_num)#edit so it only adds vid info if it doesn't already exist
+          sql_session.add(new_track)
+          sql_session.commit()
+        #post track.youtube_id & track_num to db
+        track_num = track_num +1
+      track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(models.PlaylistTracks.track_num == -1)
+      track_update.delete()
+      sql_session.commit()
+    else:
+      sql_session.rollback()
+      new_playlist = models.Playlist(user_id = user_id, title = str(title))#edit so it only adds vid info if it doesn't already exist
+      sql_session.add(new_playlist)
+      sql_session.commit()
+      new_playlist_id = sql_session.query(models.Playlist).filter_by(user_id = user_id, title = title).first()
+      for track in tracks:
+        sql_session.rollback()
+        new_track = models.PlaylistTracks(playlist_id = new_playlist_id.id, youtube_id = track, track_num = track_num)#edit so it only adds vid info if it doesn't already exist
         sql_session.add(new_track)
         sql_session.commit()
-      #post track.youtube_id & track_num to db
-      track_num = track_num +1
-    track_update = sql_session.query(models.PlaylistTracks).filter_by(playlist_id = playlist_in_db.id).filter(models.PlaylistTracks.track_num == -1)
-    track_update.delete()
-    sql_session.commit()
-  else:
-    sql_session.rollback()
-    new_playlist = models.Playlist(user_id = int(session['session_user_id']), title = str(title))#edit so it only adds vid info if it doesn't already exist
-    sql_session.add(new_playlist)
-    sql_session.commit()
-    new_playlist_id = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = title).first()
-    for track in tracks:
-      sql_session.rollback()
-      new_track = models.PlaylistTracks(playlist_id = new_playlist_id.id, youtube_id = track, track_num = track_num)#edit so it only adds vid info if it doesn't already exist
-      sql_session.add(new_track)
-      sql_session.commit()
-      track_num = track_num +1
-    #make playlist and then insert tracks instead of updating
+        track_num = track_num +1
   return "success"
 
 
