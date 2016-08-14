@@ -47,7 +47,7 @@ def listens():
     if request.args.get("playlist_title"):
       playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
       selected_playlist_id = playlist.id
-      playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
+      playlist_tracks = viewsModel.getplaylisttracks(selected_playlist_id)
     #set dates from form submission 
     #if those are empty set default dates
     now = datetime.datetime.now()
@@ -83,7 +83,7 @@ def searchlistens():
     if request.args.get("playlist_title"):
       playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
       selected_playlist_id = playlist.id
-      playlist_tracks = viewsModel.getplaylisttracks(user_id = session['session_user_id'], title = request.args.get("playlist_title"))
+      playlist_tracks = viewsModel.getplaylisttracks(selected_playlist_id)
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
     oneweekago = datetime.date.today() - datetime.timedelta(days=7)
@@ -176,77 +176,83 @@ def get_access_token(token=None):
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def postlistens():
-
-  #add videos and listens
-  if (request.form["album"] != "undefined"):
-    album_id = viewsModel.updatealbum(request.form["album"])
-  else:
-    album_id = 2
-  if(request.form["year"] == "1900-01-01"):
-    year = None
-  else: 
-    year = request.form["year"] 
-  if(request.form["album"] != "undefined"):
-    track_num = 0
-  else:
-    track_num = None
-
-  artist_id = viewsModel.updatevideoartist(str(request.form["artist"]))
-  sql_session.rollback()
-  video_in_db = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
-  if not video_in_db:
-    new_video = models.Video(youtube_id=str(request.form["youtube_id"]),
-                  youtube_title=str(request.form["youtube_title"]),
-                  title = str(request.form["title"]),
-                  artist_id = artist_id,
-                  album_id = album_id,
-                  channel_id = str(request.form["channel_id"]),
-                  description = str(request.form["description"]),
-                  track_num = track_num,
-                  release_date = year,
-                  music = 1)
-    sql_session.add(new_video)
-    sql_session.commit()
-  #post listen
-  new_listen = models.Listen(user_id=session['session_user_id'],
+  if (request.form["listened_to_end"] == "") and (request.form["channel_id"] == "") and (request.form["description"] == "") and (request.form["similarartiststring"] == "") and (request.form["album"] == "") and (request.form["title"] == "") and (request.form["artist"] == "") and (request.form["year"] == ""):
+      new_listen = models.Listen(user_id=session['session_user_id'],
                 youtube_id=str(request.form["youtube_id"]),
                 listened_to_end=request.form["listened_to_end"])
-  sql_session.add(new_listen)
-  sql_session.commit()
-  #store lastfm similar artists and match scores
-  lastfm_similar_artists_list = list()
-  similar_artists_list = list()
-  #artist_table_list is a full list of artists in our db
-  artists_table = viewsModel.getArtists(); 
-  artist_table_list = list()
-  for artist in artists_table:
-    artist_table_list.append(artist[5].lower())
-  #similar_artists_list is a full list of artists listed as similar to
-  #currently playing artist in our db
-  similar_artists = viewsModel.getsimilarartistsbyartist(artist_id)
-  if similar_artists:
-    for artist in similar_artists:
-        similar_artists_list.append(artist[0].lower())
-  lastfm_similar_artists_list = loads(request.form["similarartiststring"]) 
-  for lastfm_artist in lastfm_similar_artists_list:
-    artist = lastfm_artist['name']
-    match = lastfm_artist['match']
-    #add if similar artist not in artists table
-    if artist.lower() not in artist_table_list:
-      sql_session.rollback()
-      new_artist = models.Artist(artist_name = artist)
-      sql_session.add(new_artist)
+      sql_session.add(new_listen)
       sql_session.commit()
-    # add if lastfm similar artist isn't listed as similar artist in table
-    if artist.lower() not in similar_artists_list:
-      lastfm_artist_in_db = sql_session.query(models.Artist).filter_by(artist_name = artist).first()
-      sql_session.rollback()
-      new_similar_artist = models.SimilarArtists(artist_id1 = artist_id,
-                                                artist_id2 = lastfm_artist_in_db.id,
-                                                lastfm_match_score = match)
-      sql_session.add(new_similar_artist)
+  else:
+    #add videos and listens
+    if (request.form["album"] != "undefined"):
+      album_id = viewsModel.updatealbum(request.form["album"])
+    else:
+      album_id = 2
+    if(request.form["year"] == "1900-01-01"):
+      year = None
+    else: 
+      year = request.form["year"] 
+    if(request.form["album"] != "undefined"):
+      track_num = 0
+    else:
+      track_num = None
+
+    artist_id = viewsModel.updatevideoartist(str(request.form["artist"]))
+    sql_session.rollback()
+    video_in_db = sql_session.query(models.Video).filter_by(youtube_id = request.form["youtube_id"]).first()
+    if not video_in_db:
+      new_video = models.Video(youtube_id=str(request.form["youtube_id"]),
+                    youtube_title=str(request.form["youtube_title"]),
+                    title = str(request.form["title"]),
+                    artist_id = artist_id,
+                    album_id = album_id,
+                    channel_id = str(request.form["channel_id"]),
+                    description = str(request.form["description"]),
+                    track_num = track_num,
+                    release_date = year,
+                    music = 1)
+      sql_session.add(new_video)
       sql_session.commit()
-  
+    #post listen
+    new_listen = models.Listen(user_id=session['session_user_id'],
+                  youtube_id=str(request.form["youtube_id"]),
+                  listened_to_end=request.form["listened_to_end"])
+    sql_session.add(new_listen)
+    sql_session.commit()
+    #store lastfm similar artists and match scores
+    lastfm_similar_artists_list = list()
+    similar_artists_list = list()
+    #artist_table_list is a full list of artists in our db
+    artists_table = viewsModel.getArtists(); 
+    artist_table_list = list()
+    for artist in artists_table:
+      artist_table_list.append(artist[5].lower())
+    #similar_artists_list is a full list of artists listed as similar to
+    #currently playing artist in our db
+    similar_artists = viewsModel.getsimilarartistsbyartist(artist_id)
+    if similar_artists:
+      for artist in similar_artists:
+          similar_artists_list.append(artist[0].lower())
+    lastfm_similar_artists_list = loads(request.form["similarartiststring"]) 
+    for lastfm_artist in lastfm_similar_artists_list:
+      artist = lastfm_artist['name']
+      match = lastfm_artist['match']
+      #add if similar artist not in artists table
+      if artist.lower() not in artist_table_list:
+        sql_session.rollback()
+        new_artist = models.Artist(artist_name = artist)
+        sql_session.add(new_artist)
+        sql_session.commit()
+      # add if lastfm similar artist isn't listed as similar artist in table
+      if artist.lower() not in similar_artists_list:
+        lastfm_artist_in_db = sql_session.query(models.Artist).filter_by(artist_name = artist).first()
+        sql_session.rollback()
+        new_similar_artist = models.SimilarArtists(artist_id1 = artist_id,
+                                                  artist_id2 = lastfm_artist_in_db.id,
+                                                  lastfm_match_score = match)
+        sql_session.add(new_similar_artist)
+        sql_session.commit()
+    
   return "success"
 
 @app.route('/postgenres', methods=['POST'])
