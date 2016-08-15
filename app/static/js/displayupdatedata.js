@@ -339,7 +339,8 @@ $(document).on('dblclick', 'li', function() {
 	index = playlist_tracks.length;
 	current_playlist_tracks = [];
 	playlist_tracks.each(function(index, track){
-		current_playlist_tracks.push(track.id.replace("playlist-", ""));
+		var video = new YoutubeVideo(track.id.replace("playlist-", ""));
+		current_playlist_tracks.push(video);
 	});
 	console.log(current_playlist_tracks);
     console.log("play!");
