@@ -11,7 +11,7 @@ $(function(){
 		i = 0;
 		var dataupdated = false;
 
-		$.each($("#hi"), function(index, listen){ //used to use ".row"
+		$.each($(".row"), function(index, listen){ //used to use ".row"
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -197,7 +197,7 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
 		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
 		var checkedIfLib = ((vid.library==1) ? "checked" : "");
-		var row = '<tr id="hi">'
+		var row = '<tr class="row">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
