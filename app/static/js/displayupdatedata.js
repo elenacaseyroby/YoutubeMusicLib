@@ -11,7 +11,7 @@ $(function(){
 		i = 0;
 		var dataupdated = false;
 
-		$.each($("#hi"), function(index, listen){ //used to use ".row"
+		$.each($(".row"), function(index, listen){ //used to use ".row"
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -197,7 +197,7 @@ function renderDataRow($display_data_rows, islistens = "false"){
 		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
 		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
 		var checkedIfLib = ((vid.library==1) ? "checked" : "");
-		var row = '<tr id="hi">'
+		var row = '<tr class="row">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
@@ -271,12 +271,12 @@ function getPlaylistData(playlist_title){
 
 
 function renderPlaylistTrack(playlist_tracks){
-	current_playlist_tracks = [];
+	//current_playlist_tracks = [];
 	$("#sortable").empty();
 	index = playlist_tracks.length
 	$.each(playlist_tracks, function(index, track){
 		video = new YoutubeVideo(track['youtube_id']);
-		current_playlist_tracks.push(video);
+		//current_playlist_tracks.push(video);
 		
 		var track = '<li id="playlist-'
 		+ track['youtube_id']
@@ -335,6 +335,14 @@ function renderPlaylistDropDown(playlists, selected_playlist = null){
 }
 
 $(document).on('dblclick', 'li', function() {
+	var playlist_tracks = $("#sortable li");
+	index = playlist_tracks.length;
+	current_playlist_tracks = [];
+	playlist_tracks.each(function(index, track){
+		var video = new YoutubeVideo(track.id.replace("playlist-", ""));
+		current_playlist_tracks.push(video);
+	});
+	console.log(current_playlist_tracks);
     console.log("play!");
 	var youtube_id = this.id.replace("playlist-", "");
 	playVideo(youtube_id, current_playlist_tracks);

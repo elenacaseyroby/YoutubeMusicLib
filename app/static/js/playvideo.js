@@ -3,11 +3,11 @@ $.getScript("static/js/lastfm.js", function(){
 });
 var number_of_plays = 0;
 var vids_up_next = [];
-function YoutubeVideo(id){
+function YoutubeVideo(id, title = "", channel_id = "", description = ""){
 	this.id = id;
-	this.title = "";
-	this.channel_id = "";
-	this.description = "";
+	this.title = title;
+	this.channel_id = channel_id;
+	this.description = description;
 }
 
 current_iframe_video = new YoutubeVideo("98T3lkkdKqk");
