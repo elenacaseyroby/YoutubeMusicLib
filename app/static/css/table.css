@@ -1,27 +1,20 @@
 table, th, td{
 	text-align: center;
+    width:100%;
 }
-.top {
-    position:absolute;
-    left:3.5%; right:0;
-    height: 92px;
-}
-.main {
-    left:178px;
-    top:92px; 
-    padding-right:5%; 
-    bottom:0;
-    width: 80%;
-}
-.right {
+
+#playlist {
     position:absolute;
     right:3.5%; 
     top:92px; 
     bottom: 0;
-    width: 20%;
     padding-left: 2%;
 }
-.right #open-playlist-menu {
+#playlist-name {
+    width:100%;
+
+}
+#open-playlist-menu {
 	float:right;
     height: 5%;
     width: 20%;
@@ -80,3 +73,28 @@ li .close {
 #delete-playlist{
     width:33%;
 }
+
+/* debugging containers
+
+#filters {
+    border-radius: 25px;
+    background: #eee8f3; 
+    padding: 20px; 
+}
+#main {
+    border-radius: 25px;
+    background: #b2d8b2; 
+    padding: 20px; 
+}
+#playlist {
+    border-radius: 25px;
+    background: #fb9c76;
+    padding: 20px; 
+}
+#filters-and-table {
+    border-radius: 25px;
+    background: #5c4e6a; 
+    padding: 20px; 
+}*/
+
+
