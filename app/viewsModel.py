@@ -2,9 +2,10 @@
 # -*- mode: python -*-
 
 from app import models, sql_session
-from app.views import viewsClasses
+from app import viewsClasses
 from sqlalchemy import text, update, func
 from flask import session, request
+
 
 def getartists(artist_id=None):
   where = ""
