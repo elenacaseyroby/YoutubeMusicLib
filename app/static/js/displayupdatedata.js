@@ -129,12 +129,10 @@ $(function(){
     $("#open-playlist-menu").click(function(){
     	if ($(".playlist-menu").is(":visible")){
     		$(".playlist-menu").hide();
-    		$(".main").css(
-    			"width", "100%");
+    		document.getElementById("filters-and-table").className = "col-md-12";
     	}else{
     		$(".playlist-menu").show();
-    		$(".main").css(
-    			"width", "80%");
+    		document.getElementById("filters-and-table").className = "col-md-10";
     	}
 	});
 
