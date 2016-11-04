@@ -43,96 +43,6 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-def getallvideos(user_id, search_artist):
-  sql_session.rollback()
-  all_videos = list()
-  if search_artist:
-    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
-  saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
-  if saved_vids:
-    sql = text("""SELECT videos.youtube_id
-   , videos.youtube_title
-   , videos.title
-   , videos.music
-   , videos.release_date
-   , artists.artist_name as artist
-   , cities.city_or_state
-   , albums.name as album
-   , videos.track_num
-   , artists.id as artist_id
-   , albums.id as album_id
-   FROM saved_vids
-   JOIN videos ON saved_vids.youtube_id = videos.youtube_id
-   JOIN albums ON videos.album_id = albums.id
-   JOIN artists ON videos.artist_id = artists.id
-   JOIN cities ON artists.city_id = cities.id
-   WHERE videos.music = 1
-   """+artist+"""
-   ORDER BY artists.artist_name, albums.name ASC;""")
-    print(sql)
-
-    results = models.engine.execute(sql)
-    for result in results:
-        video = {'index': ""
-                , 'play': 0
-                , 'library': 1
-                , 'music': result[3]
-                , 'title': result[2]
-                , 'artist': result[5]
-                , 'album': result[7]
-                , 'release_date': result[4]
-                , 'youtube_id': result[0]
-                , 'artist_id': result[9]
-                , 'album_id': result[10]
-                }
-        all_videos.append(video)
-  return all_videos
-
-def getlibrary(user_id, search_artist):
-  sql_session.rollback()
-  library = list()
-  if search_artist:
-    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
-  saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
-  if saved_vids:
-    sql = text("""SELECT videos.youtube_id
-   , videos.youtube_title
-   , videos.title
-   , videos.music
-   , videos.release_date
-   , artists.artist_name as artist
-   , cities.city_or_state
-   , albums.name as album
-   , videos.track_num
-   , artists.id as artist_id
-   , albums.id as album_id
-   FROM saved_vids
-   JOIN videos ON saved_vids.youtube_id = videos.youtube_id
-   JOIN albums ON videos.album_id = albums.id
-   JOIN artists ON videos.artist_id = artists.id
-   JOIN cities ON artists.city_id = cities.id
-   WHERE saved_vids.user_id = """+str(user_id)+"""
-   """+artist+"""
-   ORDER BY artists.artist_name, albums.name ASC;""")
-
-    print(sql)
-
-    results = models.engine.execute(sql)
-    for result in results:
-        video = {'index': ""
-                , 'play': 0
-                , 'library': 1
-                , 'music': result[3]
-                , 'title': result[2]
-                , 'artist': result[5]
-                , 'album': result[7]
-                , 'release_date': result[4]
-                , 'youtube_id': result[0]
-                , 'artist_id': result[9]
-                , 'album_id': result[10]
-                }
-        library.append(video)
-  return library 
 
 #get listens data for listens page
 def getvideodata(user_id, video_scope, search_start_date, search_end_date, search_artist):
@@ -151,6 +61,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
   groupby = ""
   case_when_library = " AND saved_vids.youtube_id = videos.youtube_id ) > 0 THEN 1 ELSE 0 END AS library"
   sql_select = ",videos.youtube_id"
+
   if search_artist:
     artist = "AND artists.artist_name LIKE '"+search_artist+"'"
 
