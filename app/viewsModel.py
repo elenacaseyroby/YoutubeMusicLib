@@ -43,13 +43,11 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-def getlibrary(user_id, search_artist, playlist_id = None):
+def getlibrary(user_id, search_artist):
   sql_session.rollback()
   library = list()
   if search_artist:
     artist = "AND artists.artist_name LIKE '"+search_artist+"'"
-  if not playlist_id:
-    playlist_id = "-1"
   saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
   if saved_vids:
     sql = text("""SELECT videos.youtube_id
@@ -63,7 +61,6 @@ def getlibrary(user_id, search_artist, playlist_id = None):
    , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
-   , CASE WHEN (SELECT COUNT(*) FROM playlist_tracks WHERE playlist_tracks.playlist_id = """+str(playlist_id)+""" AND playlist_tracks.youtube_id = saved_vids.youtube_id ) > 0 THEN 1 ELSE 0 END AS playlist
    FROM saved_vids
    JOIN videos ON saved_vids.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -79,7 +76,6 @@ def getlibrary(user_id, search_artist, playlist_id = None):
                 , 'play': 0
                 , 'library': 1
                 , 'music': result[3]
-                , 'playlist': result[11]
                 , 'title': result[2]
                 , 'artist': result[5]
                 , 'album': result[7]

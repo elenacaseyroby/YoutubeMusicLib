@@ -111,7 +111,7 @@ def library():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist, playlist_id = selected_playlist_id)
+    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist)
     if not library:
       return render_template('nolibrarymessage.html')
     else:
