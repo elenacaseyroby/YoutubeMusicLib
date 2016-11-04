@@ -14,12 +14,8 @@
 				  <option value="library">Library</option>
 				</select>
 			</form>
-			{% if islistens == "true" %}
 			<form id="search-data" action="#">
 				View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
-			{% else %}
-			<form id="search-data" action="#">
-			{%endif%}
 				
 				<input name="search_artist" id="search_artist" placeholder="Artist" value="{{search_artist}}">
 				<input type="submit" value="Search" class="pure-button">
@@ -40,7 +36,7 @@
 						<thead class="thead-inverse">
 							<tr>
 							{% if islistens == "true"%}
-								<th>Time</th>
+								<!--<th>Time</th>-->
 							{%endif%}
 								<th>Saved To Library</th>
 								<!--<th>Play</th> -->

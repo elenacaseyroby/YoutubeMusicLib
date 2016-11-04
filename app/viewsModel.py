@@ -46,12 +46,6 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
 
 #get listens data for listens page
 def getvideodata(user_id, video_scope, search_start_date, search_end_date, search_artist):
-  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  print("search scope in get videos: "+video_scope)
-  print("search start in get videos: "+search_start_date)
-  print("search end in get videos: "+search_end_date)
-  print("search artist in get videos: "+search_artist)
-  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
   sql_session.rollback()
   videos = list()

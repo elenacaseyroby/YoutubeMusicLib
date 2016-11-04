@@ -78,7 +78,6 @@ $(function(){
 			    youtube_id = $(this).attr('id').replace('playlist-', '');
 			    playlist_tracks.push(youtube_id);
 			    i++;
-			    //create array
 			});
 			$.ajax({
 				type: "POST",
@@ -92,7 +91,6 @@ $(function(){
 	});
 	$("#delete-playlist").click( function(){
 		if (confirm("Are you sure you want to delete '"+$("#playlist-dropdown").val()+"' from your playlist? If you click OK this change will be permanent.")) {
-        // your deletion code
 			var playlist_title = $("#playlist-name").val();
 			var playlist_tracks = [];
 			$.ajax({
@@ -158,11 +156,15 @@ $(function(){
     	}else{
     		artist = null;
     	}
-    	playlist_title = $("#playlist-name").val()
-    	video_scope = $("#video-scope-dropdown").val()
+    	playlist_title = $("#playlist-name").val();
+    	video_scope = $("#video-scope-dropdown").val();
     	getRowData(video_scope = video_scope, search_artist = artist, search_start_date = search_start_date, search_end_date = search_end_date);
     });
-    getRowData(video_scope = $("#video-scope-dropdown").val(), search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val());
+    video_scope = $("#video-scope-dropdown").val();
+    search_artist = $("#search_artist").val();
+    search_start_date = $("#search_start_date").val();
+    search_end_date = $("#search_end_date").val();
+    getRowData(video_scope = video_scope, search_artist = search_artist, search_start_date = search_start_date, search_end_date = search_end_date);
     getPlaylistTitlesAndRender();
 
 });
@@ -180,7 +182,7 @@ function getRowData(video_scope, search_artist=null, search_start_date=null, sea
 
 	var results = $.ajax({
 		type: "GET",
-	    url: '/search-listens',
+	    url: '/search-saved-videos',
 	    data: {search_start_date: search_start_date
 	    , search_end_date: search_end_date
 	    , search_artist: artist
@@ -201,9 +203,13 @@ function deleteTrackFromPlaylist(youtube_id){
     	$("#playlist-" + youtube_id).remove();
 }
 
-function renderDataRow($display_data_rows, video_scope = "listens"){
+function renderDataRow($display_data_rows, video_scope){
+	$("tr #time-column").remove();
 	$("tbody").empty();
 	index = $display_data_rows.length
+	if(video_scope == "listens"){
+		$("tr").prepend('<th id="time-column">Time</th>');
+	}
 	$.each($display_data_rows, function(index, vid){
 		if(video_scope == "listens"){
 			listens_index = '<td>'+vid['index']+'</td>';
