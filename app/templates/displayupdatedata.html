@@ -15,8 +15,9 @@
 				</select>
 			</form>
 			<form id="search-data" action="#">
-				View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
-				
+				<div id="search-listens-dates">
+					View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>
+				</div>
 				<input name="search_artist" id="search_artist" placeholder="Artist" value="{{search_artist}}">
 				<input type="submit" value="Search" class="pure-button">
 			</form>

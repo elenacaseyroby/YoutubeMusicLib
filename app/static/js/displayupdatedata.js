@@ -144,9 +144,11 @@ $(function(){
     	}
     });
     $("#video-scope-dropdown").change(function(){ //add artist to all of these and dates to listens
+    	$("#search-listens-dates").hide();
     	if($("#video-scope-dropdown").val() == "listens"){
     		search_start_date = $("#search_start_date").val();
     		search_end_date = $("#search_end_date").val()
+    		$("#search-listens-dates").show();
     	}else{
     		search_start_date = "1969-01-01"
     		search_end_date = "3000-01-01"
