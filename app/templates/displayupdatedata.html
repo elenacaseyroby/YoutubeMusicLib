@@ -7,6 +7,13 @@
 
 		<div id="filters" class="col-xs-18 col-md-12">
 			<h4><b>Filters:</b></h4>
+			<form id="video-scope" methods="GET">
+				<select id="video-scope-dropdown" class="selectpicker">
+				  <option value="all">All Indexed Videos</option>
+				  <option value="listens" selected>Listens</option>
+				  <option value="library">Library</option>
+				</select>
+			</form>
 			{% if islistens == "true" %}
 			<form id="search-data" action="#">
 				View Listens Between <input name="search_start_date" id="search_start_date" type="datetime"  value="{{search_start_date}}"> And <input name="search_end_date" id= "search_end_date" type="datetime"  value="{{search_end_date}}"><br>

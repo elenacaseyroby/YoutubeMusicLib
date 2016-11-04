@@ -40,7 +40,9 @@ def playMusic():
 
 @app.route('/listens', methods = ['GET'])
 def listens():
+  print("def listens()")
   if 'google_token' in session:
+    print("def listens() token")
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
     selected_playlist_id=None
@@ -65,34 +67,44 @@ def listens():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
+    print("~~~~~~~~~~~~~~~~~~listens~~~~~~~~~~~~~~~~~~~")
+    print("start: "+search_start_date)
+    print("end: "+search_end_date)
+    print("artist: "+search_artist)
+    print("~~~~~~~~~~~~~~~~~~listens~~~~~~~~~~~~~~~~~~~")
+    #sending end date as artist and effing up query
+    videos = viewsModel.getvideodata(user_id = session['session_user_id'], video_scope = "listens", search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
-    return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true", playlist_titles = playlist_titles)
+    return render_template('displayupdatedata.html', display_update_rows = videos, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true", playlist_titles = playlist_titles)
   return redirect(url_for('login'))
 
 @app.route('/search-listens', methods = ['GET'])
-
 def searchlistens():
+  print("def searchlistens()")
   if 'google_token' in session:
-    #search date range
-    now = datetime.datetime.now()
-    today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
-    oneweekago = datetime.date.today() - datetime.timedelta(days=7)
-    oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
-
-    search_start_date = request.args.get("search_start_date", oneweekago)
-    search_end_date = request.args.get("search_end_date", today)
+    #search start and end dates if listens
+    if request.args.get("video_scope") == "listens":
+      search_start_date = request.args.get("search_start_date")
+      search_end_date = request.args.get("search_end_date")
+    else:
+      search_start_date = "1969-01-01"
+      search_end_date = "3000-01-01"
 
     #search artist
     search_artist = request.args.get("search_artist", "%")
 
     if search_artist == "":
         search_artist = "%"
-    if(request.args.get("islistens")=="true"):
-      data = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
-    else:
-      data = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist)
+
+    video_scope = request.args.get("video_scope")
+    print("~~~~~~~~~~~~~~~~~~search-listens~~~~~~~~~~~~~~~~~~~")
+    print("start: "+search_start_date)
+    print("end: "+search_end_date)
+    print("artist: "+search_artist)
+    print("~~~~~~~~~~~~~~~~~~search-listens~~~~~~~~~~~~~~~~~~~")
+    
+    data = viewsModel.getvideodata(user_id = session['session_user_id'], video_scope = video_scope, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
     return jsonify(data)

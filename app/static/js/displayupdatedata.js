@@ -60,7 +60,7 @@ $(function(){
 	});	
 	$("#search-data").on("submit", function(event) {
 		event.preventDefault();
-		getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
+		getRowData(video_scope = $("#video-scope-dropdown").val(), search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
 
 	});
 	$("#save-playlist").click(function(){
@@ -144,15 +144,34 @@ $(function(){
     	}else{
     		$("#playlist-name").val($("#playlist-dropdown").val());
     	}
-    	
     });
-    getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
+    $("#video-scope-dropdown").change(function(){ //add artist to all of these and dates to listens
+    	if($("#video-scope-dropdown").val() == "listens"){
+    		search_start_date = $("#search_start_date").val();
+    		search_end_date = $("#search_end_date").val()
+    	}else{
+    		search_start_date = "1969-01-01"
+    		search_end_date = "3000-01-01"
+    	}
+    	if($("#search_artist").val()){
+    		artist = $("#search_artist").val();
+    	}else{
+    		artist = null;
+    	}
+    	playlist_title = $("#playlist-name").val()
+    	video_scope = $("#video-scope-dropdown").val()
+    	getRowData(video_scope = video_scope, search_artist = artist, search_start_date = search_start_date, search_end_date = search_end_date);
+    });
+    getRowData(video_scope = $("#video-scope-dropdown").val(), search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val());
     getPlaylistTitlesAndRender();
 
 });
 //getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
-function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
-	
+function getRowData(video_scope, search_artist=null, search_start_date=null, search_end_date=null){
+	//video_scope = "listens", "library", or "all"
+	if(video_scope != "library" && video_scope != "listens" && video_scope != "all"){
+		video_scope = "listens";
+	}
 	if (search_artist){
 		artist = search_artist;
 	}else{
@@ -165,12 +184,11 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
 	    data: {search_start_date: search_start_date
 	    , search_end_date: search_end_date
 	    , search_artist: artist
-	    , playlist_title: playlist_title
-	    , islistens: islistens
+	    , video_scope: video_scope
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
-    	renderDataRow(results, islistens = $("#islistens").attr("value"));
+    	renderDataRow(results, video_scope = video_scope);
     });
 }
 
@@ -183,11 +201,11 @@ function deleteTrackFromPlaylist(youtube_id){
     	$("#playlist-" + youtube_id).remove();
 }
 
-function renderDataRow($display_data_rows, islistens = "false"){
+function renderDataRow($display_data_rows, video_scope = "listens"){
 	$("tbody").empty();
 	index = $display_data_rows.length
 	$.each($display_data_rows, function(index, vid){
-		if(islistens=="true"){
+		if(video_scope == "listens"){
 			listens_index = '<td>'+vid['index']+'</td>';
 		}else{
 			listens_index = '';
