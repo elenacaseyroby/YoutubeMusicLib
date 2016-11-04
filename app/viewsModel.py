@@ -92,15 +92,13 @@ def getlibrary(user_id, search_artist, playlist_id = None):
   return library 
 
 #get listens data for listens page
-def getlistensdata(user_id, search_start_date, search_end_date, search_artist, playlist_id=None):
+def getlistensdata(user_id, search_start_date, search_end_date, search_artist):
   sql_session.rollback()
   listens = list()
   start_date = search_start_date
   end_date = search_end_date
   if search_artist:
     artist = "AND artists.artist_name LIKE '"+search_artist+"'"
-  if not playlist_id:
-    playlist_id = "-1"
 
   sql = text("""SELECT listens.id
    , listens.youtube_id
@@ -116,7 +114,6 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
    , artists.id as artist_id
    , albums.id as album_id
    , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(session['session_user_id'])+""" AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library
-   , CASE WHEN (SELECT COUNT(*) FROM playlist_tracks WHERE playlist_tracks.playlist_id = """+str(playlist_id)+""" AND playlist_tracks.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS playlist
    FROM listens
    JOIN videos ON listens.youtube_id = videos.youtube_id
    JOIN albums ON videos.album_id = albums.id
@@ -137,7 +134,6 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
       listen = {'index': result[2].strftime('%a %I:%M %p') #time_of_listen
               , 'play': 0
               , 'music': result[5]
-              , 'playlist' : result[14]
               , 'title': result[4]
               , 'artist': result[7]
               , 'album': result[9]
