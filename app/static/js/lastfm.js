@@ -6,9 +6,7 @@ function albumInfo(album, trackNumber, year) {
 }
 
 function lastFMGetSimilarArtists(artistName, callBack) {
-
     var similarartiststring = [];
-    //console.log("artistName: ", artistName);
     results = $.ajax({
         url: "http://ws.audioscrobbler.com/2.0/",
         data: "method=artist.getsimilar&" +
@@ -41,15 +39,12 @@ function lastFMGetSimilarArtists(artistName, callBack) {
                 similarartiststring.push(artist);
             }
             callBack(similarartiststring);
-            //return similarartiststring;
         }
     });
 }
 
 function lastFMGetGenresByTrack(title, artistName, callBack) {
     var tags = [];
-    //var track_num is null;
-    
     results = $.ajax({
         url: "http://ws.audioscrobbler.com/2.0/",
         data: "method=track.getInfo" +
@@ -76,8 +71,7 @@ function lastFMGetGenresByTrack(title, artistName, callBack) {
         }
     });
 }
-//method=album.getinfo&api_key=YOUR_API_KEY&artist=Cher&album=Believe&format=json
-//method=album.gettoptags&artist=radiohead&album=the%20bends&api_key=YOUR_API_...
+
 function lastFMGetGenresByAlbum(album, artistName, callBack) {
     var tags = []; 
     results = $.ajax({
@@ -138,7 +132,6 @@ function lastFMGetGenresByArtist(artistName, callBack) {
 }
 function lastFMGetBioByArtist(artistName, callBack) {
     var bio = "";
-    //var track_num is null;
     results = $.ajax({
         url: "http://ws.audioscrobbler.com/2.0/",
         data: "method=artist.getInfo" +

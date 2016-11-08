@@ -100,8 +100,6 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
    """+artist+"""
    """+groupby)
 
-  print(sql)
-
   results = models.engine.execute(sql)
   
   for result in results:
@@ -109,8 +107,6 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
         index = result[13].strftime('%a %I:%M %p')
       else:
         index = None
-      #if result[1] (youtube_id) is in list of user's saved vids, then 
-      # var library = 1, else = 0 
       video = { 'music': result[2]
               , 'title': result[1]
               , 'artist': result[4]
@@ -122,7 +118,6 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
               , 'library': result[10]
               , 'index': index
               }
-      print (video)
 
       videos.append(video)
 
@@ -154,10 +149,6 @@ JOIN artists a2 ON s2.artist_id1 = a2.id
 WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result2 = models.engine.execute(sql)
 
-  #for result in result2:
-    #print(result)
-  #result = result1 + result2
-  #result = list(set(result)) #remove redundancies
   return "success"
 
 def updatealbum(album_name):

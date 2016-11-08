@@ -40,9 +40,7 @@ def playMusic():
 
 @app.route('/saved-videos', methods = ['GET'])
 def savedvideos():
-  print("def listens()")
   if 'google_token' in session:
-    print("def listens() token")
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
     selected_playlist_id=None
@@ -68,7 +66,6 @@ def savedvideos():
     if search_artist == "":
         search_artist = "%"
 
-    #sending end date as artist and effing up query
     videos = viewsModel.getvideodata(user_id = session['session_user_id'], video_scope = "listens", search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
@@ -77,7 +74,6 @@ def savedvideos():
 
 @app.route('/search-saved-videos', methods = ['GET'])
 def searchsavedvideos():
-  print("def searchlistens()")
   if 'google_token' in session:
     #search start and end dates if listens
     if request.args.get("video_scope") == "listens":
@@ -370,7 +366,6 @@ def get_playlist_tracks():
       playlist_tracks = viewsModel.getplaylisttracks(playlist_id = selected_playlist_id)
   return jsonify(playlist_tracks)
 
-#/postplaylist
 @app.route('/postplaylist', methods = ['POST'])
 def postplaylist():
   user_id = session['session_user_id']

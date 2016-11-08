@@ -1,5 +1,5 @@
 $.getScript("static/js/playvideo.js", function(){
-	console.log("playvideo.js loaded");
+	console.log("javascript loaded");
 });
 
 var current_playlist_tracks = [];
@@ -11,7 +11,7 @@ $(function(){
 		i = 0;
 		var dataupdated = false;
 
-		$.each($(".datarows"), function(index, listen){ //used to use ".row"
+		$.each($(".datarows"), function(index, listen){
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -197,7 +197,6 @@ function getRowData(video_scope, search_artist=null, search_start_date=null, sea
 }
 
 function addTrackToPlaylist(index){
-	//<span class="close" id=close-"'
 	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"<span class='close' id='close-"+ $("#youtube_id"+index).attr("value") + "'><i class='fa fa-trash-o' aria-hidden='true' onclick='deleteTrackFromPlaylist(\""+ $("#youtube_id"+index).attr("value")+"\")'></i></span>"+"</li>");
 }
 function deleteTrackFromPlaylist(youtube_id){
@@ -295,12 +294,10 @@ function getPlaylistData(playlist_title){
 
 
 function renderPlaylistTrack(playlist_tracks){
-	//current_playlist_tracks = [];
 	$("#sortable").empty();
 	index = playlist_tracks.length
 	$.each(playlist_tracks, function(index, track){
 		video = new YoutubeVideo(track['youtube_id']);
-		//current_playlist_tracks.push(video);
 		
 		var track = '<li id="playlist-'
 		+ track['youtube_id']
@@ -324,7 +321,6 @@ function renderPlaylistTrack(playlist_tracks){
 }
 
 function getPlaylistTitlesAndRender(selected_playlist = null){
-	console.log("get titles!");
 	var results = $.ajax({
 		type: "GET",
 	    url: '/get-playlist-titles',
@@ -366,8 +362,6 @@ $(document).on('dblclick', 'li', function() {
 		var video = new YoutubeVideo(track.id.replace("playlist-", ""));
 		current_playlist_tracks.push(video);
 	});
-	console.log(current_playlist_tracks);
-    console.log("play!");
 	var youtube_id = this.id.replace("playlist-", "");
 	playVideo(youtube_id, current_playlist_tracks);
 });
