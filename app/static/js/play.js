@@ -1,13 +1,7 @@
 $.getScript("static/js/lastfm.js", function(){
 	console.log("lastfm.js loaded");
 });
-/*
-function YoutubeVideo(id, title, channel_id, description){
-	this.id = id;
-	this.title = title;
-	this.channel_id = channel_id;
-	this.description = description;
-}*/
+
 function YoutubeVideo(id, title = "", channel_id = "", description = ""){
 	this.id = id;
 	this.title = title;
@@ -16,7 +10,6 @@ function YoutubeVideo(id, title = "", channel_id = "", description = ""){
 }
 
 current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
-console.log(current_iframe_video);
 var number_of_plays = 0; 
 var search_page = true;
 var selected_videos = [];

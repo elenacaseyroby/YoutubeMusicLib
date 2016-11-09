@@ -208,10 +208,6 @@ function deleteTrackFromPlaylist(youtube_id){
 }
 
 function renderDataRow(video_scope = "listens", table_page = 0, $display_data_rows = current_data_rows){
-	//table_page will be between 0 and (num_vids_per_table_page-1)
-	console.log("display_data_rows: "+$display_data_rows);
-	console.log("video_scope: "+video_scope);
-	console.log("table_page: "+table_page);
 	num_vids_per_table_page = 100;
 	$("tr #time-column").remove();
 	$("tbody").empty();
@@ -222,6 +218,9 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 	num_table_pages = Math.ceil($display_data_rows.length/num_vids_per_table_page);
 	vid_range_start = table_page*num_vids_per_table_page;
 	vid_range_end = table_page*num_vids_per_table_page + num_vids_per_table_page;
+	if($display_data_rows.length<vid_range_end){
+		vid_range_end = $display_data_rows.length;
+	}
 	index = vid_range_start;
 	while(index < vid_range_end){
 		if(video_scope == "listens"){
@@ -295,12 +294,13 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 
 	index = 0;
 	$("#table-page-buttons").empty();
-	while(index < num_table_pages){
-		button_display = index + 1;
-		$("#table-page-buttons").append('<button class="btn btn-secondary" type="button" onclick=\'renderDataRow(video_scope = "'+video_scope+'", table_page = '+index+')\' >'+button_display.toString()+'</button>');
-		index = index + 1;
+	if(num_table_pages > 1){
+		while(index < num_table_pages){
+			button_display = index + 1;
+			$("#table-page-buttons").append('<button class="btn btn-secondary" type="button" onclick=\'renderDataRow(video_scope = "'+video_scope+'", table_page = '+index+')\' >'+button_display.toString()+'</button>');
+			index = index + 1;
+		}
 	}
-
 
 	
 }
