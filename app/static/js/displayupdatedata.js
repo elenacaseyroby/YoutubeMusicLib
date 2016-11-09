@@ -3,6 +3,7 @@ $.getScript("static/js/playvideo.js", function(){
 });
 
 var current_playlist_tracks = [];
+var current_data_rows = [];
 
 $(function(){
 	$("#updatelistens").on("submit", function(event) {
@@ -162,6 +163,7 @@ $(function(){
     	video_scope = $("#video-scope-dropdown").val();
     	getRowData(video_scope = video_scope, search_artist = artist, search_start_date = search_start_date, search_end_date = search_end_date);
     });
+
     video_scope = $("#video-scope-dropdown").val();
     search_artist = $("#search_artist").val();
     search_start_date = $("#search_start_date").val();
@@ -192,7 +194,8 @@ function getRowData(video_scope, search_artist=null, search_start_date=null, sea
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
-    	renderDataRow(results, video_scope = video_scope);
+    	current_data_rows = results;
+    	renderDataRow(video_scope = video_scope, table_page = 0, $display_data_rows = current_data_rows);
     });
 }
 
@@ -204,81 +207,102 @@ function deleteTrackFromPlaylist(youtube_id){
     	$("#playlist-" + youtube_id).remove();
 }
 
-function renderDataRow($display_data_rows, video_scope){
+function renderDataRow(video_scope = "listens", table_page = 0, $display_data_rows = current_data_rows){
+	//table_page will be between 0 and (num_vids_per_table_page-1)
+	console.log("display_data_rows: "+$display_data_rows);
+	console.log("video_scope: "+video_scope);
+	console.log("table_page: "+table_page);
+	num_vids_per_table_page = 100;
 	$("tr #time-column").remove();
 	$("tbody").empty();
 	index = $display_data_rows.length
 	if(video_scope == "listens"){
 		$("tr").prepend('<th id="time-column">Time</th>');
 	}
-	$.each($display_data_rows, function(index, vid){
+	num_table_pages = Math.ceil($display_data_rows.length/num_vids_per_table_page);
+	vid_range_start = table_page*num_vids_per_table_page;
+	vid_range_end = table_page*num_vids_per_table_page + num_vids_per_table_page;
+	index = vid_range_start;
+	while(index < vid_range_end){
 		if(video_scope == "listens"){
-			listens_index = '<td>'+vid['index']+'</td>';
+			listens_index = '<td>'+$display_data_rows[index]['index']+'</td>';
 		}else{
 			listens_index = '';
 		}
-		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
-		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
-		var checkedIfLib = ((vid.library==1) ? "checked" : "");
+		var checkedIfPlaylist = (($display_data_rows[index]['playlist']==1) ? "checked" : "");
+		var checkedIfMusic = (($display_data_rows[index]['music']==1) ? "checked" : "");
+		var checkedIfLib = (($display_data_rows[index]['library']==1) ? "checked" : "");
 		var row = '<tr class="datarows">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
 		  + '" value="'
-		  + vid['library']
+		  + $display_data_rows[index]['library']
 		  + '" '
 		  + checkedIfLib
 		  + '></td><td><input class = "music-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type = "checkbox" id = "music'
 		  + index.toString()
 		  + '" value="'
-		  + vid['music']
+		  + $display_data_rows[index]['music']
 		  + '" '
 		  + checkedIfMusic
 		  + '></td><td><input class = "title-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type="textbox" id="title'
 		  + index.toString()
 		  + '" value="'
-		  + vid['title']
+		  + $display_data_rows[index]['title']
 		  + '"></td> <td><input class = "artist-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type="textbox" id="artist'
 		  + index.toString()
 		  + '" value="'
-		  + vid['artist']
+		  + $display_data_rows[index]['artist']
 		  + '"></td><td><input class = "album-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type="textbox" id="album'
 		  + index.toString()
 		  + '" value="'
-		  + vid['album']
+		  + $display_data_rows[index]['album']
 		  + '"></td><td class = "add-to-playlist-button" onclick="addTrackToPlaylist(\''
 		  + index.toString()
 		  + '\')"><i class="fa fa-plus" aria-hidden="true"></i></td><input type="hidden" class = "'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" id="youtube_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '"><input type="hidden" class = "artist_id-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" id="artist_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid['artist_id']
+		  + $display_data_rows[index]['artist_id']
 		  + '"><input type="hidden" class = "album-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" id="album_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid['album_id']
+		  + $display_data_rows[index]['album_id']
 		  + '"></tr>';
 		
 		$("tbody").append(row);
+	
+		index = index + 1;
+	}
 
-	});
+	index = 0;
+	$("#table-page-buttons").empty();
+	while(index < num_table_pages){
+		button_display = index + 1;
+		$("#table-page-buttons").append('<button class="btn btn-secondary" type="button" onclick=\'renderDataRow(video_scope = "'+video_scope+'", table_page = '+index+')\' >'+button_display.toString()+'</button>');
+		index = index + 1;
+	}
+
+
+	
 }
 function getPlaylistData(playlist_title){
 	var results = $.ajax({

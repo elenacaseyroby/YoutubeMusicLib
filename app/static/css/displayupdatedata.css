@@ -18,6 +18,9 @@ table, th, td{
 	float:right;
     width: 25%;
 }
+#table-page-buttons{
+    float:right;
+}
 .playlist-menu{
 	width:100%;
 	margin: 10%;

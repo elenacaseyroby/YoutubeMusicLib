@@ -52,7 +52,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
   start_date = search_start_date
   end_date = search_end_date
   scope = ""
-  groupby = ""
+  order = "ORDER BY artist"
   case_when_library = " AND saved_vids.youtube_id = videos.youtube_id ) > 0 THEN 1 ELSE 0 END AS library"
   sql_select = ",videos.youtube_id"
 
@@ -69,8 +69,8 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 """
-    groupby = """GROUP BY listens.id 
-   ORDER BY listens.time_of_listen DESC;"""
+    order = """GROUP BY listens.id 
+   ORDER BY listens.time_of_listen DESC"""
     case_when_library = " AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library"
   elif video_scope == "library":
     sql_from = """FROM saved_vids
@@ -79,6 +79,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
   elif video_scope == "all":
     sql_from = "FROM videos"
     scope = "WHERE videos.youtube_id is not null"
+    
 
   sql = text("""SELECT videos.youtube_title
    , videos.title
@@ -98,7 +99,8 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
    JOIN cities ON artists.city_id = cities.id
    """+scope+"""
    """+artist+"""
-   """+groupby)
+   """+order+"""
+   LIMIT 1500;""")
 
   results = models.engine.execute(sql)
   
