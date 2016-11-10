@@ -10,11 +10,8 @@ $(function(){
 		event.preventDefault();
 		index = $(".listen_row").length;
 		i = $("#vid-range-start").attr("value");
-		console.log("index: "+$("#vid-range-start").attr("value"));
 		var dataupdated = false;
-		//issue is that it starts from index =0 even on later pages.
 		$.each($(".datarows"), function(index, listen){
-			console.log(i+" - "+$("#artist" + i.toString()).attr("value")+" - "+$("#title" + i.toString()).attr("value"));
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -43,16 +40,6 @@ $(function(){
 				dataupdated = true;
 			}	
 			if(dataupdated){
-				
-				console.log("youtube_id: "+$("#youtube_id" + i.toString()).attr("value"));
-				console.log("library: "+$("#library" + i.toString()).attr("value")+" , "+library_value);
-				console.log("music: "+$("#music" + i.toString()).attr("value")+" , "+music_value);
-				console.log("title: "+$("#title" + i.toString()).attr("value")+" , "+ $("#title" +i.toString()).val());
-				console.log("artist: "+$("#artist" + i.toString()).attr("value")+" , "+ $("#artist" +i.toString()).val());
-				console.log("album: "+$("#album" + i.toString()).attr("value")+" , "+$("#album" + i.toString()).val());
-				console.log("artist_id: "+$("#artist_id" + i.toString()).attr("value"));
-				console.log("album_id: "+$("#album_id" + i.toString()).attr("value"));
-				
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',
@@ -66,16 +53,13 @@ $(function(){
 					, album_id: $("#album_id" + i.toString()).attr("value")
 					}
 			    });
-			    //is this working??
-			    console.log(current_data_rows[i]);
-			    console.log(current_data_rows[i].library);
+			    //update array when you update db so that table pages reflect 
+			    //video updates without refreshing the whole page
 			    current_data_rows[i].library = library_value;
 			    current_data_rows[i].music = music_value;
 			    current_data_rows[i].title = $("#title" + i.toString()).val();
 			    current_data_rows[i].artist = $("#artist" + i.toString()).val();
 			    current_data_rows[i].album = $("#album" + i.toString()).val();
-			    console.log(current_data_rows[i]);
-			    console.log(current_data_rows[i].library);
 			}
 		    i++;
 		});
@@ -184,7 +168,6 @@ $(function(){
     	video_scope = $("#video-scope-dropdown").val();
     	getRowData(video_scope = video_scope, search_artist = artist, search_start_date = search_start_date, search_end_date = search_end_date);
     });
-
     video_scope = $("#video-scope-dropdown").val();
     search_artist = $("#search_artist").val();
     search_start_date = $("#search_start_date").val();
@@ -193,7 +176,6 @@ $(function(){
     getPlaylistTitlesAndRender();
 
 });
-//getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
 function getRowData(video_scope, search_artist=null, search_start_date=null, search_end_date=null){
 	//video_scope = "listens", "library", or "all"
 	if(video_scope != "library" && video_scope != "listens" && video_scope != "all"){
@@ -307,11 +289,11 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 		  + '" value="'
 		  + $display_data_rows[index]['album_id']
 		  + '"></tr>';
-		//console.log(row);
 		$("tbody").append(row);
-		$("tbody").append("<hidden id ='vid-range-start' value="+vid_range_start+"><hidden id ='vid-range-end' value="+vid_range_end+">");
-		
-	
+		//store vid-range-start so when you check for updates by comparing old and new values of rows
+		//you know which range of videos to check
+		$("tbody").append("<hidden id ='vid-range-start' value="+vid_range_start+">");
+
 		index = index + 1;
 	}
 
