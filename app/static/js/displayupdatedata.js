@@ -1,17 +1,17 @@
 $.getScript("static/js/playvideo.js", function(){
-	console.log("playvideo.js loaded");
+	console.log("javascript loaded");
 });
 
 var current_playlist_tracks = [];
+var current_data_rows = [];
 
 $(function(){
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = $(".listen_row").length;
-		i = 0;
+		i = $("#vid-range-start").attr("value");
 		var dataupdated = false;
-
-		$.each($(".datarows"), function(index, listen){ //used to use ".row"
+		$.each($(".datarows"), function(index, listen){
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -24,7 +24,6 @@ $(function(){
 			}else{
 				music_value = 0;
 			}
-
 			if($("#title" + i.toString()).attr("value") != $("#title" + i.toString()).val()){
 				dataupdated = true;
 			}
@@ -54,13 +53,20 @@ $(function(){
 					, album_id: $("#album_id" + i.toString()).attr("value")
 					}
 			    });
+			    //update array when you update db so that table pages reflect 
+			    //video updates without refreshing the whole page
+			    current_data_rows[i].library = library_value;
+			    current_data_rows[i].music = music_value;
+			    current_data_rows[i].title = $("#title" + i.toString()).val();
+			    current_data_rows[i].artist = $("#artist" + i.toString()).val();
+			    current_data_rows[i].album = $("#album" + i.toString()).val();
 			}
 		    i++;
 		});
 	});	
 	$("#search-data").on("submit", function(event) {
 		event.preventDefault();
-		getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
+		getRowData(video_scope = $("#video-scope-dropdown").val(), search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
 
 	});
 	$("#save-playlist").click(function(){
@@ -78,7 +84,6 @@ $(function(){
 			    youtube_id = $(this).attr('id').replace('playlist-', '');
 			    playlist_tracks.push(youtube_id);
 			    i++;
-			    //create array
 			});
 			$.ajax({
 				type: "POST",
@@ -92,7 +97,6 @@ $(function(){
 	});
 	$("#delete-playlist").click( function(){
 		if (confirm("Are you sure you want to delete '"+$("#playlist-dropdown").val()+"' from your playlist? If you click OK this change will be permanent.")) {
-        // your deletion code
 			var playlist_title = $("#playlist-name").val();
 			var playlist_tracks = [];
 			$.ajax({
@@ -129,12 +133,10 @@ $(function(){
     $("#open-playlist-menu").click(function(){
     	if ($(".playlist-menu").is(":visible")){
     		$(".playlist-menu").hide();
-    		$(".main").css(
-    			"width", "100%");
+    		document.getElementById("filters-and-table").className = "col-md-12";
     	}else{
     		$(".playlist-menu").show();
-    		$(".main").css(
-    			"width", "80%");
+    		document.getElementById("filters-and-table").className = "col-md-10";
     	}
 	});
 
@@ -146,15 +148,39 @@ $(function(){
     	}else{
     		$("#playlist-name").val($("#playlist-dropdown").val());
     	}
-    	
     });
-    getRowData(search_artist = $("#search_artist").val(), search_start_date = $("#search_start_date").val(),search_end_date = $("#search_end_date").val(), playlist_title = $("#playlist-name").val(), islistens = $("#islistens").attr("value"));
+    $("#video-scope-dropdown").change(function(){ //add artist to all of these and dates to listens
+    	$("#search-listens-dates").hide();
+    	if($("#video-scope-dropdown").val() == "listens"){
+    		search_start_date = $("#search_start_date").val();
+    		search_end_date = $("#search_end_date").val()
+    		$("#search-listens-dates").show();
+    	}else{
+    		search_start_date = "1969-01-01"
+    		search_end_date = "3000-01-01"
+    	}
+    	if($("#search_artist").val()){
+    		artist = $("#search_artist").val();
+    	}else{
+    		artist = null;
+    	}
+    	playlist_title = $("#playlist-name").val();
+    	video_scope = $("#video-scope-dropdown").val();
+    	getRowData(video_scope = video_scope, search_artist = artist, search_start_date = search_start_date, search_end_date = search_end_date);
+    });
+    video_scope = $("#video-scope-dropdown").val();
+    search_artist = $("#search_artist").val();
+    search_start_date = $("#search_start_date").val();
+    search_end_date = $("#search_end_date").val();
+    getRowData(video_scope = video_scope, search_artist = search_artist, search_start_date = search_start_date, search_end_date = search_end_date);
     getPlaylistTitlesAndRender();
 
 });
-//getRowData($("#search_artist").attr("value"), $("#search_start_date").attr("value"),$("#search_end_date").attr("value"),$("#playlist-name").val())
-function getRowData(search_artist=null, search_start_date=null, search_end_date=null, playlist_title=null, islistens = "false"){
-	
+function getRowData(video_scope, search_artist=null, search_start_date=null, search_end_date=null){
+	//video_scope = "listens", "library", or "all"
+	if(video_scope != "library" && video_scope != "listens" && video_scope != "all"){
+		video_scope = "listens";
+	}
 	if (search_artist){
 		artist = search_artist;
 	}else{
@@ -163,21 +189,20 @@ function getRowData(search_artist=null, search_start_date=null, search_end_date=
 
 	var results = $.ajax({
 		type: "GET",
-	    url: '/search-listens',
+	    url: '/search-saved-videos',
 	    data: {search_start_date: search_start_date
 	    , search_end_date: search_end_date
 	    , search_artist: artist
-	    , playlist_title: playlist_title
-	    , islistens: islistens
+	    , video_scope: video_scope
 	    }
 	    ,dataType: 'json'
     }).done(function(results){
-    	renderDataRow(results, islistens = $("#islistens").attr("value"));
+    	current_data_rows = results;
+    	renderDataRow(video_scope = video_scope, table_page = 0, $display_data_rows = current_data_rows);
     });
 }
 
 function addTrackToPlaylist(index){
-	//<span class="close" id=close-"'
 	$("#sortable").append("<li id='"+"playlist-"+$("#youtube_id"+index).attr("value")+"' class='ui-state-default' value='"+$("#youtube_id"+index).attr("value")+"'>"+$("#artist"+index).val()+" - "+$("#title"+index).val()+"<span class='close' id='close-"+ $("#youtube_id"+index).attr("value") + "'><i class='fa fa-trash-o' aria-hidden='true' onclick='deleteTrackFromPlaylist(\""+ $("#youtube_id"+index).attr("value")+"\")'></i></span>"+"</li>");
 }
 function deleteTrackFromPlaylist(youtube_id){
@@ -185,77 +210,104 @@ function deleteTrackFromPlaylist(youtube_id){
     	$("#playlist-" + youtube_id).remove();
 }
 
-function renderDataRow($display_data_rows, islistens = "false"){
+function renderDataRow(video_scope = "listens", table_page = 0, $display_data_rows = current_data_rows){
+	num_vids_per_table_page = 100;
+	$("tr #time-column").remove();
 	$("tbody").empty();
 	index = $display_data_rows.length
-	$.each($display_data_rows, function(index, vid){
-		if(islistens=="true"){
-			listens_index = '<td>'+vid['index']+'</td>';
+	if(video_scope == "listens"){
+		$("tr").prepend('<th id="time-column">Time</th>');
+	}
+	num_table_pages = Math.ceil($display_data_rows.length/num_vids_per_table_page);
+	vid_range_start = table_page*num_vids_per_table_page;
+	vid_range_end = table_page*num_vids_per_table_page + num_vids_per_table_page;
+	if($display_data_rows.length<vid_range_end){
+		vid_range_end = $display_data_rows.length;
+	}
+	index = vid_range_start;
+	while(index < vid_range_end){
+		if(video_scope == "listens"){
+			listens_index = '<td>'+$display_data_rows[index]['index']+'</td>';
 		}else{
 			listens_index = '';
 		}
-		var checkedIfPlaylist = ((vid.playlist==1) ? "checked" : "");
-		var checkedIfMusic = ((vid.music==1) ? "checked" : "");
-		var checkedIfLib = ((vid.library==1) ? "checked" : "");
+		var checkedIfPlaylist = (($display_data_rows[index]['playlist']==1) ? "checked" : "");
+		var checkedIfMusic = (($display_data_rows[index]['music']==1) ? "checked" : "");
+		var checkedIfLib = (($display_data_rows[index]['library']==1) ? "checked" : "");
 		var row = '<tr class="datarows">'
 		  + listens_index
 		  + '<td><input type = "checkbox" id = "library'
 		  + index.toString()
 		  + '" value="'
-		  + vid['library']
+		  + $display_data_rows[index]['library']
 		  + '" '
 		  + checkedIfLib
 		  + '></td><td><input class = "music-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type = "checkbox" id = "music'
 		  + index.toString()
 		  + '" value="'
-		  + vid['music']
+		  + $display_data_rows[index]['music']
 		  + '" '
 		  + checkedIfMusic
 		  + '></td><td><input class = "title-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type="textbox" id="title'
 		  + index.toString()
 		  + '" value="'
-		  + vid['title']
+		  + $display_data_rows[index]['title']
 		  + '"></td> <td><input class = "artist-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type="textbox" id="artist'
 		  + index.toString()
 		  + '" value="'
-		  + vid['artist']
+		  + $display_data_rows[index]['artist']
 		  + '"></td><td><input class = "album-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" type="textbox" id="album'
 		  + index.toString()
 		  + '" value="'
-		  + vid['album']
+		  + $display_data_rows[index]['album']
 		  + '"></td><td class = "add-to-playlist-button" onclick="addTrackToPlaylist(\''
 		  + index.toString()
 		  + '\')"><i class="fa fa-plus" aria-hidden="true"></i></td><input type="hidden" class = "'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" id="youtube_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '"><input type="hidden" class = "artist_id-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" id="artist_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid['artist_id']
+		  + $display_data_rows[index]['artist_id']
 		  + '"><input type="hidden" class = "album-'
-		  + vid['youtube_id']
+		  + $display_data_rows[index]['youtube_id']
 		  + '" id="album_id'
 		  + index.toString()
 		  + '" value="'
-		  + vid['album_id']
+		  + $display_data_rows[index]['album_id']
 		  + '"></tr>';
-		
 		$("tbody").append(row);
+		//store vid-range-start so when you check for updates by comparing old and new values of rows
+		//you know which range of videos to check
+		$("tbody").append("<hidden id ='vid-range-start' value="+vid_range_start+">");
 
-	});
+		index = index + 1;
+	}
+
+	index = 0;
+	$("#table-page-buttons").empty();
+	if(num_table_pages > 1){
+		while(index < num_table_pages){
+			button_display = index + 1;
+			$("#table-page-buttons").append('<button class="btn btn-secondary" type="button" onclick=\'renderDataRow(video_scope = "'+video_scope+'", table_page = '+index+')\' >'+button_display.toString()+'</button>');
+			index = index + 1;
+		}
+	}
+
+	
 }
 function getPlaylistData(playlist_title){
 	var results = $.ajax({
@@ -271,12 +323,10 @@ function getPlaylistData(playlist_title){
 
 
 function renderPlaylistTrack(playlist_tracks){
-	//current_playlist_tracks = [];
 	$("#sortable").empty();
 	index = playlist_tracks.length
 	$.each(playlist_tracks, function(index, track){
 		video = new YoutubeVideo(track['youtube_id']);
-		//current_playlist_tracks.push(video);
 		
 		var track = '<li id="playlist-'
 		+ track['youtube_id']
@@ -300,7 +350,6 @@ function renderPlaylistTrack(playlist_tracks){
 }
 
 function getPlaylistTitlesAndRender(selected_playlist = null){
-	console.log("get titles!");
 	var results = $.ajax({
 		type: "GET",
 	    url: '/get-playlist-titles',
@@ -342,8 +391,6 @@ $(document).on('dblclick', 'li', function() {
 		var video = new YoutubeVideo(track.id.replace("playlist-", ""));
 		current_playlist_tracks.push(video);
 	});
-	console.log(current_playlist_tracks);
-    console.log("play!");
 	var youtube_id = this.id.replace("playlist-", "");
 	playVideo(youtube_id, current_playlist_tracks);
 });

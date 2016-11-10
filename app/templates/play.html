@@ -1,24 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-	<center><div id="iframe"></div>
-	<form action = "#" id="searchbar">
-		<br><br>Enter keywords to find a song or album, here:<br>
-		<input type = "text" id="keywords" size = "75"><br><br>
-		<input type="submit" value="Submit" class="pure-button">
-	</form>
-	</center>
-	<div class="triple-columns">
-		<div class="plays-column">
+	<div class="col-xs-18 col-md-12">
+		<center><div id="iframe"></div></center>
+	</div>
+	<div class="col-xs-18 col-md-12">
+		<center>
+			<form action = "#" id="searchbar">
+				<br><br>Enter keywords to find a song or album, here:<br>
+				<input type = "text" id="keywords" size = "75"><br><br>
+				<input type="submit" value="Submit" class="pure-button">
+			</form>
+		</center>
+	</div>
+	<div class="col-xs-18 col-md-12">
+		<div class="col-xs-6 col-md-4">
 			<h3> Played Videos: </h3>
 			<ul>
-			<div id="record_plays"></div>
+			<div id="played-videos"></div>
 			</ul>
 		</div>
-		<div class="search-column">
-			<h3>Selected Videos:</h3>
-			<div id="selectedvideos"></div>
+		<div class="col-xs-6 col-md-4">
+			<h3>Search Results:</h3>
+			<div id="search-results"></div>
 			{% if vid_info %}
 				<ul>
 				{% for vid in vid_info %}
@@ -28,9 +32,9 @@
 			{% endif %}
 		</div>
 
-		<div class="related-column">
+		<div class="col-xs-6 col-md-4">
 			<h3>Related Videos:</h3>
-			<div id="relatedvideos"></div>
+			<div id="related-videos"></div>
 		</div>
 	</div>
 

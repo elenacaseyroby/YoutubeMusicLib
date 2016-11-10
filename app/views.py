@@ -2,13 +2,13 @@
 from flask import render_template, flash, session, redirect, request, Flask, url_for, jsonify
 from flask_oauthlib.client import OAuth
 from app import app, sql_session, login_manager, viewsClasses
-from .models import models, viewsModel
+from app import models, viewsModel
 from .myfunctions import sortnumbers
 from json import loads
 from sqlalchemy import update, func
-from urllib.request import Request, urlopen
-from urllib.parse import unquote
-from urllib.error import URLError
+#from urllib.request import Request, urlopen
+#from urllib.parse import unquote
+#from urllib.error import URLError
 import datetime, re
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
@@ -38,8 +38,8 @@ def playMusic():
   if 'google_token' in session:
     return render_template('play.html')
 
-@app.route('/listens', methods = ['GET'])
-def listens():
+@app.route('/saved-videos', methods = ['GET'])
+def savedvideos():
   if 'google_token' in session:
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
@@ -65,41 +65,33 @@ def listens():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    listens = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
+
+    videos = viewsModel.getvideodata(user_id = session['session_user_id'], video_scope = "listens", search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
-    return render_template('displayupdatedata.html', display_update_rows = listens, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, islistens = "true", playlist_titles = playlist_titles, playlist_tracks = playlist_tracks)
+    return render_template('displayupdatedata.html', display_update_rows = videos, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_titles = playlist_titles)
   return redirect(url_for('login'))
 
-@app.route('/search-listens', methods = ['GET'])
-
-def searchlistens():
+@app.route('/search-saved-videos', methods = ['GET'])
+def searchsavedvideos():
   if 'google_token' in session:
-    #set dates from form submission 
-    #if those are empty set default dates
-    playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
-    playlist_tracks = []
-    selected_playlist_id=None
-    if request.args.get("playlist_title"):
-      playlist = sql_session.query(models.Playlist).filter_by(user_id = session['session_user_id'], title = request.args.get("playlist_title")).first()
-      selected_playlist_id = playlist.id
-      playlist_tracks = viewsModel.getplaylisttracks(selected_playlist_id)
-    now = datetime.datetime.now()
-    today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
-    oneweekago = datetime.date.today() - datetime.timedelta(days=7)
-    oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
+    #search start and end dates if listens
+    if request.args.get("video_scope") == "listens":
+      search_start_date = request.args.get("search_start_date")
+      search_end_date = request.args.get("search_end_date")
+    else:
+      search_start_date = "1969-01-01"
+      search_end_date = "3000-01-01"
 
-    search_start_date = request.args.get("search_start_date", oneweekago)
-    
-    search_end_date = request.args.get("search_end_date", today)
+    #search artist
     search_artist = request.args.get("search_artist", "%")
 
     if search_artist == "":
         search_artist = "%"
-    if(request.args.get("islistens")=="true"):
-      data = viewsModel.getlistensdata(user_id = session['session_user_id'], search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_id = selected_playlist_id)
-    else:
-      data = viewsModel.getlibrary(user_id = session['session_user_id'], search_artist = search_artist, playlist_id = selected_playlist_id)
+
+    video_scope = request.args.get("video_scope")
+    
+    data = viewsModel.getvideodata(user_id = session['session_user_id'], video_scope = video_scope, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist)
     if search_artist == "%":
         search_artist = ""
     return jsonify(data)
@@ -118,7 +110,7 @@ def library():
     search_artist = request.args.get("search_artist", "%")
     if search_artist == "":
         search_artist = "%"
-    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist, playlist_id = selected_playlist_id)
+    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist)
     if not library:
       return render_template('nolibrarymessage.html')
     else:
@@ -374,7 +366,6 @@ def get_playlist_tracks():
       playlist_tracks = viewsModel.getplaylisttracks(playlist_id = selected_playlist_id)
   return jsonify(playlist_tracks)
 
-#/postplaylist
 @app.route('/postplaylist', methods = ['POST'])
 def postplaylist():
   user_id = session['session_user_id']

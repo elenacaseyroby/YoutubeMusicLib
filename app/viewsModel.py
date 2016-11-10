@@ -2,9 +2,10 @@
 # -*- mode: python -*-
 
 from app import models, sql_session
-from app.views import viewsClasses
+from app import viewsClasses
 from sqlalchemy import text, update, func
 from flask import session, request
+
 
 def getartists(artist_id=None):
   where = ""
@@ -42,69 +43,45 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
 
-def getlibrary(user_id, search_artist, playlist_id = None):
-  sql_session.rollback()
-  library = list()
-  if search_artist:
-    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
-  if not playlist_id:
-    playlist_id = "-1"
-  saved_vids = sql_session.query(models.SavedVid).filter_by(user_id = user_id).first()
-  if saved_vids:
-    sql = text("""SELECT videos.youtube_id
-   , videos.youtube_title
-   , videos.title
-   , videos.music
-   , videos.release_date
-   , artists.artist_name as artist
-   , cities.city_or_state
-   , albums.name as album
-   , videos.track_num
-   , artists.id as artist_id
-   , albums.id as album_id
-   , CASE WHEN (SELECT COUNT(*) FROM playlist_tracks WHERE playlist_tracks.playlist_id = """+str(playlist_id)+""" AND playlist_tracks.youtube_id = saved_vids.youtube_id ) > 0 THEN 1 ELSE 0 END AS playlist
-   FROM saved_vids
-   JOIN videos ON saved_vids.youtube_id = videos.youtube_id
-   JOIN albums ON videos.album_id = albums.id
-   JOIN artists ON videos.artist_id = artists.id
-   JOIN cities ON artists.city_id = cities.id
-   WHERE saved_vids.user_id = """+str(user_id)+"""
-   """+artist+"""
-   ORDER BY artists.artist_name, albums.name ASC;""")
-
-    results = models.engine.execute(sql)
-    for result in results:
-        video = {'index': ""
-                , 'play': 0
-                , 'library': 1
-                , 'music': result[3]
-                , 'playlist': result[11]
-                , 'title': result[2]
-                , 'artist': result[5]
-                , 'album': result[7]
-                , 'release_date': result[4]
-                , 'youtube_id': result[0]
-                , 'artist_id': result[9]
-                , 'album_id': result[10]
-                }
-        library.append(video)
-  return library 
 
 #get listens data for listens page
-def getlistensdata(user_id, search_start_date, search_end_date, search_artist, playlist_id=None):
+def getvideodata(user_id, video_scope, search_start_date, search_end_date, search_artist):
+
   sql_session.rollback()
-  listens = list()
+  videos = list()
   start_date = search_start_date
   end_date = search_end_date
+  scope = ""
+  order = "ORDER BY artist"
+  case_when_library = " AND saved_vids.youtube_id = videos.youtube_id ) > 0 THEN 1 ELSE 0 END AS library"
+  sql_select = ",videos.youtube_id"
+
   if search_artist:
     artist = "AND artists.artist_name LIKE '"+search_artist+"'"
-  if not playlist_id:
-    playlist_id = "-1"
 
-  sql = text("""SELECT listens.id
-   , listens.youtube_id
-   , listens.time_of_listen
-   , videos.youtube_title
+  if video_scope == "listens":
+    sql_select = """,listens.youtube_id
+   , listens.id
+   , listens.time_of_listen"""
+    sql_from = """FROM listens
+   JOIN videos ON listens.youtube_id = videos.youtube_id"""
+    scope = """WHERE listens.user_id = """+str(user_id)+"""
+   AND listens.time_of_listen > '"""+str(start_date)+"""'
+   AND listens.time_of_listen < '"""+str(end_date)+"""'
+   AND listens.listened_to_end != 1 """
+    order = """GROUP BY listens.id 
+   ORDER BY listens.time_of_listen DESC"""
+    case_when_library = " AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library"
+  elif video_scope == "library":
+    sql_from = """FROM saved_vids
+   JOIN videos ON saved_vids.youtube_id = videos.youtube_id"""
+    scope = "WHERE saved_vids.user_id = "+str(user_id)
+  elif video_scope == "all":
+    sql_from = "FROM videos"
+    scope = "WHERE videos.youtube_id is not null"
+    
+
+  sql = text("""SELECT videos.youtube_title
    , videos.title
    , videos.music
    , videos.release_date
@@ -114,42 +91,40 @@ def getlistensdata(user_id, search_start_date, search_end_date, search_artist, p
    , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
-   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(session['session_user_id'])+""" AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library
-   , CASE WHEN (SELECT COUNT(*) FROM playlist_tracks WHERE playlist_tracks.playlist_id = """+str(playlist_id)+""" AND playlist_tracks.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS playlist
-   FROM listens
-   JOIN videos ON listens.youtube_id = videos.youtube_id
+   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """+str(session['session_user_id'])+case_when_library+"""
+   """+sql_select+"""
+   """+sql_from+"""
    JOIN albums ON videos.album_id = albums.id
    JOIN artists ON videos.artist_id = artists.id
    JOIN cities ON artists.city_id = cities.id
-   WHERE listens.user_id = """+str(user_id)+"""
-   AND listens.time_of_listen > '"""+str(start_date)+"""'
-   AND listens.time_of_listen < '"""+str(end_date)+"""'
-   AND listens.listened_to_end != 1 
+   """+scope+"""
    """+artist+"""
-   GROUP BY listens.id 
-   ORDER BY listens.time_of_listen DESC;""")
+   """+order+"""
+   LIMIT 1500;""")
 
   results = models.engine.execute(sql)
+  
   for result in results:
-      #if result[1] (youtube_id) is in list of user's saved vids, then 
-      # var library = 1, else = 0 
-      listen = {'index': result[2].strftime('%a %I:%M %p') #time_of_listen
-              , 'play': 0
-              , 'music': result[5]
-              , 'playlist' : result[14]
-              , 'title': result[4]
-              , 'artist': result[7]
-              , 'album': result[9]
-              , 'release_date': result[6]
-              , 'youtube_id': result[1]
-              , 'artist_id': result[11]
-              , 'album_id': result[12]
-              , 'library': result[13]
+      if (video_scope == "listens"):
+        index = result[13].strftime('%a %I:%M %p')
+      else:
+        index = None
+      video = { 'music': result[2]
+              , 'title': result[1]
+              , 'artist': result[4]
+              , 'album': result[6]
+              , 'release_date': result[3]
+              , 'youtube_id': result[11]
+              , 'artist_id': result[8]
+              , 'album_id': result[9]
+              , 'library': result[10]
+              , 'index': index
               }
 
-      listens.append(listen)
+      videos.append(video)
 
-  return listens 
+  return videos 
+
 def getsimilarartistsbyartist(artist_id):
   sql = text("""SELECT artists.artist_name, artists.id
     FROM similar_artists
@@ -176,10 +151,6 @@ JOIN artists a2 ON s2.artist_id1 = a2.id
 WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result2 = models.engine.execute(sql)
 
-  #for result in result2:
-    #print(result)
-  #result = result1 + result2
-  #result = list(set(result)) #remove redundancies
   return "success"
 
 def updatealbum(album_name):

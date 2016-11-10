@@ -1,13 +1,7 @@
 $.getScript("static/js/lastfm.js", function(){
 	console.log("lastfm.js loaded");
 });
-/*
-function YoutubeVideo(id, title, channel_id, description){
-	this.id = id;
-	this.title = title;
-	this.channel_id = channel_id;
-	this.description = description;
-}*/
+
 function YoutubeVideo(id, title = "", channel_id = "", description = ""){
 	this.id = id;
 	this.title = title;
@@ -16,7 +10,6 @@ function YoutubeVideo(id, title = "", channel_id = "", description = ""){
 }
 
 current_iframe_video = new YoutubeVideo("98T3lkkdKqk","Teenage Fanclub - Bandwagonesque - Full Album - 1991");
-console.log(current_iframe_video);
 var number_of_plays = 0; 
 var search_page = true;
 var selected_videos = [];
@@ -35,7 +28,7 @@ $(function(){
 		});
 		//execute the request
 		request.execute(function(response){
-			$("#selectedvideos").empty();
+			$("#search-results").empty();
 
 			var results = response.result;
 			i = 0;
@@ -44,7 +37,7 @@ $(function(){
 				selected_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title, item.snippet.channelId, item.snippet.description);
 				i++;
 			});
-			renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'));
+			renderList(vid_list = selected_videos, $element_object = $('#search-results'));
 		});	
 	});	
 });
@@ -236,11 +229,11 @@ function savePlay(event, end = false) {
 	    		, year: year}
 	    });
 		if(!end){
-			record_plays = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
+			played_video = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
 			played_videos = [];
-			played_videos.push(record_plays);
+			played_videos.push(played_video);
 
-			renderList(vid_list = played_videos, $element_object = $('#record_plays'), empty_element = false);
+			renderList(vid_list = played_videos, $element_object = $('#played-videos'), empty_element = false);
 		}
 	});
 	if (album == "undefined"){
@@ -318,7 +311,7 @@ function getRelatedVideos(youtube_id){
 			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title, item.snippet.channelId, item.snippet.description);
 			i++;
 		});
-		renderList(related_videos, $('#relatedvideos'), false);	
+		renderList(related_videos, $('#related-videos'), false);	
 		if(search_page == true){
 			vids_up_next = related_videos;
 		}
@@ -328,7 +321,7 @@ function getRelatedVideos(youtube_id){
 //takes array of YoutubeVideo objects and an element 
 //object and appends a playable list of 
 //youtube videos to the specified element
-function renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'), empty_element = true){
+function renderList(vid_list = selected_videos, $element_object = $('#search-results'), empty_element = true){
 	if(empty_element){
 		$element_object.empty();
 	}
