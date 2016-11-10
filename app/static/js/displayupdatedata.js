@@ -9,9 +9,10 @@ $(function(){
 	$("#updatelistens").on("submit", function(event) {
 		event.preventDefault();
 		index = $(".listen_row").length;
-		i = 0;
+		i = $("#vid-range-start").attr("value");
+		console.log("index: "+$("#vid-range-start").attr("value"));
 		var dataupdated = false;
-
+		//issue is that it starts from index =0 even on later pages.
 		$.each($(".datarows"), function(index, listen){
 			var dataupdated = false;
 
@@ -25,7 +26,7 @@ $(function(){
 			}else{
 				music_value = 0;
 			}
-
+			//console.log($("#title" + i.toString()).attr("value")+" = "+$("#title" + i.toString()).val());
 			if($("#title" + i.toString()).attr("value") != $("#title" + i.toString()).val()){
 				dataupdated = true;
 			}
@@ -42,6 +43,16 @@ $(function(){
 				dataupdated = true;
 			}	
 			if(dataupdated){
+				
+				console.log("youtube_id: "+$("#youtube_id" + i.toString()).attr("value"));
+				console.log("library: "+$("#library" + i.toString()).attr("value")+" , "+library_value);
+				console.log("music: "+$("#music" + i.toString()).attr("value")+" , "+music_value);
+				console.log("title: "+$("#title" + i.toString()).attr("value")+" , "+ $("#title" +i.toString()).val());
+				console.log("artist: "+$("#artist" + i.toString()).attr("value")+" , "+ $("#artist" +i.toString()).val());
+				console.log("album: "+$("#album" + i.toString()).attr("value")+" , "+$("#album" + i.toString()).val());
+				console.log("artist_id: "+$("#artist_id" + i.toString()).attr("value"));
+				console.log("album_id: "+$("#album_id" + i.toString()).attr("value"));
+				
 				$.ajax({
 					type: "POST",
 				    url: '/updatedata',
@@ -286,8 +297,10 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 		  + '" value="'
 		  + $display_data_rows[index]['album_id']
 		  + '"></tr>';
-		
+		//console.log(row);
 		$("tbody").append(row);
+		$("tbody").append("<hidden id ='vid-range-start' value="+vid_range_start+">");
+		
 	
 		index = index + 1;
 	}
