@@ -14,6 +14,7 @@ $(function(){
 		var dataupdated = false;
 		//issue is that it starts from index =0 even on later pages.
 		$.each($(".datarows"), function(index, listen){
+			console.log(i+" - "+$("#artist" + i.toString()).attr("value")+" - "+$("#title" + i.toString()).attr("value"));
 			var dataupdated = false;
 
 			if($("#library" + i.toString()).is(':checked')){
@@ -26,7 +27,6 @@ $(function(){
 			}else{
 				music_value = 0;
 			}
-			//console.log($("#title" + i.toString()).attr("value")+" = "+$("#title" + i.toString()).val());
 			if($("#title" + i.toString()).attr("value") != $("#title" + i.toString()).val()){
 				dataupdated = true;
 			}
@@ -66,6 +66,16 @@ $(function(){
 					, album_id: $("#album_id" + i.toString()).attr("value")
 					}
 			    });
+			    //is this working??
+			    console.log(current_data_rows[i]);
+			    console.log(current_data_rows[i].library);
+			    current_data_rows[i].library = library_value;
+			    current_data_rows[i].music = music_value;
+			    current_data_rows[i].title = $("#title" + i.toString()).val();
+			    current_data_rows[i].artist = $("#artist" + i.toString()).val();
+			    current_data_rows[i].album = $("#album" + i.toString()).val();
+			    console.log(current_data_rows[i]);
+			    console.log(current_data_rows[i].library);
 			}
 		    i++;
 		});
@@ -299,7 +309,7 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 		  + '"></tr>';
 		//console.log(row);
 		$("tbody").append(row);
-		$("tbody").append("<hidden id ='vid-range-start' value="+vid_range_start+">");
+		$("tbody").append("<hidden id ='vid-range-start' value="+vid_range_start+"><hidden id ='vid-range-end' value="+vid_range_end+">");
 		
 	
 		index = index + 1;
