@@ -9,7 +9,7 @@ from sqlalchemy import update, func
 #from urllib.request import Request, urlopen
 #from urllib.parse import unquote
 #from urllib.error import URLError
-import datetime, re
+import datetime, re, pygal
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
@@ -71,6 +71,19 @@ def savedvideos():
         search_artist = ""
     return render_template('displayupdatedata.html', display_update_rows = videos, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_titles = playlist_titles)
   return redirect(url_for('login'))
+
+@app.route('/trends')
+def trends():
+
+  chart = pygal.XY(stroke=False)
+  chart.title = 'Correlation'
+  chart.add('A', [(0, 0), (.1, .2), (.3, .1), (.5, 1), (.8, .6), (1, 1.08), (1.3, 1.1), (2, 3.23), (2.43, 2)])
+  chart.add('B', [(.1, .15), (.12, .23), (.4, .3), (.6, .4), (.21, .21), (.5, .3), (.6, .8), (.7, .8)])
+  chart.add('C', [(.05, .01), (.13, .02), (1.5, 1.7), (1.52, 1.6), (1.8, 1.63), (1.5, 1.82), (1.7, 1.23), (2.1, 2.23), (2.3, 1.98)])
+  chart.render()
+  chart_data = chart.render_data_uri()
+  
+  return render_template('trends.html', chart_data = chart_data)
 
 @app.route('/search-saved-videos', methods = ['GET'])
 def searchsavedvideos():
