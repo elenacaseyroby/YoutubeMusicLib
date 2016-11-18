@@ -74,16 +74,21 @@ def savedvideos():
 
 @app.route('/trends')
 def trends():
+  if 'google_token' in session:
+    now = datetime.datetime.now()
+    today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
+    sixmonthsago = datetime.date.today() - datetime.timedelta(days=182) 
+    sixmonthsago = sixmonthsago.strftime("%Y-%m-%d %H:%M:%S")
+    data = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = sixmonthsago, end_time = today)
 
-  chart = pygal.XY(stroke=False)
-  chart.title = 'Correlation'
-  chart.add('A', [(0, 0), (.1, .2), (.3, .1), (.5, 1), (.8, .6), (1, 1.08), (1.3, 1.1), (2, 3.23), (2.43, 2)])
-  chart.add('B', [(.1, .15), (.12, .23), (.4, .3), (.6, .4), (.21, .21), (.5, .3), (.6, .8), (.7, .8)])
-  chart.add('C', [(.05, .01), (.13, .02), (1.5, 1.7), (1.52, 1.6), (1.8, 1.63), (1.5, 1.82), (1.7, 1.23), (2.1, 2.23), (2.3, 1.98)])
-  chart.render()
-  chart_data = chart.render_data_uri()
-  
-  return render_template('trends.html', chart_data = chart_data)
+    chart = pygal.XY(stroke=False)
+    chart.title = "Genre Listenes V. Repeat Video Listens" #which factors are the strongest indicators that you'll like a genre?
+    chart.add('genres', data['regression_data'])
+    chart.render()
+    chart_data = chart.render_data_uri()
+    
+    return render_template('trends.html', chart_data = chart_data)
+  return redirect(url_for('login'))
 
 @app.route('/search-saved-videos', methods = ['GET'])
 def searchsavedvideos():

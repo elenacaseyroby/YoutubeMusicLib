@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div id="chart">
-	   <embed type="image/svg+xml" src= {{ chart_data|safe }} />
+	<div id="chart" class="col-xs-12 col-md-8">
+	   <embed type="image/svg+xml" src={{chart_data|safe}} />
 	</div>
+
+<!--scripts-->
+
+	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/trends.css') }}">
+
+<!--end scripts-->
   
 {% endblock %}
