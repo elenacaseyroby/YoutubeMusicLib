@@ -79,15 +79,16 @@ def trends():
     today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
     sixmonthsago = datetime.date.today() - datetime.timedelta(days=182) 
     sixmonthsago = sixmonthsago.strftime("%Y-%m-%d %H:%M:%S")
+
     data = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = sixmonthsago, end_time = today)
 
     chart = pygal.XY(stroke=False)
-    chart.title = "Genre Listenes V. Repeat Video Listens" #which factors are the strongest indicators that you'll like a genre?
+    chart.title = "Correlation Between Number of Times you Listen to a Genre and Number of Times you Like a Video in that Genre\n \n Define 'like': you 'like' a video if you listen to it more than once" #which factors are the strongest indicators that you'll like a genre?
     chart.add('genres', data['regression_data'])
     chart.render()
     chart_data = chart.render_data_uri()
     
-    return render_template('trends.html', chart_data = chart_data)
+    return render_template('trends.html', chart_data = chart_data, top_genres = data['top_genres'])
   return redirect(url_for('login'))
 
 @app.route('/search-saved-videos', methods = ['GET'])
@@ -117,25 +118,6 @@ def searchsavedvideos():
     return redirect(url_for('login'))
   return "success"
 
-
-@app.route('/library')
-def library():
-  if 'google_token' in session:
-    user_id = session['session_user_id']
-    library = list()
-    playlist_titles = viewsModel.getplaylisttitles(user_id)
-    selected_playlist_id=None
-    search_artist = request.args.get("search_artist", "%")
-    if search_artist == "":
-        search_artist = "%"
-    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist)
-    if not library:
-      return render_template('nolibrarymessage.html')
-    else:
-      if search_artist == "%":
-        search_artist = ""
-      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlist_titles = playlist_titles)
-  return redirect(url_for('login'))
 
 @app.route('/login')
 def login():

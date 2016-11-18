@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div id="chart" class="col-xs-12 col-md-8">
-	   <embed type="image/svg+xml" src={{chart_data|safe}} />
+	<div class="col-xs-18 col-md-12">
+		<div id="chart" class="col-xs-12 col-md-8">
+		   <embed type="image/svg+xml" src={{chart_data|safe}} />
+		</div>
+
+		<div id="chart" class="col-xs-6 col-md-4">
+		<h5>Your Top Genres</h5>
+		<ol>
+		{% for genre in top_genres %}
+			<li>{{genre}}</li>
+		{% endfor %}
+		</ol>
+		</div>
 	</div>
+	
 
 <!--scripts-->
 
