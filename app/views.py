@@ -86,7 +86,7 @@ def trends():
     chart = pygal.XY(stroke=False)
     chart.title = "Correlation Between Number of Times you Listen to a Genre and Number of Times you Like a Video in that Genre\n \n Define 'like': you 'like' a video if you listen to it more than once" #which factors are the strongest indicators that you'll like a genre?
     chart.add('Number of Likes', data_by_likes['regression_data'])
-    chart.add('Line of Best Fit', [(x, regression_line_by_likes['m']*x + regression_line_by_likes['b']) for x in range(0, data_by_likes['regression_data'][0][0])])
+    chart.add('Correlation', [(0,0), (data_by_likes['regression_data'][0][0], regression_line_by_likes['m']*data_by_likes['regression_data'][0][0] + regression_line_by_likes['b'])], stroke = True)
     chart.render()
     chart_data = chart.render_data_uri()
     
