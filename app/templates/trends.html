@@ -19,13 +19,14 @@
 				{% endfor %}
 				</ol>
 			</div>
+		</div>
+	</div>
+	<div id="myDiv" class="col-xs-18 col-md-12"> <!--style="width: 480px; height: 400px;" -->
+	<!-- Plotly chart will be drawn inside this DIV -->
 	</div>
 	
+	<script type = "text/javascript" src = "{{ url_for('static', filename = 'js/trends.js') }}"></script>
 
-<!--scripts-->
 
-	<link rel="stylesheet" href="{{ url_for('static', filename = 'css/trends.css') }}">
-
-<!--end scripts-->
   
 {% endblock %}
