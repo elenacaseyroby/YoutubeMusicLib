@@ -93,6 +93,19 @@ def trends():
     return render_template('trends.html', chart_data = chart_data, top_genres = data_by_likes['top_genres'])
   return redirect(url_for('login'))
 
+@app.route('/getlisteningdatabytime')
+def getlisteningdatabytime():
+  
+  data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = request.args.get('start_time'), end_time = request.args.get('end_time'))
+  regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
+  least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
+    ,'top_genres': data_by_likes['top_genres']
+    , 'line_best_fit': {'m': regression_line_by_likes['m'], 'b': regression_line_by_likes['b']}
+  }
+  print least_squares_regression_data
+  return jsonify(least_squares_regression_data)
+
+
 @app.route('/search-saved-videos', methods = ['GET'])
 def searchsavedvideos():
   if 'google_token' in session:
