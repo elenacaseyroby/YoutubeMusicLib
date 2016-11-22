@@ -75,22 +75,7 @@ def savedvideos():
 @app.route('/trends')
 def trends():
   if 'google_token' in session:
-    now = datetime.datetime.now()
-    today = now.strftime("%Y-%m-%d %H:%M:%S") #format should be '2016-07-10 19:12:18'
-    threemonthsago = datetime.date.today() - datetime.timedelta(days=90)
-    threemonthsago = threemonthsago.strftime("%Y-%m-%d %H:%M:%S")
-
-    data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = threemonthsago, end_time = today)
-    regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
-
-    chart = pygal.XY(stroke=False)
-    chart.title = "Correlation Between Number of Times you Listen to a Genre and Number of Times you Like a Video in that Genre\n \n Define 'like': you 'like' a video if you listen to it more than once" #which factors are the strongest indicators that you'll like a genre?
-    chart.add('Number of Likes', data_by_likes['regression_data'])
-    chart.add('Correlation', [(0,0), (data_by_likes['regression_data'][0][0], regression_line_by_likes['m']*data_by_likes['regression_data'][0][0] + regression_line_by_likes['b'])], stroke = True)
-    chart.render()
-    chart_data = chart.render_data_uri()
-    
-    return render_template('trends.html', chart_data = chart_data, top_genres = data_by_likes['top_genres'])
+    return render_template('trends.html')
   return redirect(url_for('login'))
 
 @app.route('/getlisteningdatabytime')
