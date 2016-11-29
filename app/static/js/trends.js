@@ -1,7 +1,7 @@
 $(function(){
   var data = $.ajax({//can add morning, afternoon, night later
     type: 'GET'
-    ,url: '/getlisteningdatabytime'
+    ,url: '/getchartdatabytime'
     ,data: {'start_time': '2016-01-01 12:00:00'
       ,'end_time': '2016-11-20 12:00:00'
     }
@@ -37,6 +37,13 @@ $(function(){
     };
 
     Plotly.newPlot('myDiv', data, layout);
+  });
+  var listens = $.ajax({
+    type: 'GET'
+    , url: '/getlistensbydate'
+    ,dataType: 'json'
+  }).done(function(listens){
+    
   });
 
 

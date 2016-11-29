@@ -6,10 +6,10 @@ from app import models, viewsModel
 from .myfunctions import sortnumbers, getregressionline
 from json import loads
 from sqlalchemy import update, func
+import datetime, re
 #from urllib.request import Request, urlopen
 #from urllib.parse import unquote
 #from urllib.error import URLError
-import datetime, re, pygal
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
@@ -78,8 +78,8 @@ def trends():
     return render_template('trends.html')
   return redirect(url_for('login'))
 
-@app.route('/getlisteningdatabytime')
-def getlisteningdatabytime():
+@app.route('/getchartdatabytime')
+def getchartdatabytime():
   
   data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = request.args.get('start_time'), end_time = request.args.get('end_time'))
   regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
@@ -87,8 +87,13 @@ def getlisteningdatabytime():
     ,'top_genres': data_by_likes['top_genres']
     , 'line_best_fit': {'m': regression_line_by_likes['m'], 'b': regression_line_by_likes['b']}
   }
-  print least_squares_regression_data
   return jsonify(least_squares_regression_data)
+
+@app.route('/getlistensbydate')
+def getlistensbydate():
+  data = viewsModel.countlistensbyweek(user_id = session['session_user_id'])
+  
+  return jsonify(data)
 
 
 @app.route('/search-saved-videos', methods = ['GET'])

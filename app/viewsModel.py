@@ -5,6 +5,7 @@ from app import models, sql_session
 from app import viewsClasses
 from sqlalchemy import text, update, func
 from flask import session, request
+import datetime
 
 
 def getartists(artist_id=None):
@@ -274,6 +275,27 @@ def getgenredatalinearregression(user_id, start_time, end_time, return_top_n_gen
   data = {'top_genres':top_genres, 'regression_data': regression_data}
 
   return data
+
+def countlistensbyweek(user_id):
+  sql = ("""SELECT *
+    FROM listens
+    WHERE user_id = """+str(user_id)+"""
+    AND listened_to_end != 1
+    ORDER BY time_of_listen""")
+  results = models.engine.execute(sql)
+  rows = results.fetchall()
+  sunday = datetime.datetime.strptime('2015-12-06 00:00:00', "%Y-%m-%d %H:%M:%S")
+  first_listen = rows[0][5]
+  difference = first_listen - sunday
+  difference = difference.days
+  days_past_sunday = difference%7
+  first_sunday = first_listen - datetime.timedelta(days = days_past_sunday)
+  print(first_listen)
+  print(first_sunday)
+
+  return None
+
+
 
 
 
