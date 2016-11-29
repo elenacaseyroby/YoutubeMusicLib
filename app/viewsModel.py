@@ -290,10 +290,22 @@ def countlistensbyweek(user_id):
   difference = difference.days
   days_past_sunday = difference%7
   first_sunday = first_listen - datetime.timedelta(days = days_past_sunday)
-  print(first_listen)
-  print(first_sunday)
-
-  return None
+  start_week = first_sunday
+  end_week = start_week + datetime.timedelta(days = 7)
+  weekly_count = 0
+  count_by_week = []
+  for row in rows:
+      found_week = False
+      while(not found_week):
+        if start_week <= row[5] < end_week:
+          weekly_count = weekly_count + 1
+          found_week = True
+        else:
+          count_by_week.append({'week':str(datetime.datetime.strftime(start_week, "%x")), 'count':weekly_count})
+          start_week = end_week
+          end_week = start_week + datetime.timedelta(days = 7)
+          weekly_count = 0
+  return count_by_week
 
 
 
