@@ -1,4 +1,61 @@
+//look at input formats for Plotly.plot() and try to figure out why it isn't accepting the dates I'm inputting
+
 $(function(){
+  //fill listens over time graph
+  var listens = $.ajax({
+    type: 'GET'
+    , url: '/getlistensbydate'
+    ,dataType: 'json'
+  }).done(function(listens){
+    var selectorOptions = {
+        buttons: [{
+            step: 'month',
+            stepmode: 'backward',
+            count: 1,
+            label: '1m'
+        }, {
+            step: 'month',
+            stepmode: 'backward',
+            count: 6,
+            label: '6m'
+        }, {
+            step: 'year',
+            stepmode: 'todate',
+            count: 1,
+            label: 'YTD'
+        }, {
+            step: 'year',
+            stepmode: 'backward',
+            count: 1,
+            label: '1y'
+        }, {
+            step: 'all',
+        }],
+    };
+    var points = {
+      x: [],
+      y: [],
+      mode: 'lines'
+    };
+    $.each(listens, function(index, item){
+      points.x.push(Date(item['Week'])); //make model return data in the same format for scatter as line plots. reduce confusion.
+      points.y.push(item['Listens']);
+    });
+    var data = [points];
+    var layout = {
+        title: 'Listens By Week',
+        xaxis: {
+            rangeselector: selectorOptions,
+            rangeslider: {}
+        },
+        yaxis: {
+            fixedrange: true
+        }
+    };
+    console.log(data);
+    Plotly.plot('listens-by-week-graph', data, layout);
+  });
+  //fill scatter plot
   var data = $.ajax({//can add morning, afternoon, night later
     type: 'GET'
     ,url: '/getchartdatabytime'
@@ -35,20 +92,13 @@ $(function(){
       height: 400,
       width: 480
     };
-
+    console.log(data);
     Plotly.newPlot('myDiv', data, layout);
   });
-  var listens = $.ajax({
-    type: 'GET'
-    , url: '/getlistensbydate'
-    ,dataType: 'json'
-  }).done(function(listens){
-    
-  });
+  
 
 
 });
-//add thing to load top genres dynamically
-//make plotly chart of listens over time.  
-//then on change have it make the below ajax call to repopulate the scatterplot
-//use ajax and a new def in views.py to pull data for scatterplot on load and fill the above info
+
+
+

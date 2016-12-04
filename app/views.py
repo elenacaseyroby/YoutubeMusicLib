@@ -92,7 +92,6 @@ def getchartdatabytime():
 @app.route('/getlistensbydate')
 def getlistensbydate():
   data = viewsModel.countlistensbyweek(user_id = session['session_user_id'])
-  
   return jsonify(data)
 
 
