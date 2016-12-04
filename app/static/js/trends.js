@@ -7,6 +7,7 @@ $(function(){
     , url: '/getlistensbydate'
     ,dataType: 'json'
   }).done(function(listens){
+    /*
     var selectorOptions = {
         buttons: [{
             step: 'month',
@@ -31,17 +32,29 @@ $(function(){
         }, {
             step: 'all',
         }],
-    };
+    };*/
     var points = {
       x: [],
       y: [],
-      mode: 'lines'
+      type: 'scatter'
     };
     $.each(listens, function(index, item){
-      points.x.push(Date(item['Week'])); //make model return data in the same format for scatter as line plots. reduce confusion.
+      points.x.push(item['Week']); //make model return data in the same format for scatter as line plots. reduce confusion.
       points.y.push(item['Listens']);
     });
     var data = [points];
+    var layout = {
+        title: 'Listens By Week',
+        xaxis: {
+            rangeslider: {}
+        },
+        yaxis: {
+            fixedrange: true
+        },
+        height: 400,
+        width: 1000
+    };
+    /*
     var layout = {
         title: 'Listens By Week',
         xaxis: {
@@ -51,7 +64,7 @@ $(function(){
         yaxis: {
             fixedrange: true
         }
-    };
+    };*/
     console.log(data);
     Plotly.plot('listens-by-week-graph', data, layout);
   });
