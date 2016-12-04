@@ -82,11 +82,17 @@ def trends():
 def getchartdatabytime():
   
   data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = request.args.get('start_time'), end_time = request.args.get('end_time'))
-  regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
-  least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
-    ,'top_genres': data_by_likes['top_genres']
-    , 'line_best_fit': {'m': regression_line_by_likes['m'], 'b': regression_line_by_likes['b']}
-  }
+  if len(data_by_likes['regression_data']) > 0:
+    regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
+    least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
+      ,'top_genres': data_by_likes['top_genres']
+      , 'line_best_fit': {'m': regression_line_by_likes['m'], 'b': regression_line_by_likes['b']}
+    }
+  else:
+    least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
+      ,'top_genres': data_by_likes['top_genres']
+    }
+
   return jsonify(least_squares_regression_data)
 
 @app.route('/getlistensbydate')

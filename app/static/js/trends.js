@@ -7,32 +7,6 @@ $(function(){
     , url: '/getlistensbydate'
     ,dataType: 'json'
   }).done(function(listens){
-    /*
-    var selectorOptions = {
-        buttons: [{
-            step: 'month',
-            stepmode: 'backward',
-            count: 1,
-            label: '1m'
-        }, {
-            step: 'month',
-            stepmode: 'backward',
-            count: 6,
-            label: '6m'
-        }, {
-            step: 'year',
-            stepmode: 'todate',
-            count: 1,
-            label: 'YTD'
-        }, {
-            step: 'year',
-            stepmode: 'backward',
-            count: 1,
-            label: '1y'
-        }, {
-            step: 'all',
-        }],
-    };*/
     var points = {
       x: [],
       y: [],
@@ -54,18 +28,6 @@ $(function(){
         height: 400,
         width: 1000
     };
-    /*
-    var layout = {
-        title: 'Listens By Week',
-        xaxis: {
-            rangeselector: selectorOptions,
-            rangeslider: {}
-        },
-        yaxis: {
-            fixedrange: true
-        }
-    };*/
-    console.log(data);
     Plotly.plot('listens-by-week-graph', data, layout);
   });
   //fill scatter plot
@@ -76,37 +38,41 @@ $(function(){
       ,'end_time': '2016-11-20 12:00:00'
     }
     ,dataType: 'json'
-  }).done(function(data){
+  }).done(function(genres){
     var points = {
       x: [],
       y: [],
+      name: 'Listens v. Likes',
       mode: 'markers'
     };
     
-    $.each(data['regression_data'], function(index, item){
+    $.each(genres['regression_data'], function(index, item){
       points.x.push(item[0]);
       points.y.push(item[1]);
       
     });
 
     //find start and end points of regression line
-    var x = data['regression_data'][0][0]
-    var y = data['line_best_fit']['m']*data['regression_data'][0][0]+data['line_best_fit']['b']
+    var x = genres['regression_data'][0][0]
+    var y = genres['line_best_fit']['m']*genres['regression_data'][0][0]+genres['line_best_fit']['b']
 
     var regression_line = {
       x: [0, x],
       y: [0, y],
+      name: 'Correlation',
       mode: 'lines'
     };
     var data = [points, regression_line];
 
     var layout = {
-      title:'Genre Listens V. Likes in Genre',
+      title:'Genres',
       height: 400,
       width: 480
     };
-    console.log(data);
     Plotly.newPlot('myDiv', data, layout);
+    $.each(genres['top_genres'], function(index, item){
+      $("#genre-list").append('<li>'+item+'</li>')
+    });
   });
   
 
