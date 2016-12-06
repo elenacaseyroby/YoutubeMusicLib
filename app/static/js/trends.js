@@ -1,9 +1,3 @@
-//look at input formats for Plotly.plot() and try to figure out why it isn't accepting the dates I'm inputting
-$(function() {
-
-  
-});
-
 $(function(){
   //fill listens over time graph
   var listens = $.ajax({
@@ -11,28 +5,6 @@ $(function(){
     , url: '/getlistensbydate'
     ,dataType: 'json'
   }).done(function(listens){
-    var points = {
-      x: [],
-      y: [],
-      type: 'scatter'
-    };
-    $.each(listens, function(index, item){
-      points.x.push(item['Week']); //make model return data in the same format for scatter as line plots. reduce confusion.
-      points.y.push(item['Listens']);
-    });
-    var data = [points];
-    var layout = {
-        title: 'Listens By Week',
-        xaxis: {
-            rangeslider: {}
-        },
-        yaxis: {
-            fixedrange: true
-        },
-        height: 400,
-        width: 1000
-    };
-    Plotly.plot('listens-by-week-graph', data, layout);
     start_date = new Date(listens[0]['Week']).getTime();
     $( "#slider-range" ).slider({
       range: true,
@@ -44,10 +16,7 @@ $(function(){
         $( "#date-range-text" ).val( (new Date(ui.values[ 0 ] *1000).toDateString() ) + " - " + (new Date(ui.values[ 1 ] *1000)).toDateString() );
       }
     });
-    $( "#date-range-text" ).val( (new Date($( "#slider-range" ).slider( "values", 0 )*1000).toDateString()) +
-      " - " + (new Date($( "#slider-range" ).slider( "values", 1 )*1000)).toDateString());
-    
-    
+    plotListensByWeek();
   });
   //fill scatter plot
   var data = $.ajax({//can add morning, afternoon, night later
@@ -98,6 +67,38 @@ $(function(){
   
 
 });
+
+function plotListensByWeek(start_date = null, end_date = null){
+//fill listens over time graph
+  var listens = $.ajax({
+    type: 'GET'
+    , url: '/getlistensbydate'
+    ,dataType: 'json'
+  }).done(function(listens){
+    var points = {
+      x: [],
+      y: [],
+      type: 'scatter'
+    };
+    $.each(listens, function(index, item){
+      points.x.push(item['Week']); //make model return data in the same format for scatter as line plots. reduce confusion.
+      points.y.push(item['Listens']);
+    });
+    var data = [points];
+    var layout = {
+        title: 'Listens By Week',
+        xaxis: {
+            rangeslider: {}
+        },
+        yaxis: {
+            fixedrange: true
+        },
+        height: 400,
+        width: 1000
+    };
+    Plotly.plot('listens-by-week-graph', data, layout);
+  });
+}
 
 
 
