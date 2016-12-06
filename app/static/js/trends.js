@@ -16,8 +16,12 @@ $(function(){
         $( "#date-range-text" ).val( (new Date(ui.values[ 0 ] *1000).toDateString() ) + " - " + (new Date(ui.values[ 1 ] *1000)).toDateString() );
       }
     });
-    plotListensByWeek();
+    listensByWeekChart();
+    genresScatterPlot();
   });
+});
+
+function genresScatterPlot(start_date = null, end_date = null){
   //fill scatter plot
   var data = $.ajax({//can add morning, afternoon, night later
     type: 'GET'
@@ -62,13 +66,9 @@ $(function(){
       $("#genre-list").append('<li>'+item+'</li>')
     });
   });
+}
 
-  //could I do w selectors?
-  
-
-});
-
-function plotListensByWeek(start_date = null, end_date = null){
+function listensByWeekChart(start_date = null, end_date = null){
 //fill listens over time graph
   var listens = $.ajax({
     type: 'GET'
@@ -87,12 +87,6 @@ function plotListensByWeek(start_date = null, end_date = null){
     var data = [points];
     var layout = {
         title: 'Listens By Week',
-        xaxis: {
-            rangeslider: {}
-        },
-        yaxis: {
-            fixedrange: true
-        },
         height: 400,
         width: 1000
     };
