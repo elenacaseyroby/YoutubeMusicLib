@@ -78,10 +78,10 @@ def trends():
     return render_template('trends.html')
   return redirect(url_for('login'))
 
-@app.route('/getchartdatabytime')
-def getchartdatabytime():
+@app.route('/getgenredata')
+def getgetgenredata():
   
-  data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_time = request.args.get('start_time'), end_time = request.args.get('end_time'))
+  data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
   if len(data_by_likes['regression_data']) > 0:
     regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
     least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
@@ -97,7 +97,7 @@ def getchartdatabytime():
 
 @app.route('/getlistensbydate')
 def getlistensbydate():
-  data = viewsModel.countlistensbyweek(user_id = session['session_user_id'])
+  data = viewsModel.countlistensbyweek(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
   return jsonify(data)
 
 
