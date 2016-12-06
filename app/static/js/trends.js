@@ -5,15 +5,22 @@ $(function(){
     , url: '/getlistensbydate'
     ,dataType: 'json'
   }).done(function(listens){
-    start_date = new Date(listens[0]['Week']).getTime();
+
+    var start_date = new Date(listens[0]['Week']).getTime();
     //var min = start_date/1000;
     //var max = new Date().getTime()/1000;
+    var last_month = new Date()
+    last_month.setMonth(last_month.getMonth() - 1);
+    last_month = last_month.getTime();
+    if (start_date > last_month){
+      start_date = last_month;
+    }
     $( "#slider-range" ).slider({
       range: true,
       min: start_date/1000,
       max: new Date().getTime()/1000,
       step: 86400,
-      values: [ start_date/1000, new Date().getTime() / 1000 ],
+      values: [ last_month/1000, new Date().getTime() / 1000 ],
       slide: function(event,ui) {
         $( "#date-range-text" ).val( (new Date(ui.values[ 0 ] *1000).toDateString() ) + " - " + (new Date(ui.values[ 1 ] *1000)).toDateString() );  
       },
