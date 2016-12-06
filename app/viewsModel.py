@@ -256,11 +256,13 @@ def getgenredatalinearregression(user_id, start_date, end_date, return_top_n_gen
   top_genres = []
   sql = text("""SELECT genres.id
   , genres.name
+  , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = 4 AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 0) AS num_vids_listened
   , (SELECT COUNT(*) FROM listens JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id WHERE listens.listened_to_end = 0 AND listens.user_id = """+str(user_id)+""" AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND vids_genres.genre_id = genres.id) AS plays_per_genre 
-  , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 1) AS num_vids_relistened
+  , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 2) AS num_vids_relistened
   ,((SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND listened_to_end = 0) > 1)/(SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND listened_to_end = 0) > 0))*100 AS percentage_vids_relistened
   FROM genres
-  ORDER BY plays_per_genre DESC;""");
+  ORDER BY num_vids_listened DESC;""");
+  print(sql);
 
   results = models.engine.execute(sql)
   rows = results.fetchall()
@@ -268,7 +270,7 @@ def getgenredatalinearregression(user_id, start_date, end_date, return_top_n_gen
   for row in rows:
       if i < return_top_n_genres:
         top_genres.append(row[1])
-      track = (row[2],row[3])
+      track = (row[2],row[4])
       regression_data.append(track)
       i = i + 1;
 

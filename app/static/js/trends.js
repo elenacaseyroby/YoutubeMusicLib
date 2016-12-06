@@ -67,11 +67,19 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
     //find start and end points of regression line
     var x = genres['regression_data'][0][0]
     var y = genres['line_best_fit']['m']*genres['regression_data'][0][0]+genres['line_best_fit']['b']
-
+    correlation_coefficient = Math.abs(genres['line_best_fit']['m']);
+    if(correlation_coefficient >= .7){
+      strength = " (Strong)";
+    }else if(correlation_coefficient<.7 && correlation_coefficient>.3){
+      strength = " (Moderate)";
+    }else{
+      strength = " (Weak)";
+    }
+    console.log(correlation_coefficient);
     var regression_line = {
       x: [0, x],
       y: [0, y],
-      name: 'Correlation',
+      name: 'Correlation'+strength,
       mode: 'lines'
     };
     var data = [points, regression_line];
