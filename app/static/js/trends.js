@@ -1,4 +1,8 @@
 //look at input formats for Plotly.plot() and try to figure out why it isn't accepting the dates I'm inputting
+$(function() {
+
+  
+});
 
 $(function(){
   //fill listens over time graph
@@ -29,6 +33,21 @@ $(function(){
         width: 1000
     };
     Plotly.plot('listens-by-week-graph', data, layout);
+    start_date = new Date(listens[0]['Week']).getTime();
+    $( "#slider-range" ).slider({
+      range: true,
+      min: start_date / 1000,
+      max: new Date().getTime() / 1000,
+      step: 86400,
+      values: [ start_date /1000, new Date().getTime() / 1000 ],
+      slide: function( event, ui ) {
+        $( "#date-range-text" ).val( (new Date(ui.values[ 0 ] *1000).toDateString() ) + " - " + (new Date(ui.values[ 1 ] *1000)).toDateString() );
+      }
+    });
+    $( "#date-range-text" ).val( (new Date($( "#slider-range" ).slider( "values", 0 )*1000).toDateString()) +
+      " - " + (new Date($( "#slider-range" ).slider( "values", 1 )*1000)).toDateString());
+    
+    
   });
   //fill scatter plot
   var data = $.ajax({//can add morning, afternoon, night later
@@ -69,13 +88,14 @@ $(function(){
       height: 400,
       width: 480
     };
-    Plotly.newPlot('myDiv', data, layout);
+    Plotly.newPlot('genre-chart', data, layout);
     $.each(genres['top_genres'], function(index, item){
       $("#genre-list").append('<li>'+item+'</li>')
     });
   });
-  
 
+  //could I do w selectors?
+  
 
 });
 

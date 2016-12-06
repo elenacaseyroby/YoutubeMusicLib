@@ -3,3 +3,16 @@
 	width: 100%;
 
 }
+#slider-range > div{
+	background: rgb(33,102,172);
+}
+#gray-container {
+    border-radius: 25px;
+    background: rgb(245,246,246);
+    padding: 20px; 
+}
+#date-range-text{
+	border: 0; 
+	color: rgb(255, 127, 14); 
+	font-weight: bold;
+}
