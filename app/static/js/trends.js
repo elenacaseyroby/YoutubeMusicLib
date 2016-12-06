@@ -69,7 +69,10 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
     var x = genres['regression_data'][0][0]
     var y = genres['line_best_fit']['m']*genres['regression_data'][0][0]+genres['line_best_fit']['b']
     correlation_coefficient = Math.abs(genres['line_best_fit']['m']);
-    if(correlation_coefficient >= .7){
+    if(correlation_coefficient==0){
+      overview_strength = "For this date range, <b>genre is a poor indicator</b> of whether you will like a video."
+    }
+    else if(correlation_coefficient >= .7){
       strength = " (Strong)";
       overview_strength = "For this date range, <b>genre is a great indicator</b> of whether you will like a video."
     }else if(correlation_coefficient<.7 && correlation_coefficient>.3){
@@ -79,6 +82,7 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
       strength = " (Weak)";
       overview_strength = "For this date range, <b>genre is an ok indicator</b> of whether you will like a video."
     }
+
     var regression_line = {
       x: [0, x],
       y: [0, y],
