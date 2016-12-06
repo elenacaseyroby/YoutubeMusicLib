@@ -43,6 +43,7 @@ $(function(){
 
 function genresScatterPlot(start_date = null, end_date = null, redraw = false){
   //fill scatter plot
+  var correlation_coefficient = 0;
   var data = $.ajax({//can add morning, afternoon, night later
     type: 'GET'
     ,url: '/getgenredata'
@@ -70,12 +71,14 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
     correlation_coefficient = Math.abs(genres['line_best_fit']['m']);
     if(correlation_coefficient >= .7){
       strength = " (Strong)";
+      overview_strength = "For this date range, <b>genre is a great indicator</b> of whether you will like a video."
     }else if(correlation_coefficient<.7 && correlation_coefficient>.3){
       strength = " (Moderate)";
+      overview_strength = "For this date range, <b>genre is a good indicator</b> of whether you will like a video."
     }else{
       strength = " (Weak)";
+      overview_strength = "For this date range, <b>genre is an ok indicator</b> of whether you will like a video."
     }
-    console.log(correlation_coefficient);
     var regression_line = {
       x: [0, x],
       y: [0, y],
@@ -96,14 +99,24 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
       Plotly.newPlot('genre-chart', data, layout);
     }
     $("#genre-list").empty();
+    $("#genre-list-overview").empty();
+    $("#genre-list-overview").append("<b>Your most listened genres for this date range are:</b> ");
     $.each(genres['top_genres'], function(index, item){
       $("#genre-list").append('<li>'+item+'</li>')
+      if(index>0){
+        $("#genre-list-overview").append(", ");
+      }
+      $("#genre-list-overview").append(item);
+
     });
-  });
+    $("#genre-correlation").empty();
+    $("#genre-correlation").append(overview_strength);
+  }); 
 }
 
 function listensByWeekChart(start_date = null, end_date = null, redraw = false){
 //fill listens over time graph
+  var total_listens = 0;
   var listens = $.ajax({
     type: 'GET'
     , url: '/getlistensbydate'
@@ -120,6 +133,7 @@ function listensByWeekChart(start_date = null, end_date = null, redraw = false){
     $.each(listens, function(index, item){
       points.x.push(item['Week']); //make model return data in the same format for scatter as line plots. reduce confusion.
       points.y.push(item['Listens']);
+      total_listens = item['Listens'] + total_listens;
     });
     var data = [points];
     var layout = {
@@ -133,6 +147,8 @@ function listensByWeekChart(start_date = null, end_date = null, redraw = false){
     }else{
       Plotly.plot('listens-by-week-graph', data, layout);
     }
+    $("#total-listens").empty();
+    $("#total-listens").append("<b>Total listens:</b> "+total_listens.toString());
   });
 }
 
