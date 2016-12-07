@@ -45,10 +45,11 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
   return result
 
 def getgenres():
-  sql = text("""SELECT *
-    FROM genres
-    ORDER BY name;
-    """);
+  sql = text("""SELECT genres.id, genres.name
+    FROM vids_genres 
+    JOIN genres ON vids_genres.genre_id = genres.id
+    GROUP BY vids_genres.genre_id
+    ORDER BY genres.name;""");
   results = models.engine.execute(sql)
   genres = []
   for result in results:
