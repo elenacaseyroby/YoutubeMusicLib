@@ -58,7 +58,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
   sql_select = ",videos.youtube_id"
 
   if search_artist:
-    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
+    artist = "AND artists.artist_name LIKE '%"+search_artist+"%'"
 
   if video_scope == "listens":
     sql_select = """,listens.youtube_id
