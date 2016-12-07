@@ -174,7 +174,21 @@ $(function(){
     search_end_date = $("#search_end_date").val();
     getRowData(video_scope = video_scope, search_artist = search_artist, search_start_date = search_start_date, search_end_date = search_end_date);
     getPlaylistTitlesAndRender();
-
+    var results = $.ajax({
+		type: "GET",
+	    url: '/getgenres',
+	    dataType: 'json'
+    }).done(function(results){
+    	//console.log(results);
+    	$.each(results, function(index, item){
+    		console.log(item);
+    		$("#genre-dropdown").append("<option value='"+item['id']+"'>"+item['name']+"</option>");
+    	});
+    	document.getElementById('genre-dropdown').id = 'insightList';
+    	$('#insightList').multiselect({
+		  enableClickableOptGroups: true
+		});
+    });
 });
 function getRowData(video_scope, search_artist=null, search_start_date=null, search_end_date=null){
 	//video_scope = "listens", "library", or "all"
@@ -394,6 +408,8 @@ $(document).on('dblclick', 'li', function() {
 	var youtube_id = this.id.replace("playlist-", "");
 	playVideo(youtube_id, current_playlist_tracks);
 });
+
+
 
 
 

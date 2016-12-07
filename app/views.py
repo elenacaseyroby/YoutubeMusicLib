@@ -100,6 +100,11 @@ def getlistensbydate():
   data = viewsModel.countlistensbyweek(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
   return jsonify(data)
 
+@app.route('/getgenres')
+def getgenres():
+  data = viewsModel.getgenres();
+  return jsonify(data)
+
 
 @app.route('/search-saved-videos', methods = ['GET'])
 def searchsavedvideos():
