@@ -256,30 +256,28 @@ def getgenredatalinearregression(user_id, start_date, end_date, return_top_n_gen
   top_genres = []
   sql = text("""SELECT genres.id
   , genres.name
-  , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = 4 AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 0) AS num_vids_listened
+  , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 0) AS num_vids_listened
   , (SELECT COUNT(*) FROM listens JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id WHERE listens.listened_to_end = 0 AND listens.user_id = """+str(user_id)+""" AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND vids_genres.genre_id = genres.id) AS plays_per_genre 
   , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 2) AS num_vids_relistened
   ,((SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND listened_to_end = 0) > 1)/(SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND listened_to_end = 0) > 0))*100 AS percentage_vids_relistened
   FROM genres
-  ORDER BY num_vids_listened DESC;""");
-  print(sql);
-
+  ORDER BY num_vids_listened DESC, genres.name ASC;""");
   results = models.engine.execute(sql)
   rows = results.fetchall()
   i = 0
   for row in rows:
-      if i < return_top_n_genres:
+      if i < return_top_n_genres and row[2]!=0:
         top_genres.append(row[1])
       track = (row[2],row[4])
       regression_data.append(track)
       i = i + 1;
-
   data = {'top_genres':top_genres, 'regression_data': regression_data}
 
   return data
 
 def countlistensbyweek(user_id, start_date = None, end_date = None):
   dates = ""
+  count_by_week = []
   if start_date and end_date:
     dates = " AND listens.time_of_listen >= '"+str(start_date)+"' AND listens.time_of_listen <= '"+str(end_date)+"' "
   sql = ("""SELECT *
@@ -289,28 +287,30 @@ def countlistensbyweek(user_id, start_date = None, end_date = None):
     ORDER BY time_of_listen""")
   results = models.engine.execute(sql)
   rows = results.fetchall()
-  sunday = datetime.datetime.strptime('2015-12-06 00:00:00', "%Y-%m-%d %H:%M:%S")
-  first_listen = rows[0][5]
-  difference = first_listen - sunday
-  difference = difference.days
-  days_past_sunday = difference%7
-  first_sunday = first_listen - datetime.timedelta(days = days_past_sunday)
-  first_sunday = first_sunday.replace(hour=00, minute=00, second=00)
-  start_week = first_sunday
-  end_week = start_week + datetime.timedelta(days = 7)
-  weekly_count = 0
-  count_by_week = []
-  for row in rows:
-    found_week = False
-    while(not found_week):
-      if start_week <= row[5] < end_week:
-        weekly_count = weekly_count + 1
-        found_week = True
-      else:
-        count_by_week.append({'Week':str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")), 'Listens':weekly_count})
-        start_week = end_week
-        end_week = start_week + datetime.timedelta(days = 7)
-        weekly_count = 0
+  if rows:
+    sunday = datetime.datetime.strptime('2015-12-06 00:00:00', "%Y-%m-%d %H:%M:%S")
+    first_listen = rows[0][5]
+    difference = first_listen - sunday
+    difference = difference.days
+    days_past_sunday = difference%7
+    first_sunday = first_listen - datetime.timedelta(days = days_past_sunday)
+    first_sunday = first_sunday.replace(hour=00, minute=00, second=00)
+    start_week = first_sunday
+    end_week = start_week + datetime.timedelta(days = 7)
+    weekly_count = 0
+    for row in rows:
+      found_week = False
+      while(not found_week):
+        if start_week <= row[5] < end_week:
+          weekly_count = weekly_count + 1
+          found_week = True
+        else:
+          count_by_week.append({'Week':str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")), 'Listens':weekly_count})
+          start_week = end_week
+          end_week = start_week + datetime.timedelta(days = 7)
+          weekly_count = 0
+    count_by_week.append({'Week':str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")), 'Listens':weekly_count})
+
   return count_by_week
 
 
