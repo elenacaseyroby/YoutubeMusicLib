@@ -3,13 +3,13 @@ from flask import render_template, flash, session, redirect, request, Flask, url
 from flask_oauthlib.client import OAuth
 from app import app, sql_session, login_manager, viewsClasses
 from app import models, viewsModel
-from .myfunctions import sortnumbers
+from .myfunctions import sortnumbers, getregressionline
 from json import loads
 from sqlalchemy import update, func
+import datetime, re
 #from urllib.request import Request, urlopen
 #from urllib.parse import unquote
 #from urllib.error import URLError
-import datetime, re
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
@@ -72,6 +72,35 @@ def savedvideos():
     return render_template('displayupdatedata.html', display_update_rows = videos, search_start_date = search_start_date, search_end_date = search_end_date, search_artist = search_artist, playlist_titles = playlist_titles)
   return redirect(url_for('login'))
 
+@app.route('/trends')
+def trends():
+  if 'google_token' in session:
+    return render_template('trends.html')
+  return redirect(url_for('login'))
+
+@app.route('/getgenredata')
+def getgetgenredata():
+  
+  data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
+  if len(data_by_likes['regression_data']) > 0:
+    regression_line_by_likes = getregressionline(data_by_likes['regression_data'])
+    least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
+      ,'top_genres': data_by_likes['top_genres']
+      , 'line_best_fit': {'m': regression_line_by_likes['m'], 'b': regression_line_by_likes['b']}
+    }
+  else:
+    least_squares_regression_data = { 'regression_data': data_by_likes['regression_data']
+      ,'top_genres': data_by_likes['top_genres']
+    }
+
+  return jsonify(least_squares_regression_data)
+
+@app.route('/getlistensbydate')
+def getlistensbydate():
+  data = viewsModel.countlistensbyweek(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
+  return jsonify(data)
+
+
 @app.route('/search-saved-videos', methods = ['GET'])
 def searchsavedvideos():
   if 'google_token' in session:
@@ -99,25 +128,6 @@ def searchsavedvideos():
     return redirect(url_for('login'))
   return "success"
 
-
-@app.route('/library')
-def library():
-  if 'google_token' in session:
-    user_id = session['session_user_id']
-    library = list()
-    playlist_titles = viewsModel.getplaylisttitles(user_id)
-    selected_playlist_id=None
-    search_artist = request.args.get("search_artist", "%")
-    if search_artist == "":
-        search_artist = "%"
-    library = viewsModel.getlibrary(user_id = user_id, search_artist = search_artist)
-    if not library:
-      return render_template('nolibrarymessage.html')
-    else:
-      if search_artist == "%":
-        search_artist = ""
-      return render_template('displayupdatedata.html', display_update_rows = library, search_artist = search_artist, islistens = "false", playlist_titles = playlist_titles)
-  return redirect(url_for('login'))
 
 @app.route('/login')
 def login():
