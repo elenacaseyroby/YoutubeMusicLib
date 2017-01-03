@@ -17,18 +17,6 @@ class DisplayUpdateRowObject:
     def __getitem__(self, index, play, library, music, playlist, title, artist,
                     album, release_date, youtube_id, artist_id, album_id):
         return self.index
-        return self.play
-        return self.library
-        return self.music
-        return self.playlist
-        return self.title
-        return self.artist
-        return self.album
-        return self.release_date
-        return self.youtube_id
-        return self.artist_id
-        return self.album_id
-
 
 class Playlist:
     def __init__(self, title, tracks):
@@ -37,9 +25,6 @@ class Playlist:
 
     def __getitem__(self, index, title, tracks):
         return self.index
-        return self.title
-        return self.tracks
-
 
 class PlaylistTrack:
     def __init__(self, youtube_id, title, artist, track_num):
@@ -50,7 +35,3 @@ class PlaylistTrack:
 
     def __getitem__(self, index, youtube_id, title, artist, track_num):
         return self.index
-        return self.youtube_id
-        return self.title
-        return self.artist
-        return self.track_num

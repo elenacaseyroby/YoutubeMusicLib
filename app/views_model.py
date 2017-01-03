@@ -3,10 +3,10 @@
 
 import datetime
 
-from sqlalchemy import func, text, update
+from sqlalchemy import text
 
-from app import models, sql_session, views_classes
-from flask import request, session
+from app import models, sql_session
+from flask import session
 
 
 def get_artists(artist_id=None):
@@ -29,24 +29,6 @@ def get_cities(select="*", artist_id=None):
     """ + where + ";")
     result = models.engine.execute(sql)
     return result
-
-
-#query not in use yet
-def get_genres(youtube_id):
-    sql = text("""SELECT
-genres.name
-,videos.youtube_title
-,videos.youtube_id
-,videos.title
-,artists.artist_name
-FROM videos
-JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
-JOIN genres ON vids_genres.genre_id = genres.id
-JOIN artists ON videos.artist_id = artists.id
-WHERE videos.youtube_id ='""" + youtube_id + "';")
-    result = models.engine.execute(sql)
-    return result
-
 
 #get listens data for listens page
 def get_video_data(user_id, video_scope, search_start_date, search_end_date,
@@ -95,8 +77,8 @@ def get_video_data(user_id, video_scope, search_start_date, search_end_date,
    , videos.track_num
    , artists.id as artist_id
    , albums.id as album_id
-   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """
-               + str(session['session_user_id']) + case_when_library + """
+   , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """ +
+   str(session['session_user_id']) + case_when_library + """
    """ + sql_select + """
    """ + sql_from + """
    JOIN albums ON videos.album_id = albums.id
@@ -139,28 +121,6 @@ def get_similar_artists_by_artist(artist_id):
     WHERE similar_artists.artist_id1 = """ + str(artist_id) + ";")
     result = models.engine.execute(sql)
     return result
-
-
-#function not used in code yet
-def get_similar_artists_by_video(youtube_id):
-    sql = text("""SELECT
-a1.artist_name
-FROM videos
-JOIN similar_artists s1 ON videos.artist_id = s1.artist_id1
-JOIN artists a1 ON s1.artist_id2 = a1.id
-WHERE videos.youtube_id = '""" + str(youtube_id) + """';""")
-    result1 = models.engine.execute(sql)
-
-    sql = text("""SELECT
-a2.artist_name
-FROM videos
-JOIN similar_artists s2 ON videos.artist_id = s2.artist_id2
-JOIN artists a2 ON s2.artist_id1 = a2.id
-WHERE videos.youtube_id = '""" + str(youtube_id) + """';""")
-    result2 = models.engine.execute(sql)
-
-    return "success"
-
 
 def update_album(album_name):
     #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id

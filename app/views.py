@@ -3,13 +3,10 @@ import datetime
 import re
 from json import loads
 
-from sqlalchemy import func, update
-
-from app import (app, login_manager, models, sql_session, views_classes,
-                 viewsModel)
-from flask import (Flask, flash, jsonify, redirect, render_template, request,
-                   session, url_for)
+from app import app, models, sql_session, viewsModel
+from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
+from sqlalchemy import func
 
 from .myfunctions import getregressionline, sortnumbers
 
@@ -51,8 +48,8 @@ def play_music():
 @app.route('/saved-videos', methods=['GET'])
 def saved_videos():
     if 'google_token' in session:
-        playlist_titles = viewsModel.getplaylisttitles(
-                session['session_user_id'])
+        playlist_titles = viewsModel.getplaylisttitles(session[
+            'session_user_id'])
         playlist_tracks = []
         selected_playlist_id = None
         if request.args.get("playlist_title"):
@@ -66,7 +63,7 @@ def saved_videos():
         #if those are empty set default dates
         now = datetime.datetime.now()
         today = now.strftime(
-            "%Y-%m-%d %H:%M:%S")  #format should be '2016-07-10 19:12:18'
+            "%Y-%m-%d %H:%M:%S")  # format should be '2016-07-10 19:12:18'
         oneweekago = datetime.date.today() - datetime.timedelta(days=7)
         oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
         if not request.args.get("search_start_date"):
@@ -114,8 +111,8 @@ def get_get_gen_re_data():
         start_date=request.args.get('start_date'),
         end_date=request.args.get('end_date'))
     if len(data_by_likes['regression_data']) > 0:
-        regression_line_by_likes = getregressionline(
-            data_by_likes['regression_data'])
+        regression_line_by_likes = getregressionline(data_by_likes[
+            'regression_data'])
         least_squares_regression_data = {
             'regression_data': data_by_likes['regression_data'],
             'top_genres': data_by_likes['top_genres'],
@@ -183,8 +180,8 @@ def login():
 @app.route('/logout')
 def revoke_token():
     if 'google_token' in session:
-        res = google.get('https://accounts.google.com/o/oauth2/revoke',
-                         data={'token': session['google_token'][0]})
+        google.get('https://accounts.google.com/o/oauth2/revoke',
+                   data={'token': session['google_token'][0]})
         session.pop('user_email', None)
         session.pop('google_token', None)
         return redirect('/')
@@ -294,8 +291,8 @@ def post_listens():
         if similar_artists:
             for artist in similar_artists:
                 similar_artists_list.append(artist[0].lower())
-        lastfm_similar_artists_list = loads(
-                request.form["similarartiststring"])
+        lastfm_similar_artists_list = loads(request.form[
+            "similarartiststring"])
         for lastfm_artist in lastfm_similar_artists_list:
             artist = lastfm_artist['name']
             match = lastfm_artist['match']
@@ -331,8 +328,6 @@ def post_genres():
 
 @app.route('/postartistinfo', methods=['POST'])
 def post_artist_info():
-    state_list = []
-    city_list = []
     sql_session.rollback()
 
     artist_in_db = sql_session.query(models.Artist).filter_by(
