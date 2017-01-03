@@ -5,7 +5,7 @@ from json import loads
 
 from sqlalchemy import func, update
 
-from app import (app, login_manager, models, sql_session, viewsClasses,
+from app import (app, login_manager, models, sql_session, views_classes,
                  viewsModel)
 from flask import (Flask, flash, jsonify, redirect, render_template, request,
                    session, url_for)
@@ -40,12 +40,12 @@ def index():
   return redirect(url_for('login'))
 
 @app.route('/play')
-def playMusic():
+def play_music():
   if 'google_token' in session:
     return render_template('play.html')
 
 @app.route('/saved-videos', methods = ['GET'])
-def savedvideos():
+def saved_videos():
   if 'google_token' in session:
     playlist_titles = viewsModel.getplaylisttitles(session['session_user_id'])
     playlist_tracks = []
@@ -85,7 +85,7 @@ def trends():
   return redirect(url_for('login'))
 
 @app.route('/getgenredata')
-def getgetgenredata():
+def get_get_gen_re_data():
 
   data_by_likes = viewsModel.getgenredatalinearregression(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
   if len(data_by_likes['regression_data']) > 0:
@@ -102,13 +102,13 @@ def getgetgenredata():
   return jsonify(least_squares_regression_data)
 
 @app.route('/getlistensbydate')
-def getlistensbydate():
+def get_listens_by_date():
   data = viewsModel.countlistensbyweek(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
   return jsonify(data)
 
 
 @app.route('/search-saved-videos', methods = ['GET'])
-def searchsavedvideos():
+def search_saved_videos():
   if 'google_token' in session:
     #search start and end dates if listens
     if request.args.get("video_scope") == "listens":
@@ -183,7 +183,7 @@ def get_access_token(token=None):
 
 # post listens from play page
 @app.route('/postlistens', methods=['POST'])
-def postlistens():
+def post_listens():
   if (request.form["channel_id"] == "") and (request.form["description"] == "") and (request.form["similarartiststring"] == "") and (request.form["album"] == "") and (request.form["title"] == "") and (request.form["artist"] == "") and (request.form["year"] == ""):
       new_listen = models.Listen(user_id=session['session_user_id'],
                 youtube_id=str(request.form["youtube_id"]),
@@ -264,7 +264,7 @@ def postlistens():
   return "success"
 
 @app.route('/postgenres', methods=['POST'])
-def postgenres():
+def post_genres():
   genres = loads(request.form['genres'])
   youtube_id = request.form['youtube_id']
   viewsModel.updategenres(youtube_id, genres)
@@ -272,7 +272,7 @@ def postgenres():
   return "success"
 
 @app.route('/postartistinfo', methods=['POST'])
-def postartistinfo():
+def post_artist_info():
   state_list = []
   city_list = []
   sql_session.rollback()
@@ -321,7 +321,7 @@ def postartistinfo():
 
 #update data from listens and library pages
 @app.route('/updatedata', methods = ['POST'])
-def updatedata():
+def update_data():
   album_id = 2
   artist_id = 1
   sql_session.rollback()

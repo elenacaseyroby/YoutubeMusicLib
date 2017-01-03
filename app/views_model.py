@@ -5,11 +5,11 @@ import datetime
 
 from sqlalchemy import func, text, update
 
-from app import models, sql_session, viewsClasses
+from app import models, sql_session, views_classes
 from flask import request, session
 
 
-def getartists(artist_id=None):
+def get_artists(artist_id=None):
   where = ""
   if artist_id:
     where = "WHERE artist_id = "+artist_id
@@ -19,7 +19,7 @@ def getartists(artist_id=None):
   result = models.engine.execute(sql)
   return result
 
-def getcities(select = "*", artist_id=None):
+def get_cities(select = "*", artist_id=None):
   where = ""
   if artist_id:
     where = "WHERE cities.artist_id = "+artist_id
@@ -30,7 +30,7 @@ def getcities(select = "*", artist_id=None):
   return result
 
 #query not in use yet
-def getgenres(youtube_id):
+def get_genres(youtube_id):
   sql = text("""SELECT
 genres.name
 ,videos.youtube_title
@@ -47,7 +47,7 @@ WHERE videos.youtube_id ='"""+youtube_id+"';")
 
 
 #get listens data for listens page
-def getvideodata(user_id, video_scope, search_start_date, search_end_date, search_artist):
+def get_video_data(user_id, video_scope, search_start_date, search_end_date, search_artist):
 
   sql_session.rollback()
   videos = list()
@@ -127,7 +127,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
 
   return videos
 
-def getsimilarartistsbyartist(artist_id):
+def get_similar_artists_by_artist(artist_id):
   sql = text("""SELECT artists.artist_name, artists.id
     FROM similar_artists
     JOIN artists on similar_artists.artist_id2 = artists.id
@@ -136,7 +136,7 @@ def getsimilarartistsbyartist(artist_id):
   return result
 
 #function not used in code yet
-def getsimilarartistsbyvideo(youtube_id):
+def get_similar_artists_by_video(youtube_id):
   sql = text("""SELECT
 a1.artist_name
 FROM videos
@@ -155,7 +155,7 @@ WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
 
   return "success"
 
-def updatealbum(album_name):
+def update_album(album_name):
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
   sql_session.rollback()
   album_by_name = sql_session.query(models.Album).filter_by(name = album_name).first()
@@ -172,7 +172,7 @@ def updatealbum(album_name):
 
   return album_id
 
-def updategenres(youtube_id, api_genres):
+def update_genres(youtube_id, api_genres):
   video_genres = [];
   sql = text("""SELECT genres.name
                 FROM genres
@@ -197,7 +197,7 @@ def updategenres(youtube_id, api_genres):
   return "success";
 
 
-def updatevideoartist(artist_artist_name):
+def update_video_artist(artist_artist_name):
   #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
   sql_session.rollback()
   artist_by_name = sql_session.query(models.Artist).filter_by(artist_name = artist_artist_name).first()
@@ -214,7 +214,7 @@ def updatevideoartist(artist_artist_name):
 
   return artist_id
 
-def getplaylisttitles(user_id):
+def get_playlist_titles(user_id):
   playlisttitles = []
   sql = text("""SELECT playlists.title, playlists.id
                 FROM playlists
@@ -228,7 +228,7 @@ def getplaylisttitles(user_id):
 
   return playlisttitles
 
-def getplaylisttracks(playlist_id):
+def get_playlist_tracks(playlist_id):
   playlist_tracks = []
   sql = text("""SELECT playlist_tracks.*
     , videos.title
@@ -251,7 +251,7 @@ def getplaylisttracks(playlist_id):
 
   return playlist_tracks
 
-def getgenredatalinearregression(user_id, start_date, end_date, return_top_n_genres = 10):
+def get_gen_re_data_linear_regression(user_id, start_date, end_date, return_top_n_genres = 10):
   regression_data = []
   data = []
   top_genres = []
@@ -276,7 +276,7 @@ def getgenredatalinearregression(user_id, start_date, end_date, return_top_n_gen
 
   return data
 
-def countlistensbyweek(user_id, start_date = None, end_date = None):
+def count_listens_by_weekatew(user_id, start_date = None, end_date = None):
   dates = ""
   count_by_week = []
   if start_date and end_date:

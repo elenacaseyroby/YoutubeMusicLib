@@ -1,6 +1,6 @@
-def sortnumbers(num_list):
+def sort_numbers(num_list):
 
-    class sorted_numbers:
+    class SortedNumbers:
       def __init__(self, low=None, average=None, high=None):
           self.low = low
           self.average = average
@@ -9,10 +9,10 @@ def sortnumbers(num_list):
       def __getitem__ (self, low, average, high):
           return self.index
           return self.low
-          return self.average 
-          return self.high 
+          return self.average
+          return self.high
 
-    sortednum = sorted_numbers  
+    sortednum = sorted_numbers
     total = 0;
     i = 0
     sortednum.low = 100^(10000000000000000)
@@ -31,7 +31,7 @@ def sortnumbers(num_list):
 
     return sortednum;
 
-def getregressionline(array_of_points):
+def get_regression_line(array_of_points):
   if array_of_points[0][0] == 0 and array_of_points[0][1] == 0:
     regression_line = {'m':0, 'b':0}
     return regression_line
@@ -48,7 +48,7 @@ def getregressionline(array_of_points):
         sumy = sumy + point[1]
         sumxsquared = sumxsquared + point[0]*point[0]
         sumxy = sumxy + point[0]*point[1]
-    
+
     m_top = float(sumxy - (sumy*(sumx/n)))
     m_bottom = float(sumxsquared - (sumx*(sumx/n)))
     if(m_bottom == 0 and m_top == 0):
@@ -65,6 +65,6 @@ def getregressionline(array_of_points):
     regression_line = {'m':m, 'b':b}
     return regression_line
 
-    
+
 
 
