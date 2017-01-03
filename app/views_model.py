@@ -277,7 +277,7 @@ def get_gen_re_data_linear_regression(user_id,
     return data
 
 
-def count_listens_by_weekatew(user_id, start_date=None, end_date=None):
+def count_listens_by_week(user_id, start_date=None, end_date=None):
     dates = ""
     count_by_week = []
     if start_date and end_date:

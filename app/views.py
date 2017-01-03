@@ -3,12 +3,18 @@ import datetime
 import re
 from json import loads
 
-from app import app, models, sql_session, viewsModel
+from app import app, models, sql_session
+from app.views_model import get_playlist_titles as model_get_playlist_titles
+from app.views_model import get_playlist_tracks as model_get_playlist_tracks
+from app.views_model import (count_listens_by_week, get_artists, get_cities,
+                             get_gen_re_data_linear_regression,
+                             get_similar_artists_by_artist, get_video_data,
+                             update_album, update_genres, update_video_artist)
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
 
-from .myfunctions import getregressionline, sortnumbers
+from .myfunctions import get_regression_line, sort_numbers
 
 #from urllib.request import Request, urlopen
 #from urllib.parse import unquote
@@ -48,17 +54,7 @@ def play_music():
 @app.route('/saved-videos', methods=['GET'])
 def saved_videos():
     if 'google_token' in session:
-        playlist_titles = viewsModel.getplaylisttitles(session[
-            'session_user_id'])
-        playlist_tracks = []
-        selected_playlist_id = None
-        if request.args.get("playlist_title"):
-            playlist = sql_session.query(models.Playlist).filter_by(
-                user_id=session['session_user_id'],
-                title=request.args.get("playlist_title")).first()
-            selected_playlist_id = playlist.id
-            playlist_tracks = viewsModel.getplaylisttracks(
-                selected_playlist_id)
+        playlist_titles = get_playlist_titles(session['session_user_id'])
         #set dates from form submission
         #if those are empty set default dates
         now = datetime.datetime.now()
@@ -78,7 +74,7 @@ def saved_videos():
         if search_artist == "":
             search_artist = "%"
 
-        videos = viewsModel.getvideodata(
+        videos = get_video_data(
             user_id=session['session_user_id'],
             video_scope="listens",
             search_start_date=search_start_date,
@@ -106,12 +102,12 @@ def trends():
 @app.route('/getgenredata')
 def get_get_gen_re_data():
 
-    data_by_likes = viewsModel.getgenredatalinearregression(
+    data_by_likes = get_gen_re_data_linear_regression(
         user_id=session['session_user_id'],
         start_date=request.args.get('start_date'),
         end_date=request.args.get('end_date'))
     if len(data_by_likes['regression_data']) > 0:
-        regression_line_by_likes = getregressionline(data_by_likes[
+        regression_line_by_likes = get_regression_line(data_by_likes[
             'regression_data'])
         least_squares_regression_data = {
             'regression_data': data_by_likes['regression_data'],
@@ -132,7 +128,7 @@ def get_get_gen_re_data():
 
 @app.route('/getlistensbydate')
 def get_listens_by_date():
-    data = viewsModel.countlistensbyweek(
+    data = count_listens_by_week(
         user_id=session['session_user_id'],
         start_date=request.args.get('start_date'),
         end_date=request.args.get('end_date'))
@@ -158,7 +154,7 @@ def search_saved_videos():
 
         video_scope = request.args.get("video_scope")
 
-        data = viewsModel.getvideodata(
+        data = get_video_data(
             user_id=session['session_user_id'],
             video_scope=video_scope,
             search_start_date=search_start_date,
@@ -240,7 +236,7 @@ def post_listens():
     else:
         #add videos and listens
         if request.form["album"] != "undefined":
-            album_id = viewsModel.updatealbum(request.form["album"])
+            album_id = update_album(request.form["album"])
         else:
             album_id = 2
         if request.form["year"] == "1900-01-01":
@@ -252,7 +248,7 @@ def post_listens():
         else:
             track_num = None
 
-        artist_id = viewsModel.updatevideoartist(str(request.form["artist"]))
+        artist_id = update_video_artist(str(request.form["artist"]))
         sql_session.rollback()
         video_in_db = sql_session.query(models.Video).filter_by(
             youtube_id=request.form["youtube_id"]).first()
@@ -281,13 +277,13 @@ def post_listens():
         lastfm_similar_artists_list = []
         similar_artists_list = []
         #artist_table_list is a full list of artists in our db
-        artists_table = viewsModel.getartists()
+        artists_table = get_artists()
         artist_table_list = []
         for artist in artists_table:
             artist_table_list.append(artist[5].lower())
         #similar_artists_list is a full list of artists listed as similar to
         #currently playing artist in our db
-        similar_artists = viewsModel.getsimilarartistsbyartist(artist_id)
+        similar_artists = get_similar_artists_by_artist(artist_id)
         if similar_artists:
             for artist in similar_artists:
                 similar_artists_list.append(artist[0].lower())
@@ -321,7 +317,7 @@ def post_listens():
 def post_genres():
     genres = loads(request.form['genres'])
     youtube_id = request.form['youtube_id']
-    viewsModel.updategenres(youtube_id, genres)
+    update_genres(youtube_id, genres)
 
     return "success"
 
@@ -347,7 +343,7 @@ def post_artist_info():
                             mentionedyears.append(int(date))
 
                     if len(mentionedyears) > 0:
-                        years = sortnumbers(mentionedyears)
+                        years = sort_numbers(mentionedyears)
                         if years.low and years.high:
                             artist = sql_session.query(
                                 models.Artist).filter_by(
@@ -364,8 +360,7 @@ def post_artist_info():
 
             #if artist doesn't have city, store city
             if artist_in_db.city_id == 2:
-                cities_results = viewsModel.getCities(
-                    select=" id, city_or_state")
+                cities_results = get_cities(select=" id, city_or_state")
                 for city in cities_results:
                     if str(city.city_or_state) in bio:
                         sql_session.rollback()
@@ -385,12 +380,10 @@ def update_data():
     album_id = 2
     artist_id = 1
     sql_session.rollback()
-    artist_by_name = sql_session.query(models.Artist).filter_by(
-        artist_name=request.form["artist"]).first()
     album_by_name = sql_session.query(models.Album).filter_by(
         name=request.form["album"]).first()
 
-    artist_id = viewsModel.updatevideoartist(request.form["artist"])
+    artist_id = update_video_artist(request.form["artist"])
 
     sql_session.rollback()
     if album_by_name:
@@ -399,7 +392,7 @@ def update_data():
         sql_session.rollback()
         new_album = models.Album(
             name=request.form["album"]
-        )  #edit so it only adds vid info if it doesn't already exist
+        )  # edit so it only adds vid info if it doesn't already exist
         sql_session.add(new_album)
         sql_session.commit()
         new_album_id = sql_session.query(models.Album).filter_by(
@@ -438,7 +431,7 @@ def update_data():
 @app.route('/get-playlist-titles', methods=['GET'])
 def get_playlist_titles():
     user_id = session['session_user_id']
-    playlist_titles = viewsModel.getplaylisttitles(user_id)
+    playlist_titles = model_get_playlist_titles(user_id)
     return jsonify(playlist_titles)
 
 
@@ -452,7 +445,7 @@ def get_playlist_tracks():
             user_id=user_id, title=playlist_title).first()
         if playlist:
             selected_playlist_id = playlist.id
-            playlist_tracks = viewsModel.getplaylisttracks(
+            playlist_tracks = model_get_playlist_tracks(
                 playlist_id=selected_playlist_id)
     return jsonify(playlist_tracks)
 
@@ -499,7 +492,7 @@ def postplay():
                         playlist_id=playlist_in_db.id,
                         youtube_id=track,
                         track_num=track_num
-                    )  #edit so it only adds vid info if it doesn't already exist
+                    )  # edit so it only adds vid info if it doesn't already exist
                     sql_session.add(new_track)
                     sql_session.commit()
                 #post track.youtube_id & track_num to db
@@ -513,7 +506,7 @@ def postplay():
             sql_session.rollback()
             new_playlist = models.Playlist(
                 user_id=user_id, title=str(title)
-            )  #edit so it only adds vid info if it doesn't already exist
+            )  # edit so it only adds vid info if it doesn't already exist
             sql_session.add(new_playlist)
             sql_session.commit()
             new_playlist_id = sql_session.query(models.Playlist).filter_by(
@@ -524,7 +517,7 @@ def postplay():
                     playlist_id=new_playlist_id.id,
                     youtube_id=track,
                     track_num=track_num
-                )  #edit so it only adds vid info if it doesn't already exist
+                )  # edit so it only adds vid info if it doesn't already exist
                 sql_session.add(new_track)
                 sql_session.commit()
                 track_num = track_num + 1
