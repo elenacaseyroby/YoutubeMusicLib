@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- mode: python -*-
 
-from app import models, sql_session
-from app import viewsClasses
-from sqlalchemy import text, update, func
-from flask import session, request
 import datetime
+
+from sqlalchemy import func, text, update
+
+from app import models, sql_session, viewsClasses
+from flask import request, session
 
 
 def getartists(artist_id=None):
@@ -30,7 +31,7 @@ def getcities(select = "*", artist_id=None):
 
 #query not in use yet
 def getgenres(youtube_id):
-  sql = text("""SELECT 
+  sql = text("""SELECT
 genres.name
 ,videos.youtube_title
 ,videos.youtube_id
@@ -70,7 +71,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
    AND listens.time_of_listen > '"""+str(start_date)+"""'
    AND listens.time_of_listen < '"""+str(end_date)+"""'
    AND listens.listened_to_end != 1 """
-    order = """GROUP BY listens.id 
+    order = """GROUP BY listens.id
    ORDER BY listens.time_of_listen DESC"""
     case_when_library = " AND saved_vids.youtube_id = listens.youtube_id ) > 0 THEN 1 ELSE 0 END AS library"
   elif video_scope == "library":
@@ -80,7 +81,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
   elif video_scope == "all":
     sql_from = "FROM videos"
     scope = "WHERE videos.youtube_id is not null"
-    
+
 
   sql = text("""SELECT videos.youtube_title
    , videos.title
@@ -104,7 +105,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
    LIMIT 1500;""")
 
   results = models.engine.execute(sql)
-  
+
   for result in results:
       if (video_scope == "listens"):
         index = result[13].strftime('%a %I:%M %p')
@@ -124,7 +125,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
 
       videos.append(video)
 
-  return videos 
+  return videos
 
 def getsimilarartistsbyartist(artist_id):
   sql = text("""SELECT artists.artist_name, artists.id
@@ -136,7 +137,7 @@ def getsimilarartistsbyartist(artist_id):
 
 #function not used in code yet
 def getsimilarartistsbyvideo(youtube_id):
-  sql = text("""SELECT 
+  sql = text("""SELECT
 a1.artist_name
 FROM videos
 JOIN similar_artists s1 ON videos.artist_id = s1.artist_id1
@@ -144,7 +145,7 @@ JOIN artists a1 ON s1.artist_id2 = a1.id
 WHERE videos.youtube_id = '"""+str(youtube_id)+"""';""")
   result1 = models.engine.execute(sql)
 
-  sql = text("""SELECT 
+  sql = text("""SELECT
 a2.artist_name
 FROM videos
 JOIN similar_artists s2 ON videos.artist_id = s2.artist_id2
@@ -221,10 +222,10 @@ def getplaylisttitles(user_id):
   results = models.engine.execute(sql)
   rows = results.fetchall()
   if len(rows) > 0:
-    for row in rows: 
+    for row in rows:
       playlist_title = row[0]
       playlisttitles.append(playlist_title)
-      
+
   return playlisttitles
 
 def getplaylisttracks(playlist_id):
@@ -257,7 +258,7 @@ def getgenredatalinearregression(user_id, start_date, end_date, return_top_n_gen
   sql = text("""SELECT genres.id
   , genres.name
   , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 0) AS num_vids_listened
-  , (SELECT COUNT(*) FROM listens JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id WHERE listens.listened_to_end = 0 AND listens.user_id = """+str(user_id)+""" AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND vids_genres.genre_id = genres.id) AS plays_per_genre 
+  , (SELECT COUNT(*) FROM listens JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id WHERE listens.listened_to_end = 0 AND listens.user_id = """+str(user_id)+""" AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND vids_genres.genre_id = genres.id) AS plays_per_genre
   , (SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listened_to_end = 0 AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""') > 2) AS num_vids_relistened
   ,((SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND listened_to_end = 0) > 1)/(SELECT COUNT(*) FROM videos JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id WHERE vids_genres.genre_id = genres.id AND (SELECT COUNT(*) FROM listens WHERE user_id = """+str(user_id)+""" AND youtube_id = videos.youtube_id AND listens.time_of_listen > '"""+start_date+"""' AND listens.time_of_listen < '"""+end_date+"""' AND listened_to_end = 0) > 0))*100 AS percentage_vids_relistened
   FROM genres
@@ -312,15 +313,4 @@ def countlistensbyweek(user_id, start_date = None, end_date = None):
     count_by_week.append({'Week':str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")), 'Listens':weekly_count})
 
   return count_by_week
-
-
-
-
-
-
-
-
-
-
-
 
