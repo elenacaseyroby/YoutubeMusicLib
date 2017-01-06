@@ -26,6 +26,10 @@ google = oauth.remote_app('google',
   consumer_key=GOOGLE_CLIENT_ID,
   consumer_secret=GOOGLE_CLIENT_SECRET)
 
+@app.route('/test')
+def test():
+  return render_template('test.html')
+
 @app.route('/')
 @app.route('/index')
 def index():
