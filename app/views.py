@@ -14,7 +14,7 @@ from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
 
-from .my_functions import get_regression_line, sort_numbers
+from .my_functions import get_regression_line
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
@@ -320,55 +320,38 @@ def post_genres():
 
 @app.route('/postartistinfo', methods=['POST'])
 def post_artist_info():
+    undefined = 2
     sql_session.rollback()
-
     artist_in_db = sql_session.query(models.Artist).filter_by(
         artist_name=request.form["artist"]).first()
-    if request.form["bio"]:
-        bio = request.form["bio"]
-        now = datetime.datetime.now()
-        thisyear = int(str(now.year))
-        mentionedyears = []
-        #if artist doesn't have year stored, store year
-        if artist_in_db:
-            if not artist_in_db.start_year:
-                potentialdates = re.findall('\d{4}', bio)
-                if potentialdates:
-                    for date in potentialdates:
-                        if int(date) > 1500 and int(date) <= thisyear:
-                            mentionedyears.append(int(date))
-
-                    if len(mentionedyears) > 0:
-                        years = sort_numbers(mentionedyears)
-                        if years.low and years.high:
-                            artist = sql_session.query(
-                                models.Artist).filter_by(
-                                    id=artist_in_db.id).one()
-                            if artist != []:
-                                artist.start_year = str(years.low) + '-01-01'
-                                #set end date if inactive for 10+ yr
-
-                                if thisyear - int(years.high) > 10:
-                                    artist.end_year = str(
-                                        years.high) + '-01-01'
-                                sql_session.add(artist)
-                                sql_session.commit()
-
-            #if artist doesn't have city, store city
-            if artist_in_db.city_id == 2:
-                cities_results = get_cities(select=" id, city_or_state")
-                for city in cities_results:
-                    if str(city.city_or_state) in bio:
-                        sql_session.rollback()
-                        artist = sql_session.query(models.Artist).filter_by(
-                            id=artist_in_db.id).one()
-                        if artist != []:
-                            artist.city_id = str(city.id)
-                            sql_session.add(artist)
-                            sql_session.commit()
-
-        return "success"
-
+    if artist_in_db:
+        if not artist_in_db.start_year:
+            if request.form["bio"]:
+                now = datetime.datetime.now()
+                thisyear = int(str(now.year))
+                mentioned_years = []
+                potential_dates = re.findall('\d{4}', request.form["bio"])
+                if potential_dates:
+                    for date in potential_dates:
+                        if int(date) > 1100 and int(date) <= thisyear:
+                            mentioned_years.append(int(date))
+                    if mentioned_years:
+                        mentioned_years = sorted(mentioned_years)
+                        first_year = mentioned_years[0]
+                        final_year = mentioned_years[len(mentioned_years)-1]
+                        artist_in_db.start_year = str(first_year) + '-01-01'
+                        #set end date if inactive for 10+ yr
+                        if thisyear - int(final_year) >= 10:
+                            artist_in_db.end_year = str(
+                                final_year) + '-01-01'
+        if artist_in_db.city_id == undefined:
+            cities_results = get_cities(select=" id, city_or_state")
+            for city in cities_results:
+                if city.city_or_state in request.form["bio"]:
+                    artist_in_db.city_id = city.id
+    if artist_in_db.start_year or artist_in_db.end_year or (artist_in_db.city_id != undefined):
+        sql_session.commit()
+    return "success"
 
 #update data from listens and library pages
 @app.route('/updatedata', methods=['POST'])

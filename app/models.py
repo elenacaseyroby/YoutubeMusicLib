@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import OperationalError
 import os
-""" DO NOT COMMIT CHANGES TO THIS FILE!! """
+
 try:
     engine
 except NameError:
