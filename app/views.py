@@ -51,25 +51,17 @@ def play():
 def saved_videos():
     if 'google_token' in session:
         playlist_titles = model_get_playlist_titles(session['session_user_id'])
-        #set dates from form submission
-        #if those are empty set default dates
-        now = datetime.datetime.now()
-        today = now.strftime(
-            "%Y-%m-%d %H:%M:%S")  # format should be '2016-07-10 19:12:18'
-        oneweekago = datetime.date.today() - datetime.timedelta(days=7)
-        oneweekago = oneweekago.strftime("%Y-%m-%d %H:%M:%S")
-        if not request.args.get("search_start_date"):
-            search_start_date = oneweekago
-        else:
+        if request.args.get("search_start_date"):
             search_start_date = request.args.get("search_start_date")
-        if not request.args.get("search_end_date"):
-            search_end_date = today
         else:
+            search_start_date = subtract_days_from_today(7)
+        if request.args.get("search_end_date"):
             search_end_date = request.args.get("search_end_date")
+        else:
+            search_end_date = subtract_days_from_today(0)
         search_artist = request.args.get("search_artist", "%")
         if search_artist == "":
             search_artist = "%"
-
         videos = get_video_data(
             user_id=session['session_user_id'],
             video_scope="listens",
@@ -134,22 +126,16 @@ def get_listens_by_date():
 @app.route('/search-saved-videos', methods=['GET'])
 def search_saved_videos():
     if 'google_token' in session:
-        #search start and end dates if listens
         if request.args.get("video_scope") == "listens":
             search_start_date = request.args.get("search_start_date")
             search_end_date = request.args.get("search_end_date")
         else:
             search_start_date = "1969-01-01"
             search_end_date = "3000-01-01"
-
-        #search artist
         search_artist = request.args.get("search_artist", "%")
-
         if search_artist == "":
             search_artist = "%"
-
         video_scope = request.args.get("video_scope")
-
         data = get_video_data(
             user_id=session['session_user_id'],
             video_scope=video_scope,
@@ -214,8 +200,6 @@ def authorized(resp):
 def get_access_token(token=None):
     return session.get('google_token')
 
-
-# post listens from play page
 @app.route('/postlistens', methods=['POST'])
 def post_listens():
     if (request.form["channel_id"] == "" and
@@ -230,7 +214,7 @@ def post_listens():
         sql_session.add(new_listen)
         sql_session.commit()
     else:
-        #add videos and listens
+        # Post Video
         if request.form["album"] != "undefined":
             album_id = update_album(request.form["album"])
         else:
@@ -243,7 +227,6 @@ def post_listens():
             track_num = 0
         else:
             track_num = None
-
         artist_id = update_video_artist(str(request.form["artist"]))
         sql_session.rollback()
         video_in_db = sql_session.query(models.Video).filter_by(
@@ -262,23 +245,20 @@ def post_listens():
                 music=1)
             sql_session.add(new_video)
             sql_session.commit()
-        #post listen
+        # Post Listen
         new_listen = models.Listen(
             user_id=session['session_user_id'],
             youtube_id=str(request.form["youtube_id"]),
             listened_to_end=request.form["listened_to_end"])
         sql_session.add(new_listen)
         sql_session.commit()
-        #store lastfm similar artists and match scores
+        # Post lastfm similar artists and match scores
         lastfm_similar_artists_list = []
         similar_artists_list = []
-        #artist_table_list is a full list of artists in our db
         artists_table = get_artists()
         artist_table_list = []
         for artist in artists_table:
             artist_table_list.append(artist[5].lower())
-        #similar_artists_list is a full list of artists listed as similar to
-        #currently playing artist in our db
         similar_artists = get_similar_artists_by_artist(artist_id)
         if similar_artists:
             for artist in similar_artists:
@@ -288,13 +268,13 @@ def post_listens():
         for lastfm_artist in lastfm_similar_artists_list:
             artist = lastfm_artist['name']
             match = lastfm_artist['match']
-            #add if similar artist not in artists table
+            # Post similar artist to artists table 
             if artist.lower() not in artist_table_list:
                 sql_session.rollback()
                 new_artist = models.Artist(artist_name=artist)
                 sql_session.add(new_artist)
                 sql_session.commit()
-            # add if lastfm similar artist isn't listed as similar artist in table
+            # Post if lastfm similar artist to similar_artists table
             if artist.lower() not in similar_artists_list:
                 lastfm_artist_in_db = sql_session.query(
                     models.Artist).filter_by(artist_name=artist).first()
@@ -305,7 +285,6 @@ def post_listens():
                     lastfm_match_score=match)
                 sql_session.add(new_similar_artist)
                 sql_session.commit()
-
     return "success"
 
 
@@ -314,7 +293,6 @@ def post_genres():
     genres = loads(request.form['genres'])
     youtube_id = request.form['youtube_id']
     update_genres(youtube_id, genres)
-
     return "success"
 
 
@@ -325,58 +303,56 @@ def post_artist_info():
     artist_in_db = sql_session.query(models.Artist).filter_by(
         artist_name=request.form["artist"]).first()
     if artist_in_db:
-        if not artist_in_db.start_year:
-            if request.form["bio"]:
+        if request.form["bio"]:
+            if not artist_in_db.start_year:
                 now = datetime.datetime.now()
-                thisyear = int(str(now.year))
-                mentioned_years = []
-                potential_dates = re.findall('\d{4}', request.form["bio"])
-                if potential_dates:
-                    for date in potential_dates:
-                        if int(date) > 1100 and int(date) <= thisyear:
-                            mentioned_years.append(int(date))
-                    if mentioned_years:
-                        mentioned_years = sorted(mentioned_years)
-                        first_year = mentioned_years[0]
-                        final_year = mentioned_years[len(mentioned_years)-1]
-                        artist_in_db.start_year = str(first_year) + '-01-01'
-                        #set end date if inactive for 10+ yr
-                        if thisyear - int(final_year) >= 10:
-                            artist_in_db.end_year = str(
-                                final_year) + '-01-01'
-        if artist_in_db.city_id == undefined:
-            cities_results = get_cities(select=" id, city_or_state")
-            for city in cities_results:
-                if city.city_or_state in request.form["bio"]:
-                    artist_in_db.city_id = city.id
-    if artist_in_db.start_year or artist_in_db.end_year or (artist_in_db.city_id != undefined):
+                this_year = int(str(now.year))
+                possible_years = re.findall('\d{4}', request.form["bio"])
+                confirmed_years = [year for year in possible_years 
+                    if int(year) > 1100 and int(year) <= this_year]
+                if confirmed_years:
+                    confirmed_years = sorted(confirmed_years)
+                    first_year = confirmed_years[0]
+                    final_year = confirmed_years[len(confirmed_years)-1]
+                    artist_in_db.start_year = str(first_year) + '-01-01'
+                    # Set end date if inactive for 10+ years
+                    if this_year - int(final_year) >= 10:
+                        artist_in_db.end_year = str(
+                            final_year) + '-01-01'
+            if artist_in_db.city_id == undefined:
+                cities_results = get_cities(select=" id, city_or_state")
+                for city in cities_results:
+                    if city.city_or_state in request.form["bio"]:
+                        artist_in_db.city_id = city.id
+    if (artist_in_db.start_year or 
+            artist_in_db.end_year or 
+            (artist_in_db.city_id != undefined)):
         sql_session.commit()
     return "success"
 
-#update data from listens and library pages
-@app.route('/updatedata', methods=['POST'])
-def update_data():
-    album_id = 2
-    artist_id = 1
+@app.route('/updatevideodata', methods=['POST'])
+def update_video_data():
+    album_id = 2 # Undefined
+    artist_id = 1 # Undefined
     sql_session.rollback()
     album_by_name = sql_session.query(models.Album).filter_by(
         name=request.form["album"]).first()
-
+    # Update artist
     artist_id = update_video_artist(request.form["artist"])
-
+    # Update album
     sql_session.rollback()
     if album_by_name:
         album_id = album_by_name.id
     else:
-        sql_session.rollback()
         new_album = models.Album(
             name=request.form["album"]
-        )  # edit so it only adds vid info if it doesn't already exist
+        )  
         sql_session.add(new_album)
         sql_session.commit()
         new_album_id = sql_session.query(models.Album).filter_by(
             name=request.form["album"]).first()
         album_id = int(new_album_id.id)
+    # Update video's album and artist values
     sql_session.rollback()
     video_update = sql_session.query(models.Video).filter_by(
         youtube_id=request.form["youtube_id"]).first()
@@ -385,7 +361,7 @@ def update_data():
     video_update.artist_id = int(artist_id)
     video_update.album_id = int(album_id)
     sql_session.commit()
-
+    # Update user library
     sql_session.rollback()
     saved_vids = sql_session.query(models.SavedVid).filter_by(
         youtube_id=request.form["youtube_id"],
@@ -471,10 +447,9 @@ def postplay():
                         playlist_id=playlist_in_db.id,
                         youtube_id=track,
                         track_num=track_num
-                    )  # edit so it only adds vid info if it doesn't already exist
+                    )  
                     sql_session.add(new_track)
                     sql_session.commit()
-                #post track.youtube_id & track_num to db
                 track_num = track_num + 1
             track_update = sql_session.query(models.PlaylistTracks).filter_by(
                 playlist_id=playlist_in_db.id).filter(
@@ -485,7 +460,7 @@ def postplay():
             sql_session.rollback()
             new_playlist = models.Playlist(
                 user_id=user_id, title=str(title)
-            )  # edit so it only adds vid info if it doesn't already exist
+            ) 
             sql_session.add(new_playlist)
             sql_session.commit()
             new_playlist_id = sql_session.query(models.Playlist).filter_by(
@@ -496,8 +471,19 @@ def postplay():
                     playlist_id=new_playlist_id.id,
                     youtube_id=track,
                     track_num=track_num
-                )  # edit so it only adds vid info if it doesn't already exist
+                )  
                 sql_session.add(new_track)
                 sql_session.commit()
                 track_num = track_num + 1
     return "success"
+
+
+def subtract_days_from_today(x=7):
+    now = datetime.datetime.now()
+    today = now.strftime("%Y-%m-%d %H:%M:%S")
+    if x > 0:
+        return_date = datetime.date.today() - datetime.timedelta(days=x)
+        return_date = return_date.strftime("%Y-%m-%d %H:%M:%S")
+        return return_date
+    else:
+        return today

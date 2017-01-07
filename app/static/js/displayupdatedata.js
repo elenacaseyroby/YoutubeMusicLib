@@ -41,7 +41,7 @@ $(function(){
 			if(dataupdated){
 				$.ajax({
 					type: "POST",
-				    url: '/updatedata',
+				    url: '/updatevideodata',
 				    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")
 				    , library: library_value
 				    , music: music_value
