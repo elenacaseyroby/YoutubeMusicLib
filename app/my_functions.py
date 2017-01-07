@@ -15,7 +15,6 @@ def get_regression_line(array_of_points):
                 sumy = sumy + point[1]
                 sumxsquared = sumxsquared + point[0] * point[0]
                 sumxy = sumxy + point[0] * point[1]
-
         m_top = float(sumxy - (sumy * (sumx / n)))
         m_bottom = float(sumxsquared - (sumx * (sumx / n)))
         if m_bottom == 0 and m_top == 0:
@@ -28,6 +27,6 @@ def get_regression_line(array_of_points):
             b = 0
         else:
             b = float(b_top / b_bottom)
-
+        # where y = m * x + b
         regression_line = {'m': m, 'b': b}
         return regression_line

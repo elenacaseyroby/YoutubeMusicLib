@@ -89,7 +89,6 @@ def trends():
 
 @app.route('/getgenredata')
 def get_get_genre_data():
-
     data_by_likes = get_genre_data_linear_regression(
         user_id=session['session_user_id'],
         start_date=request.args.get('start_date'),
