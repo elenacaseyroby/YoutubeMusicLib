@@ -7,18 +7,14 @@ from app import app, models, sql_session
 from app.views_model import get_playlist_titles as model_get_playlist_titles
 from app.views_model import get_playlist_tracks as model_get_playlist_tracks
 from app.views_model import (count_listens_by_week, get_artists, get_cities,
-                             get_gen_re_data_linear_regression,
+                             get_genre_data_linear_regression,
                              get_similar_artists_by_artist, get_video_data,
                              update_album, update_genres, update_video_artist)
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
 
-from .myfunctions import get_regression_line, sort_numbers
-
-#from urllib.request import Request, urlopen
-#from urllib.parse import unquote
-#from urllib.error import URLError
+from .my_functions import get_regression_line, sort_numbers
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
@@ -54,7 +50,7 @@ def play_music():
 @app.route('/saved-videos', methods=['GET'])
 def saved_videos():
     if 'google_token' in session:
-        playlist_titles = get_playlist_titles(session['session_user_id'])
+        playlist_titles = model_get_playlist_titles(session['session_user_id'])
         #set dates from form submission
         #if those are empty set default dates
         now = datetime.datetime.now()
@@ -100,9 +96,9 @@ def trends():
 
 
 @app.route('/getgenredata')
-def get_get_gen_re_data():
+def get_get_genre_data():
 
-    data_by_likes = get_gen_re_data_linear_regression(
+    data_by_likes = get_genre_data_linear_regression(
         user_id=session['session_user_id'],
         start_date=request.args.get('start_date'),
         end_date=request.args.get('end_date'))

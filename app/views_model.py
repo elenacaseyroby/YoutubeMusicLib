@@ -228,7 +228,7 @@ def get_playlist_tracks(playlist_id):
     return playlist_tracks
 
 
-def get_gen_re_data_linear_regression(user_id,
+def get_genre_data_linear_regression(user_id,
                                       start_date,
                                       end_date,
                                       return_top_n_genres=10):
