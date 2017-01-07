@@ -37,12 +37,12 @@ google = oauth.remote_app(
 @app.route('/index')
 def index():
     if 'google_token' in session:
-        return redirect(url_for('playMusic'))
+        return redirect(url_for('play'))
     return redirect(url_for('login'))
 
 
 @app.route('/play')
-def play_music():
+def play():
     if 'google_token' in session:
         return render_template('play.html')
 
