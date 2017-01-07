@@ -1,5 +1,4 @@
 $.getScript("static/js/playvideo.js", function(){
-	console.log("javascript loaded");
 });
 
 var current_playlist_tracks = [];
@@ -394,12 +393,3 @@ $(document).on('dblclick', 'li', function() {
 	var youtube_id = this.id.replace("playlist-", "");
 	playVideo(youtube_id, current_playlist_tracks);
 });
-
-
-
-
-
-
-
-
-

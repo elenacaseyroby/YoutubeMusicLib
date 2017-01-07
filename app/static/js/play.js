@@ -1,5 +1,4 @@
 $.getScript("static/js/lastfm.js", function(){
-	console.log("lastfm.js loaded");
 });
 
 function YoutubeVideo(id, title = "", channel_id = "", description = ""){

@@ -189,6 +189,3 @@ function convertSlidertoMySQLDate(ui_value, end = false){
   }
   return date;
 }
-
-
-
