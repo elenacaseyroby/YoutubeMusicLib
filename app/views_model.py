@@ -142,31 +142,6 @@ def update_album(album_name):
     return album_id
 
 
-def update_genres(youtube_id, api_genres):
-    video_genres = []
-    sql = text("""SELECT genres.name
-                FROM genres
-                JOIN vids_genres ON genres.id = vids_genres.genre_id
-                WHERE vids_genres.youtube_id = '""" + youtube_id + "';")
-    results = models.engine.execute(sql)
-    rows = results.fetchall()
-    if len(rows) > 0:
-        for row in rows:
-            video_genres.append(row[0])
-
-    for api_genre in api_genres:
-        sql_session.rollback()
-        is_api_genre_verified = sql_session.query(models.Genre).filter_by(
-            name=api_genre).first()
-
-        if is_api_genre_verified and not (api_genre in video_genres):
-            sql_session.rollback()
-            new_vids_genres = models.VidsGenres(
-                youtube_id=youtube_id, genre_id=is_api_genre_verified.id)
-            sql_session.add(new_vids_genres)
-            sql_session.commit()
-    return "success"
-
 
 def update_video_artist(artist_artist_name):
     #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
@@ -326,3 +301,46 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
         })
 
     return count_by_week
+
+# NEW FUNCTIONS
+
+# Genres
+def genre_in_database(genre):
+    genre = sql_session.query(models.Genre).filter_by(
+        name=genre).first()
+    if genre:
+        return genre
+    else:
+        return None
+
+# Videos
+def video_has_genre(youtube_id, genre):
+    video_genres = []
+    if youtube_id:
+        sql = text(
+            """SELECT genres.name
+            , genres.id
+            FROM genres
+            JOIN vids_genres ON genres.id = vids_genres.genre_id
+            WHERE vids_genres.youtube_id = '""" + youtube_id + """'
+            ORDER BY genres.name;""")
+    results = models.engine.execute(sql)
+    rows = results.fetchall()
+    if rows:
+        for row in rows:
+            video_genres.append(row[0])
+    if genre.lower() in video_genres:
+        return True
+    else:
+        return False
+
+def update_video_genres(youtube_id, new_genres):
+    for genre in new_genres:
+        genre = genre_in_database(genre)
+        if genre and not video_has_genre(youtube_id, genre.name):
+            sql_session.rollback()
+            new_video_genre = models.VidsGenres(
+                youtube_id=youtube_id, genre_id=genre.id)
+            sql_session.add(new_video_genre)
+            sql_session.commit()
+    return "success"

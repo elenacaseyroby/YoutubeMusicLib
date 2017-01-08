@@ -9,7 +9,7 @@ from app.views_model import get_playlist_tracks as model_get_playlist_tracks
 from app.views_model import (count_listens_by_week, get_artists, get_cities,
                              get_genre_data_linear_regression,
                              get_similar_artists_by_artist, get_video_data,
-                             update_album, update_genres, update_video_artist)
+                             update_album, update_video_genres, update_video_artist)
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
@@ -283,18 +283,19 @@ def post_listens():
                     artist_id2=lastfm_artist_in_db.id,
                     lastfm_match_score=match)
                 sql_session.add(new_similar_artist)
+
                 sql_session.commit()
     return "success"
 
-
-@app.route('/postgenres', methods=['POST'])
-def post_genres():
-    genres = loads(request.form['genres'])
-    youtube_id = request.form['youtube_id']
-    update_genres(youtube_id, genres)
-    return "success"
-
-
+@app.route('/videos', methods=['PUT'])
+def videos():
+    if request.method == 'PUT':
+        if 'genres' in request.form and 'youtube_id' in request.form:
+            genres = loads(request.form['genres']) 
+            youtube_id = request.form['youtube_id']
+            update_video_genres(youtube_id, genres)
+        return "success"
+        
 @app.route('/postartistinfo', methods=['POST'])
 def post_artist_info():
     undefined = 2

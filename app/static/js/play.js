@@ -240,17 +240,21 @@ function savePlay(event, end = false) {
 			
 			if (tags.length >0){
 				$.ajax({
-					type: "POST",
-			    	url: '/postgenres',
-			    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+					type: 'PUT',
+					dataType: 'json',
+			    	url: '/videos',
+			    	data: {youtube_id: youtube_id, 
+			    	    genres: JSON.stringify(tags)}
 			    });
 			   	
 			}else{
 				lastFMGetGenresByArtist(encodeURIComponent(artist), function(tags){
 					$.ajax({
-						type: "POST",
-				    	url: '/postgenres',
-				    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+						type: 'PUT',
+						dataType: 'json',
+				    	url: '/videos',
+				    	data: {youtube_id: youtube_id, 
+				    	    genres: JSON.stringify(tags)}
 				    });
 
 				});
@@ -262,21 +266,24 @@ function savePlay(event, end = false) {
 			
 			if (tags.lenth >0){
 				$.ajax({
-					type: "POST",
-			    	url: '/postgenres',
-			    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+					type: 'PUT',
+					dataType: 'json',
+			    	url: '/videos',
+			    	data: {youtube_id: youtube_id, 
+			    	    genres: JSON.stringify(tags)}
 			    });
 			    
 			}else{
 				lastFMGetGenresByArtist(encodeURIComponent(artist), function(tags){
 					$.ajax({
-						type: "POST",
-				    	url: '/postgenres',
-				    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+						type: 'PUT',
+						dataType: 'json',
+				    	url: '/videos',
+				    	data: {youtube_id: youtube_id, 
+				    	    genres: JSON.stringify(tags)}
+				    	
 				    });
-
 				});
-
 			}
 		});
 
