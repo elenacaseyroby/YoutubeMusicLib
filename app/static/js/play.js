@@ -138,10 +138,10 @@ function parseArtistTitleYear(youtubeTitle) {
     
     var years = trackInfo.title.match(/\d{4}/g);
 	if(years == null){
-		trackInfo.year="1900-01-01";
+		trackInfo.year="1100-01-01";
 	}else{
-		trackInfo.title = trackInfo.title.replace(years[0].toString(), '');
-		trackInfo.year = years[0].toString()+"-01-01";
+	trackInfo.title = trackInfo.title.replace(years[0].toString(), '');
+	trackInfo.year = years[0].toString()+"-01-01";
 	}
 	title_with_fullalbum = trackInfo.title;
 	trackInfo.title = trackInfo.title.replace(/full album/i, '');

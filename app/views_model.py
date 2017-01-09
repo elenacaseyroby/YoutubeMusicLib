@@ -7,7 +7,7 @@ import re
 from sqlalchemy import text
 
 from app import models, sql_session
-from flask import session
+from flask import session, jsonify
 
 
 def get_artists(artist_id=None):
@@ -67,7 +67,7 @@ def get_video_data(user_id, video_scope, search_start_date, search_end_date,
    , artists.id as artist_id
    , albums.id as album_id
    , CASE WHEN (SELECT COUNT(*) FROM saved_vids WHERE saved_vids.user_id = """ +
-   str(session['session_user_id']) + case_when_library + """
+   str(user_id) + case_when_library + """
    """ + sql_select + """
    """ + sql_from + """
    JOIN albums ON videos.album_id = albums.id
@@ -139,11 +139,43 @@ def get_playlist_tracks(playlist_id):
 
     return playlist_tracks
 
+# Trends
+def get_regression_line(array_of_points): # Fix: divides by 0
+    if array_of_points[0][0] == 0 and array_of_points[0][1] == 0:
+        regression_line = {'m': 0, 'b': 0}
+        return regression_line
+    else:
+        n = 0
+        sumx = 0
+        sumy = 0
+        sumxsquared = 0
+        sumxy = 0
+        for point in array_of_points:
+            if point[0] > 0:
+                n = n + 1
+                sumx = sumx + point[0]
+                sumy = sumy + point[1]
+                sumxsquared = sumxsquared + point[0] * point[0]
+                sumxy = sumxy + point[0] * point[1]
+        m_top = float(sumxy - (sumy * (sumx / n)))
+        m_bottom = float(sumxsquared - (sumx * (sumx / n)))
+        if m_bottom == 0 and m_top == 0:
+            m = 0
+        else:
+            m = float(m_top / m_bottom)
+        b_top = float(sumy - m * sumx)
+        b_bottom = float(n)
+        if b_bottom == 0 and b_top == 0:
+            b = 0
+        else:
+            b = float(b_top / b_bottom)
+        # where y = m * x + b
+        regression_line = {'m': m, 'b': b}
+        return regression_line
 
-def get_genre_data_linear_regression(user_id,
-                                      start_date,
-                                      end_date,
-                                      return_top_n_genres=10):
+def get_genre_regression_data(user_id,
+        start_date,
+        end_date):
     regression_data = []
     data = []
     top_genres = []
@@ -179,23 +211,57 @@ def get_genre_data_linear_regression(user_id,
     rows = results.fetchall()
     i = 0
     for row in rows:
-        if i < return_top_n_genres and row[2] != 0:
-            top_genres.append(row[1])
-        track = (row[2], row[4])
+        track = (row[2], row[4]) # (count played, count liked)
         regression_data.append(track)
         i = i + 1
-    data = {'top_genres': top_genres, 'regression_data': regression_data}
+    return regression_data
 
-    return data
+def get_top_listened_genres(
+        user_id, start_date=None, 
+        end_date=None, 
+        limit=10):
+    top_genres = []
+    if start_date and end_date:
+        dates = (" AND listens.time_of_listen >= '" + 
+            str(start_date) + 
+            "' AND listens.time_of_listen <= '" + 
+            str(end_date) + 
+            "' ")
+    sql = ("""
+        SELECT genres.name,
+            (SELECT COUNT(*)
+            FROM listens
+            JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id
+            WHERE listens.listened_to_end = 0 AND
+            listens.user_id = """ + str(user_id) +
+            """ AND listens.time_of_listen >= '""" +
+            start_date +
+            """' AND listens.time_of_listen <= '""" +
+            end_date +
+            """' AND vids_genres.genre_id = genres.id) AS genre_plays
+        FROM genres
+        ORDER BY genre_plays DESC
+        LIMIT """ +
+        str(limit) + ";")
+    results = models.engine.execute(sql)
+    rows = results.fetchall()
+    for row in rows:
+        genre = {
+            'name': row[0],
+            'listens': row[1]}
+        top_genres.append(genre)
+    return top_genres
+    return None
 
-# Trends
 def count_listens_by_week(user_id, start_date=None, end_date=None):
     dates = ""
     count_by_week = []
     if start_date and end_date:
-        dates = " AND listens.time_of_listen >= '" + str(
-            start_date) + "' AND listens.time_of_listen <= '" + str(
-                end_date) + "' "
+        dates = (" AND listens.time_of_listen >= '" + 
+            str(start_date) + 
+            "' AND listens.time_of_listen <= '" + 
+            str(end_date) + 
+            "' ")
     sql = ("""SELECT *
     FROM listens
     WHERE user_id = """ + str(user_id) + str(dates) + """
@@ -295,10 +361,13 @@ def update_artist_similar_artists(artist, similar_artists):
     for artist in similar_artists:
         artist2 = update_artist_name(artist['name'])
         lastfm_match_score = artist['match']
-        if not artist_has_similar_artist(artist1.artist_name, artist2.artist_name):
+        if not artist_has_similar_artist(
+                artist1_name=artist1.artist_name, 
+                artist2_name=artist2.artist_name):
             sql_session.rollback()
             updated_artist = models.SimilarArtists(
-                artist_id1=artist1.id, artist_id2=artist2.id, lastfm_match_score=lastfm_match_score)
+                artist_id1=artist1.id, artist_id2=artist2.id, 
+                lastfm_match_score=lastfm_match_score)
             sql_session.add(updated_artist)
             sql_session.commit()
     return "success"
@@ -335,6 +404,7 @@ def update_artist_info(artist, bio):
     return "success"
 
 # Cities
+# city_in_database
 def get_cities():
     cities = []
     sql = text("""

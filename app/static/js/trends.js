@@ -2,7 +2,9 @@ $(function(){
   //fill listens over time graph
   var listens = $.ajax({
     type: 'GET'
-    , url: '/getlistensbydate'
+    , url: '/trends'
+    , data: {'data_type': 'listens',
+             'chart_type': 'time'}
     ,dataType: 'json'
   }).done(function(listens){
     $("#range-slider-header").empty();
@@ -33,6 +35,7 @@ $(function(){
           end_date = convertSlidertoMySQLDate(ui.values[1], end = true);
           listensByWeekChart(start_date = start_date, end_date = end_date, redraw = true);
           genresScatterPlot(start_date = start_date, end_date = end_date, redraw = true);
+          topGenresList(start_date = start_date, end_date = end_date);
         }
       }); 
       $( "#date-range-text" ).val( (new Date($( "#slider-range" ).slider( "values", 0 )*1000).toDateString()) +
@@ -41,6 +44,7 @@ $(function(){
       end_date = convertSlidertoMySQLDate($( "#slider-range" ).slider( "values", 1 ), end = true);
       listensByWeekChart(start_date = start_date, end_date = end_date);
       genresScatterPlot(start_date = start_date, end_date = end_date);
+      topGenresList(start_date = start_date, end_date = end_date);
     }
   });
 });
@@ -50,28 +54,28 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
   var correlation_coefficient = 0;
   var data = $.ajax({//can add morning, afternoon, night later
     type: 'GET'
-    ,url: '/getgenredata'
-    ,data: {'start_date': start_date
-      ,'end_date': end_date
-    }
+    ,url: '/trends'
+    ,data: {'data_type': 'genres'
+      , 'chart_type': 'linear regression'
+      , 'start_date': start_date
+      , 'end_date': end_date}
     ,dataType: 'json'
   }).done(function(genres){
     var points = {
       x: [],
       y: [],
-      name: 'Likes v. Listens',
+      name: 'Listens v. Likes',
       mode: 'markers'
     };
     $.each(genres['regression_data'], function(index, item){
       points.x.push(item[0]);
-      points.y.push(item[1]);
-      
+      points.y.push(item[1]);    
     });
 
     //find start and end points of regression line
     var x = genres['regression_data'][0][0]
-    var y = genres['line_best_fit']['m']*genres['regression_data'][0][0]+genres['line_best_fit']['b']
-    correlation_coefficient = Math.abs(genres['line_best_fit']['m']);
+    var y = genres['regression_line']['m'] * x + genres['regression_line']['b']
+    correlation_coefficient = Math.abs(genres['regression_line']['m']);
     if(correlation_coefficient<.05){
       strength = " (Weak)";
       overview_strength = "For this date range, <b>genre is a poor indicator</b> of whether you will like a video.";
@@ -106,26 +110,42 @@ function genresScatterPlot(start_date = null, end_date = null, redraw = false){
     }else{
       Plotly.newPlot('genre-chart', data, layout);
     }
-    $("#genre-list").empty();
-    $("#genre-list-overview").empty();
-    $("#genre-list-header").empty();
-    if (genres['top_genres'].length ==0){
-      overview_strength = "We don't know enough to give detailed feedback on your listening habits.  Change the date range or <b>listen to more videos <a href='play'>here</a></b>!";
-    }
-    $.each(genres['top_genres'], function(index, item){
-      if(index == 0){
-        $("#genre-list-header").append("<h4><b>Most Listened Genres</b></h4>");
-        $("#genre-list-overview").append("<b>Your most listened genres for this date range are:</b> ");
-      }
-      $("#genre-list").append('<li>'+item+'</li>')
-      if(index>0){
-        $("#genre-list-overview").append(", ");
-      }
-      $("#genre-list-overview").append(item);
-    });
     $("#genre-correlation").empty();
     $("#genre-correlation").append(overview_strength);
   }); 
+}
+function topGenresList(start_date = null, end_date = null){
+  var data = $.ajax({//can add morning, afternoon, night later
+    type: 'GET'
+    ,url: '/trends'
+    ,data: {'data_type': 'genres'
+      , 'chart_type': 'top list'
+      , 'start_date': start_date
+      , 'end_date': end_date}
+    ,dataType: 'json'
+  }).done(function(top_genres){
+    console.log(top_genres)
+    $("#genre-list").empty();
+    $("#genre-list-overview").empty();
+    $("#genre-list-header").empty();
+    if (top_genres.length == 0){
+      overview_strength = "We don't know enough to give detailed feedback on your listening habits.  Change the date range or <b>listen to more videos <a href='play'>here</a></b>!";
+    }
+    $.each(top_genres, function(index, genre){
+      if(genre['listens'] > 0){
+        if(index == 0){
+          $("#genre-list-header").append("<h4><b>Most Listened Genres</b></h4>");
+          $("#genre-list-overview").append("<b>Your most listened genres for this date range are:</b> ");
+        }
+        $("#genre-list").append('<li>'+genre['name']+'</li>')
+        if(index>0){
+          $("#genre-list-overview").append(", ");
+        }
+        $("#genre-list-overview").append(genre['name']);
+      }
+    });
+  });
+
 }
 
 function listensByWeekChart(start_date = null, end_date = null, redraw = false){
@@ -133,10 +153,11 @@ function listensByWeekChart(start_date = null, end_date = null, redraw = false){
   var total_listens = 0;
   var listens = $.ajax({
     type: 'GET'
-    , url: '/getlistensbydate'
-    ,data: {'start_date': start_date
-      ,'end_date': end_date
-    }
+    , url: '/trends'
+    ,data: {'data_type': 'listens',
+             'chart_type': 'time',
+             'start_date': start_date,
+             'end_date': end_date}
     ,dataType: 'json'
   }).done(function(listens){
     var points = {

@@ -7,8 +7,9 @@ from app import app, models, sql_session
 from app.views_model import get_playlist_titles as model_get_playlist_titles
 from app.views_model import get_playlist_tracks as model_get_playlist_tracks
 from app.views_model import (count_listens_by_week, get_artists, get_cities,
-                             get_genre_data_linear_regression,
-                             get_video_data,
+                             get_top_listened_genres,
+                             get_video_data, get_regression_line, 
+                             get_genre_regression_data,
                              post_listen, post_video, update_album_name,
                              update_artist_info, update_artist_similar_artists,
                              update_video_genres, update_artist_name)
@@ -16,7 +17,6 @@ from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
 
-from .my_functions import get_regression_line
 
 GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
@@ -136,15 +136,66 @@ def saved_videos():
             playlist_titles=playlist_titles)
     return redirect(url_for('login'))
 
-@app.route('/trends')
-def trends():
+@app.route('/my-trends')
+def my_trends():
     if 'google_token' in session:
         return render_template('trends.html')
     return redirect(url_for('login'))
 
-@app.route('/videos', methods=['POST']) # Add PUT to update vids from displayupdate page
+@app.route('/artists', methods=['PUT'])
+def artists():
+    if request.method == 'PUT':
+        if 'artist' in request.form and 'bio' in request.form:
+            update_artist_info(
+                artist=request.form['artist'], bio=request.form['bio'])
+        if 'artist' in request.form and 'similar_artists' in request.form:
+            similar_artists = loads(request.form['similar_artists']) 
+            update_artist_similar_artists(
+                artist=request.form['artist'], similar_artists=similar_artists)
+    return "success"
+
+@app.route('/listens', methods=['POST'])
+def listens():
+    if request.method == 'POST':
+        if 'youtube_id' in request.form and 'listened_to_end' in request.form:
+            post_listen(
+                user_id=session['session_user_id'],
+                youtube_id=request.form['youtube_id'], 
+                listened_to_end=request.form['listened_to_end'])
+    return "success"
+
+@app.route('/trends', methods=['GET']) 
+def trends():
+    if request.method == 'GET':
+        if (request.args.get('data_type') == 'listens' and 
+                request.args.get('chart_type') == 'time'):
+            data = count_listens_by_week(
+                user_id=session['session_user_id'],
+                start_date=request.args.get('start_date'),
+                end_date=request.args.get('end_date'))
+            return jsonify(data)
+        if (request.args.get('data_type') == 'genres' and 
+                request.args.get('chart_type') == 'linear regression'):
+            regression_data = get_genre_regression_data(
+                user_id=session['session_user_id'],
+                start_date=request.args.get('start_date'),
+                end_date=request.args.get('end_date'))
+            regression_line = get_regression_line(regression_data)
+            data ={
+                'regression_data':regression_data, 
+                'regression_line':regression_line}
+            return jsonify(data)
+        if (request.args.get('data_type') == 'genres' and 
+                request.args.get('chart_type') == 'top list'):
+            data = get_top_listened_genres(
+                user_id=session['session_user_id'],
+                start_date=request.args.get('start_date'),
+                end_date=request.args.get('end_date'))
+            return jsonify(data)
+
+@app.route('/videos', methods=['POST']) 
 def videos():
-    if request.method == 'POST': # Play page should call
+    if request.method == 'POST': 
         if 'youtube_id' in request.form:
             if 'genres' in request.form:
                 genres = loads(request.form['genres']) 
@@ -170,64 +221,7 @@ def videos():
                     release_date=request.form['release_date'])
         return "success"
 
-@app.route('/listens', methods=['POST'])
-def listens():
-    if request.method == 'POST':
-        if 'youtube_id' in request.form and 'listened_to_end' in request.form:
-            post_listen(
-                user_id=session['session_user_id'],
-                youtube_id=request.form['youtube_id'], 
-                listened_to_end=request.form['listened_to_end'])
-    return "success"
-
-@app.route('/artists', methods=['PUT'])
-def artists():
-    if request.method == 'PUT':
-        if 'artist' in request.form and 'bio' in request.form:
-            update_artist_info(artist=request.form['artist'], bio=request.form['bio'])
-        if 'artist' in request.form and 'similar_artists' in request.form:
-            similar_artists = loads(request.form['similar_artists']) 
-            update_artist_similar_artists(artist=request.form['artist'], similar_artists=similar_artists)
-    return "success"
-
-
 # OLD
-
-@app.route('/getgenredata')
-def get_get_genre_data():
-    data_by_likes = get_genre_data_linear_regression(
-        user_id=session['session_user_id'],
-        start_date=request.args.get('start_date'),
-        end_date=request.args.get('end_date'))
-    if len(data_by_likes['regression_data']) > 0:
-        regression_line_by_likes = get_regression_line(data_by_likes[
-            'regression_data'])
-        least_squares_regression_data = {
-            'regression_data': data_by_likes['regression_data'],
-            'top_genres': data_by_likes['top_genres'],
-            'line_best_fit': {
-                'm': regression_line_by_likes['m'],
-                'b': regression_line_by_likes['b']
-            }
-        }
-    else:
-        least_squares_regression_data = {
-            'regression_data': data_by_likes['regression_data'],
-            'top_genres': data_by_likes['top_genres']
-        }
-
-    return jsonify(least_squares_regression_data)
-
-
-@app.route('/getlistensbydate')
-def get_listens_by_date():
-    data = count_listens_by_week(
-        user_id=session['session_user_id'],
-        start_date=request.args.get('start_date'),
-        end_date=request.args.get('end_date'))
-    return jsonify(data)
-
-
 @app.route('/search-saved-videos', methods=['GET'])
 def search_saved_videos():
     if 'google_token' in session:
@@ -400,6 +394,9 @@ def postplay():
                 sql_session.commit()
                 track_num = track_num + 1
     return "success"
+
+
+
 
 
 
