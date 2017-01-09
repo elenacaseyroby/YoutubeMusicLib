@@ -2,6 +2,7 @@
 # -*- mode: python -*-
 
 import datetime
+import re
 
 from sqlalchemy import text
 
@@ -19,21 +20,9 @@ def get_artists(artist_id=None):
     result = models.engine.execute(sql)
     return result
 
-
-def get_cities(select="*", artist_id=None):
-    where = ""
-    if artist_id:
-        where = "WHERE cities.artist_id = " + artist_id
-    sql = text("""SELECT """ + select + """
-    FROM cities
-    """ + where + ";")
-    result = models.engine.execute(sql)
-    return result
-
 #get listens data for listens page
 def get_video_data(user_id, video_scope, search_start_date, search_end_date,
                    search_artist):
-
     sql_session.rollback()
     videos = list()
     start_date = search_start_date
@@ -113,56 +102,6 @@ def get_video_data(user_id, video_scope, search_start_date, search_end_date,
 
     return videos
 
-
-def get_similar_artists_by_artist(artist_id):
-    sql = text("""SELECT artists.artist_name, artists.id
-    FROM similar_artists
-    JOIN artists on similar_artists.artist_id2 = artists.id
-    WHERE similar_artists.artist_id1 = """ + str(artist_id) + ";")
-    result = models.engine.execute(sql)
-    return result
-
-def update_album(album_name):
-    #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-    sql_session.rollback()
-    album_by_name = sql_session.query(models.Album).filter_by(
-        name=album_name).first()
-    if album_by_name:
-        album_id = album_by_name.id
-    #if artist name doesn't exist in db, add new row to artists table
-    else:
-        sql_session.rollback()
-        new_album = models.Album(name=album_name)
-        sql_session.add(new_album)
-        sql_session.commit()
-        new_album_id = sql_session.query(models.Album).filter_by(
-            name=album_name).first()
-        album_id = int(new_album_id.id)
-
-    return album_id
-
-
-
-def update_video_artist(artist_artist_name):
-    #if artist name exists in db but it is not already tied to video, update videos table row with new artist_id
-    sql_session.rollback()
-    artist_by_name = sql_session.query(models.Artist).filter_by(
-        artist_name=artist_artist_name).first()
-    if artist_by_name:
-        artist_id = artist_by_name.id
-    #if artist name doesn't exist in db, add new row to artists table
-    else:
-        sql_session.rollback()
-        new_artist = models.Artist(artist_name=artist_artist_name)
-        sql_session.add(new_artist)
-        sql_session.commit()
-        new_artist_id = sql_session.query(models.Artist).filter_by(
-            artist_name=artist_artist_name).first()
-        artist_id = int(new_artist_id.id)
-
-    return artist_id
-
-
 def get_playlist_titles(user_id):
     playlisttitles = []
     sql = text("""SELECT playlists.title, playlists.id
@@ -174,9 +113,7 @@ def get_playlist_titles(user_id):
         for row in rows:
             playlist_title = row[0]
             playlisttitles.append(playlist_title)
-
     return playlisttitles
-
 
 def get_playlist_tracks(playlist_id):
     playlist_tracks = []
@@ -251,7 +188,7 @@ def get_genre_data_linear_regression(user_id,
 
     return data
 
-
+# Trends
 def count_listens_by_week(user_id, start_date=None, end_date=None):
     dates = ""
     count_by_week = []
@@ -303,20 +240,153 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
     return count_by_week
 
 # NEW FUNCTIONS
+# Albums
+def album_in_database(album_name):
+    album = sql_session.query(models.Album).filter_by(
+        name=album_name).first()
+    if album:
+        return album
+    else:
+        return None
+
+def update_album_name(album_name):
+    album = album_in_database(album_name)
+    if not album:
+        sql_session.rollback()
+        new_album = models.Album(name=album_name)
+        sql_session.add(new_album)
+        sql_session.commit()
+        album = sql_session.query(models.Album).filter_by(
+            name=album_name).first()
+    return album
+
+# Artists
+def artist_has_similar_artist(artist1_name, artist2_name):
+    artist1 = update_artist_name(artist1_name)
+    artist2 = update_artist_name(artist2_name)
+    similar_artist = sql_session.query(models.SimilarArtists).filter_by(
+        artist_id1=artist1.id, artist_id2=artist2.id).first()
+    if similar_artist:
+        return similar_artist
+    else:
+        return None
+
+def artist_in_database(artist_name):
+    artist = sql_session.query(models.Artist).filter_by(
+        artist_name=artist_name).first()
+    if artist:
+        return artist
+    else:
+        return None
+
+def update_artist_name(artist_name):
+    artist = artist_in_database(artist_name)
+    if not artist:
+        sql_session.rollback()
+        new_artist = models.Artist(artist_name=artist_name)
+        sql_session.add(new_artist)
+        sql_session.commit()
+        artist = sql_session.query(models.Artist).filter_by(
+            artist_name=artist_name).first()
+    return artist
+
+def update_artist_similar_artists(artist, similar_artists):
+    artist1 = update_artist_name(artist)
+    for artist in similar_artists:
+        artist2 = update_artist_name(artist['name'])
+        lastfm_match_score = artist['match']
+        if not artist_has_similar_artist(artist1.artist_name, artist2.artist_name):
+            sql_session.rollback()
+            updated_artist = models.SimilarArtists(
+                artist_id1=artist1.id, artist_id2=artist2.id, lastfm_match_score=lastfm_match_score)
+            sql_session.add(updated_artist)
+            sql_session.commit()
+    return "success"
+
+def update_artist_info(artist, bio):
+    artist = update_artist_name(artist)
+    now = datetime.datetime.now()
+    this_year = int(now.year)
+    possible_years = re.findall('\d{4}', bio)
+    confirmed_years = [year for year in possible_years 
+        if int(year) > 1100 and int(year) <= this_year]
+    if confirmed_years:
+        confirmed_years = sorted(confirmed_years)
+        first_year = confirmed_years[0]
+        final_year = confirmed_years[len(confirmed_years)-1]
+        if not artist.start_year:
+            artist.start_year = str(first_year) + '-01-01'
+        # Set end date if inactive for 5+ years
+        if this_year - int(final_year) >= 5:
+            artist.end_year = str(
+                final_year) + '-01-01'
+        else:
+            artist.end_year = None
+    undefined_city = 2
+    if artist.city_id == undefined_city:
+        cities = get_cities()
+        for city in cities:
+            if city['state'] in bio:
+                artist.city_id = city['id']
+    if (artist.start_year or
+            artist.end_year or
+            artist.city_id != undefined_city):
+        sql_session.commit()
+    return "success"
+
+# Cities
+def get_cities():
+    cities = []
+    sql = text("""
+        SELECT id,
+        country_id,
+        city_or_state as state
+        FROM cities
+        ORDER BY state;
+        """)
+    results = models.engine.execute(sql)
+    for result in results:
+        city = {
+            'id':result[0],
+            'country_id':result[1],
+            'state':result[2]}
+        cities.append(city)
+    return cities
 
 # Genres
-def genre_in_database(genre):
+def genre_in_database(genre_name):
     genre = sql_session.query(models.Genre).filter_by(
-        name=genre).first()
+        name=genre_name).first()
     if genre:
         return genre
     else:
         return None
 
+# Listens
+def post_listen(user_id, youtube_id, listened_to_end):
+    video = video_in_database(youtube_id)
+    if video:
+        listen = models.Listen(
+            user_id=user_id,
+            youtube_id=youtube_id,
+            listened_to_end=listened_to_end)
+        sql_session.add(listen)
+        sql_session.commit()
+        return "success"
+
 # Videos
+def video_in_database(youtube_id):
+    video = sql_session.query(models.Video).filter_by(
+        youtube_id=youtube_id).first()
+    if video:
+        return video
+    else:
+        return None
+
 def video_has_genre(youtube_id, genre):
     video_genres = []
-    if youtube_id:
+    video = video_in_database(youtube_id)
+    if video_in_database:
         sql = text(
             """SELECT genres.name
             , genres.id
@@ -324,23 +394,80 @@ def video_has_genre(youtube_id, genre):
             JOIN vids_genres ON genres.id = vids_genres.genre_id
             WHERE vids_genres.youtube_id = '""" + youtube_id + """'
             ORDER BY genres.name;""")
-    results = models.engine.execute(sql)
-    rows = results.fetchall()
-    if rows:
-        for row in rows:
-            video_genres.append(row[0])
-    if genre.lower() in video_genres:
-        return True
+        results = models.engine.execute(sql)
+        rows = results.fetchall()
+        if rows:
+            for row in rows:
+                video_genres.append(row[0])
+        if genre.lower() in video_genres:
+            return True
     else:
         return False
 
-def update_video_genres(youtube_id, new_genres):
-    for genre in new_genres:
-        genre = genre_in_database(genre)
-        if genre and not video_has_genre(youtube_id, genre.name):
-            sql_session.rollback()
-            new_video_genre = models.VidsGenres(
-                youtube_id=youtube_id, genre_id=genre.id)
-            sql_session.add(new_video_genre)
-            sql_session.commit()
-    return "success"
+def update_video_genres(youtube_id, genres):
+    video = video_in_database(youtube_id)
+    if video:
+        for genre in genres:
+            genre = genre_in_database(genre)
+            if genre and not video_has_genre(youtube_id, genre.name):
+                sql_session.rollback()
+                new_video_genre = models.VidsGenres(
+                    youtube_id=youtube_id, genre_id=genre.id)
+                sql_session.add(new_video_genre)
+                sql_session.commit()
+        return "success"
+
+def post_video(youtube_id, 
+        youtube_title,  
+        channel_id, 
+        description,
+        title=None, 
+        artist=None, 
+        album=None, 
+        release_date=None, 
+        music=1):
+    video = video_in_database(youtube_id)
+    if not video:
+        if artist:
+            artist = update_artist_name(artist)
+            artist_id = artist.id
+        else:
+            artist_id = 1
+        if album:
+            album = update_album_name(album)
+            album_id = album.id
+        else:
+            album_id = 2
+        new_video = models.Video(
+            youtube_id=youtube_id,
+            youtube_title=youtube_title,
+            title=title,
+            artist_id=artist_id,
+            album_id=album_id,
+            channel_id=channel_id,
+            description=description,
+            release_date=release_date,
+            music=music)
+        sql_session.add(new_video)
+        sql_session.commit()
+        return "success"
+
+"""
+def update_video(youtube_id,
+        artist=None, 
+        album=None, 
+        release_date=None, 
+        music=1):
+    video = video_in_database(youtube_id)
+    if video:
+"""
+
+
+
+
+
+
+
+
+
+

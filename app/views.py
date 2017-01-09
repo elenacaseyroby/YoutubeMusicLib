@@ -8,8 +8,10 @@ from app.views_model import get_playlist_titles as model_get_playlist_titles
 from app.views_model import get_playlist_tracks as model_get_playlist_tracks
 from app.views_model import (count_listens_by_week, get_artists, get_cities,
                              get_genre_data_linear_regression,
-                             get_similar_artists_by_artist, get_video_data,
-                             update_album, update_video_genres, update_video_artist)
+                             get_video_data,
+                             post_listen, post_video, update_album_name,
+                             update_artist_info, update_artist_similar_artists,
+                             update_video_genres, update_artist_name)
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
@@ -32,6 +34,53 @@ google = oauth.remote_app(
     consumer_key=GOOGLE_CLIENT_ID,
     consumer_secret=GOOGLE_CLIENT_SECRET)
 
+@app.route('/login')
+def login():
+    return google.authorize(callback=url_for('authorized', _external=True))
+
+@app.route('/logout')
+def revoke_token():
+    if 'google_token' in session:
+        google.get('https://accounts.google.com/o/oauth2/revoke',
+                   data={'token': session['google_token'][0]})
+        session.pop('user_email', None)
+        session.pop('google_token', None)
+        return redirect('/')
+    return redirect(url_for('login'))
+
+@app.route('/oauth2callback')
+@google.authorized_handler
+def authorized(resp):
+    if resp is None:
+        return 'Access denied: reason=%s error=%s' % (
+            request.args['error'], request.args['error_description'])
+    session['google_token'] = (resp['access_token'], resp['id_token'])
+    res = google.get('https://www.googleapis.com/plus/v1/people/me')
+    google_object = res.data
+    if len(google_object['emails']) > 0:
+        session['user_email'] = (google_object['emails'][0]['value'])
+        sql_session.rollback()
+        email_in_db = sql_session.query(models.User).filter_by(
+            email=session['user_email']).first()
+        last_id_query = sql_session.query(func.max(models.User.id))
+        last_id = last_id_query.one()
+
+        if not email_in_db:
+            new_user = models.User(
+                verification_level=100,
+                email=session['user_email'])
+            sql_session.add(new_user)
+            sql_session.commit()
+            new_user = sql_session.query(models.User).filter_by(
+                 email=session['user_email']).first()
+            session['session_user_id'] = new_user.id
+        else:
+            session['session_user_id'] = email_in_db.id
+    return redirect('/play')
+
+@google.tokengetter
+def get_access_token(token=None):
+    return session.get('google_token')
 
 @app.route('/')
 @app.route('/index')
@@ -40,12 +89,20 @@ def index():
         return redirect(url_for('play'))
     return redirect(url_for('login'))
 
-
 @app.route('/play')
 def play():
     if 'google_token' in session:
         return render_template('play.html')
 
+def subtract_days_from_today(x=7):
+    now = datetime.datetime.now()
+    today = now.strftime("%Y-%m-%d %H:%M:%S")
+    if x > 0:
+        return_date = datetime.date.today() - datetime.timedelta(days=x)
+        return_date = return_date.strftime("%Y-%m-%d %H:%M:%S")
+        return return_date
+    else:
+        return today
 
 @app.route('/saved-videos', methods=['GET'])
 def saved_videos():
@@ -79,13 +136,62 @@ def saved_videos():
             playlist_titles=playlist_titles)
     return redirect(url_for('login'))
 
-
 @app.route('/trends')
 def trends():
     if 'google_token' in session:
         return render_template('trends.html')
     return redirect(url_for('login'))
 
+@app.route('/videos', methods=['POST']) # Add PUT to update vids from displayupdate page
+def videos():
+    if request.method == 'POST': # Play page should call
+        if 'youtube_id' in request.form:
+            if 'genres' in request.form:
+                genres = loads(request.form['genres']) 
+                youtube_id = request.form['youtube_id']
+                update_video_genres(
+                    youtube_id=youtube_id, 
+                    genres=genres)
+            if ('youtube_id' in request.form and
+                    'youtube_title' in request.form and
+                    'channel_id' in request.form and
+                    'description' in request.form and
+                    'title' in request.form and
+                    'artist' in request.form and
+                    'album' in request.form and
+                    'release_date' in request.form):
+                post_video(youtube_id=request.form['youtube_id'],
+                    youtube_title=request.form['youtube_title'], 
+                    channel_id=request.form['channel_id'],
+                    description=request.form['description'],
+                    title=request.form['title'],
+                    artist=request.form['artist'],
+                    album=request.form['album'],
+                    release_date=request.form['release_date'])
+        return "success"
+
+@app.route('/listens', methods=['POST'])
+def listens():
+    if request.method == 'POST':
+        if 'youtube_id' in request.form and 'listened_to_end' in request.form:
+            post_listen(
+                user_id=session['session_user_id'],
+                youtube_id=request.form['youtube_id'], 
+                listened_to_end=request.form['listened_to_end'])
+    return "success"
+
+@app.route('/artists', methods=['PUT'])
+def artists():
+    if request.method == 'PUT':
+        if 'artist' in request.form and 'bio' in request.form:
+            update_artist_info(artist=request.form['artist'], bio=request.form['bio'])
+        if 'artist' in request.form and 'similar_artists' in request.form:
+            similar_artists = loads(request.form['similar_artists']) 
+            update_artist_similar_artists(artist=request.form['artist'], similar_artists=similar_artists)
+    return "success"
+
+
+# OLD
 
 @app.route('/getgenredata')
 def get_get_genre_data():
@@ -148,188 +254,6 @@ def search_saved_videos():
         return redirect(url_for('login'))
     return "success"
 
-
-@app.route('/login')
-def login():
-    return google.authorize(callback=url_for('authorized', _external=True))
-
-
-@app.route('/logout')
-def revoke_token():
-    if 'google_token' in session:
-        google.get('https://accounts.google.com/o/oauth2/revoke',
-                   data={'token': session['google_token'][0]})
-        session.pop('user_email', None)
-        session.pop('google_token', None)
-        return redirect('/')
-    return redirect(url_for('login'))
-
-
-@app.route('/oauth2callback')
-@google.authorized_handler
-def authorized(resp):
-    if resp is None:
-        return 'Access denied: reason=%s error=%s' % (
-            request.args['error'], request.args['error_description'])
-    session['google_token'] = (resp['access_token'], resp['id_token'])
-    res = google.get('https://www.googleapis.com/plus/v1/people/me')
-    google_object = res.data
-    if len(google_object['emails']) > 0:
-        session['user_email'] = (google_object['emails'][0]['value'])
-        sql_session.rollback()
-        email_in_db = sql_session.query(models.User).filter_by(
-            email=session['user_email']).first()
-        last_id_query = sql_session.query(func.max(models.User.id))
-        last_id = last_id_query.one()
-
-        if not email_in_db:
-            new_user = models.User(
-                id=last_id[0] + 1,
-                verification_level=100,
-                email=session['user_email'])
-            sql_session.add(new_user)
-            sql_session.commit()
-            session['session_user_id'] = last_id[0] + 1
-        else:
-            session['session_user_id'] = email_in_db.id
-    return redirect('/play')
-
-
-@google.tokengetter
-def get_access_token(token=None):
-    return session.get('google_token')
-
-@app.route('/postlistens', methods=['POST'])
-def post_listens():
-    if (request.form["channel_id"] == "" and
-            request.form["description"] == "" and
-            request.form["similarartiststring"] == "" and
-            request.form["album"] == "" and request.form["title"] == "" and
-            request.form["artist"] == "" and request.form["year"] == ""):
-        new_listen = models.Listen(
-            user_id=session['session_user_id'],
-            youtube_id=str(request.form["youtube_id"]),
-            listened_to_end=request.form["listened_to_end"])
-        sql_session.add(new_listen)
-        sql_session.commit()
-    else:
-        # Post Video
-        if request.form["album"] != "undefined":
-            album_id = update_album(request.form["album"])
-        else:
-            album_id = 2
-        if request.form["year"] == "1900-01-01":
-            year = None
-        else:
-            year = request.form["year"]
-        if request.form["album"] != "undefined":
-            track_num = 0
-        else:
-            track_num = None
-        artist_id = update_video_artist(str(request.form["artist"]))
-        sql_session.rollback()
-        video_in_db = sql_session.query(models.Video).filter_by(
-            youtube_id=request.form["youtube_id"]).first()
-        if not video_in_db:
-            new_video = models.Video(
-                youtube_id=str(request.form["youtube_id"]),
-                youtube_title=str(request.form["youtube_title"]),
-                title=str(request.form["title"]),
-                artist_id=artist_id,
-                album_id=album_id,
-                channel_id=str(request.form["channel_id"]),
-                description=str(request.form["description"]),
-                track_num=track_num,
-                release_date=year,
-                music=1)
-            sql_session.add(new_video)
-            sql_session.commit()
-        # Post Listen
-        new_listen = models.Listen(
-            user_id=session['session_user_id'],
-            youtube_id=str(request.form["youtube_id"]),
-            listened_to_end=request.form["listened_to_end"])
-        sql_session.add(new_listen)
-        sql_session.commit()
-        # Post lastfm similar artists and match scores
-        lastfm_similar_artists_list = []
-        similar_artists_list = []
-        artists_table = get_artists()
-        artist_table_list = []
-        for artist in artists_table:
-            artist_table_list.append(artist[5].lower())
-        similar_artists = get_similar_artists_by_artist(artist_id)
-        if similar_artists:
-            for artist in similar_artists:
-                similar_artists_list.append(artist[0].lower())
-        lastfm_similar_artists_list = loads(request.form[
-            "similarartiststring"])
-        for lastfm_artist in lastfm_similar_artists_list:
-            artist = lastfm_artist['name']
-            match = lastfm_artist['match']
-            # Post similar artist to artists table 
-            if artist.lower() not in artist_table_list:
-                sql_session.rollback()
-                new_artist = models.Artist(artist_name=artist)
-                sql_session.add(new_artist)
-                sql_session.commit()
-            # Post if lastfm similar artist to similar_artists table
-            if artist.lower() not in similar_artists_list:
-                lastfm_artist_in_db = sql_session.query(
-                    models.Artist).filter_by(artist_name=artist).first()
-                sql_session.rollback()
-                new_similar_artist = models.SimilarArtists(
-                    artist_id1=artist_id,
-                    artist_id2=lastfm_artist_in_db.id,
-                    lastfm_match_score=match)
-                sql_session.add(new_similar_artist)
-
-                sql_session.commit()
-    return "success"
-
-@app.route('/videos', methods=['PUT'])
-def videos():
-    if request.method == 'PUT':
-        if 'genres' in request.form and 'youtube_id' in request.form:
-            genres = loads(request.form['genres']) 
-            youtube_id = request.form['youtube_id']
-            update_video_genres(youtube_id, genres)
-        return "success"
-        
-@app.route('/postartistinfo', methods=['POST'])
-def post_artist_info():
-    undefined = 2
-    sql_session.rollback()
-    artist_in_db = sql_session.query(models.Artist).filter_by(
-        artist_name=request.form["artist"]).first()
-    if artist_in_db:
-        if request.form["bio"]:
-            if not artist_in_db.start_year:
-                now = datetime.datetime.now()
-                this_year = int(str(now.year))
-                possible_years = re.findall('\d{4}', request.form["bio"])
-                confirmed_years = [year for year in possible_years 
-                    if int(year) > 1100 and int(year) <= this_year]
-                if confirmed_years:
-                    confirmed_years = sorted(confirmed_years)
-                    first_year = confirmed_years[0]
-                    final_year = confirmed_years[len(confirmed_years)-1]
-                    artist_in_db.start_year = str(first_year) + '-01-01'
-                    # Set end date if inactive for 10+ years
-                    if this_year - int(final_year) >= 10:
-                        artist_in_db.end_year = str(
-                            final_year) + '-01-01'
-            if artist_in_db.city_id == undefined:
-                cities_results = get_cities(select=" id, city_or_state")
-                for city in cities_results:
-                    if city.city_or_state in request.form["bio"]:
-                        artist_in_db.city_id = city.id
-    if (artist_in_db.start_year or 
-            artist_in_db.end_year or 
-            (artist_in_db.city_id != undefined)):
-        sql_session.commit()
-    return "success"
-
 @app.route('/updatevideodata', methods=['POST'])
 def update_video_data():
     album_id = 2 # Undefined
@@ -338,7 +262,7 @@ def update_video_data():
     album_by_name = sql_session.query(models.Album).filter_by(
         name=request.form["album"]).first()
     # Update artist
-    artist_id = update_video_artist(request.form["artist"])
+    artist = update_artist_name(request.form["artist"])
     # Update album
     sql_session.rollback()
     if album_by_name:
@@ -358,7 +282,7 @@ def update_video_data():
         youtube_id=request.form["youtube_id"]).first()
     video_update.title = request.form["title"]
     video_update.music = request.form["music"]
-    video_update.artist_id = int(artist_id)
+    video_update.artist_id = int(artist.id)
     video_update.album_id = int(album_id)
     sql_session.commit()
     # Update user library
@@ -478,12 +402,4 @@ def postplay():
     return "success"
 
 
-def subtract_days_from_today(x=7):
-    now = datetime.datetime.now()
-    today = now.strftime("%Y-%m-%d %H:%M:%S")
-    if x > 0:
-        return_date = datetime.date.today() - datetime.timedelta(days=x)
-        return_date = return_date.strftime("%Y-%m-%d %H:%M:%S")
-        return return_date
-    else:
-        return today
+

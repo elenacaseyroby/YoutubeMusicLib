@@ -102,17 +102,9 @@ function savePlay(event, end = false){
 			listened_to_end = 1;
 		}
 		$.ajax({
-			type: "POST",
-	    	url: '/postlistens',
-	    	data: {youtube_title: ""
-	    		, youtube_id: current_iframe_video.id
-	    		, listened_to_end: listened_to_end
-	    		, channel_id: ""
-	    		, description: ""
-	    		, similarartiststring: ""
-	    		, album : ""
-	    		, title: ""
-	    		, artist: ""
-	    		, year: ""}
+			type: 'POST',
+			url: '/listens',
+			data: {youtube_id: youtube_id
+				, listened_to_end: listened_to_end}
 	    });
 }
