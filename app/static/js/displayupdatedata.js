@@ -179,25 +179,43 @@ function getRowData(video_scope, search_artist=null, search_start_date=null, sea
 	if(video_scope != "library" && video_scope != "listens" && video_scope != "all"){
 		video_scope = "listens";
 	}
-	if (search_artist){
-		artist = search_artist;
-	}else{
-		artist = "";
+	if(video_scope == "listens"){
+		var results = $.ajax({
+			type: 'GET',
+		    url: '/listens',
+		    data: {
+		    	'search_start_date': search_start_date,
+		        'search_end_date': search_end_date,
+		        'search_artist': search_artist,
+		    },
+		    dataType: 'json'
+	    }).done(function(results){
+	    	current_data_rows = results;
+	    	renderDataRow(video_scope = video_scope, table_page = 0, $display_data_rows = current_data_rows);
+	    });
 	}
-
-	var results = $.ajax({
-		type: "GET",
-	    url: '/search-saved-videos',
-	    data: {search_start_date: search_start_date
-	    , search_end_date: search_end_date
-	    , search_artist: artist
-	    , video_scope: video_scope
-	    }
-	    ,dataType: 'json'
-    }).done(function(results){
-    	current_data_rows = results;
-    	renderDataRow(video_scope = video_scope, table_page = 0, $display_data_rows = current_data_rows);
-    });
+	else if(video_scope == "library"){
+		var results = $.ajax({
+			type: 'GET',
+		    url: '/saved-videos',
+		    data: {'search_artist': search_artist},
+		    dataType: 'json'
+	    }).done(function(results){
+	    	current_data_rows = results;
+	    	renderDataRow(video_scope = video_scope, table_page = 0, $display_data_rows = current_data_rows);
+	    });
+	}
+	else if(video_scope == "all"){
+		var results = $.ajax({
+			type: 'GET',
+		    url: '/videos',
+		    data: {'search_artist': search_artist},
+	    	dataType: 'json'
+	    }).done(function(results){
+	    	current_data_rows = results;
+	    	renderDataRow(video_scope = video_scope, table_page = 0, $display_data_rows = current_data_rows);
+	    });
+	}
 }
 
 function addTrackToPlaylist(index){

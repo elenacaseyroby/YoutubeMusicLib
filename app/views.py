@@ -6,7 +6,8 @@ from app import app, models, sql_session
 from app.views_model import get_playlist_titles, get_playlist_tracks
 from app.views_model import (count_listens_by_week, get_genre_top_listened,
                              get_video_data, get_regression_line,
-                             get_genre_regression_data,
+                             get_genre_regression_data, post_saved_video,
+                             delete_saved_video, get_listens,
                              post_listen, post_video, delete_playlist,
                              update_playlist, update_artist_info,
                              update_artist_similar_artists, update_video_genres,
@@ -103,10 +104,9 @@ def subtract_days_from_today(x=7):
     else:
         return today
 
-@app.route('/saved-videos', methods=['GET'])
-def saved_videos():
+@app.route('/my-saved-videos')
+def my_saved_videos():
     if 'google_token' in session:
-        playlist_titles = get_playlist_titles(session['session_user_id'])
         if request.args.get("search_start_date"):
             search_start_date = request.args.get("search_start_date")
         else:
@@ -126,6 +126,7 @@ def saved_videos():
             search_artist=search_artist)
         if search_artist == "%":
             search_artist = ""
+        playlist_titles = get_playlist_titles(session['session_user_id'])
         return render_template(
             'displayupdatedata.html',
             display_update_rows=videos,
@@ -153,7 +154,7 @@ def artists():
                 artist=request.form['artist'], similar_artists=similar_artists)
     return "success"
 
-@app.route('/listens', methods=['POST'])
+@app.route('/listens', methods=['POST', 'GET'])
 def listens():
     if request.method == 'POST':
         if 'youtube_id' in request.form and 'listened_to_end' in request.form:
@@ -161,8 +162,15 @@ def listens():
                 user_id=session['session_user_id'],
                 youtube_id=request.form['youtube_id'], 
                 listened_to_end=request.form['listened_to_end'])
-    return "success"
-
+            return "success"
+    if request.method == 'GET':
+        listens = get_listens(
+            user_id=session['session_user_id'],
+            search_start_date=request.args.get('search_start_date'),
+            search_end_date=request.args.get('search_end_date'),
+            search_artist=request.args.get('search_artist'))
+        return jsonify(listens)
+    
 @app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
 def playlists():
     if request.method == 'GET':
@@ -188,6 +196,21 @@ def playlists():
             delete_playlist(
                 user_id=session['session_user_id'],
                 playlist_title=request.form['playlist_title'])
+            return "success"
+
+@app.route('/saved-videos', methods=['POST', 'DELETE'])
+def saved_videos():
+    if request.method == 'POST':
+        if 'youtube_id' in request.form:
+            post_saved_video(
+                user_id=session['session_user_id'],
+                youtube_id=request.form['youtube_id'])
+            return "success"
+    elif request.method == 'DELETE':
+        if 'youtube_id' in request.form:
+            delete_saved_video(
+                user_id=session['session_user_id'],
+                youtube_id=request.form['youtube_id'])
             return "success"
 
 @app.route('/trends', methods=['GET']) 
