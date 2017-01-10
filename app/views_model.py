@@ -9,17 +9,6 @@ from sqlalchemy import text
 from app import models, sql_session
 from flask import session, jsonify
 
-
-def get_artists(artist_id=None):
-    where = ""
-    if artist_id:
-        where = "WHERE artist_id = " + artist_id
-    sql = text("""SELECT *
-    FROM artists
-    """ + where + ";")
-    result = models.engine.execute(sql)
-    return result
-
 #get listens data for listens page
 def get_video_data(user_id, video_scope, search_start_date, search_end_date,
                    search_artist):
@@ -140,11 +129,68 @@ def get_playlist_tracks(playlist_id):
     return playlist_tracks
 
 # Trends
+def count_listens_by_week(user_id, start_date=None, end_date=None):
+    dates = ""
+    count_by_week = []
+    if start_date and end_date:
+        dates = (" AND listens.time_of_listen >= '" + 
+            str(start_date) + 
+            "' AND listens.time_of_listen <= '" + 
+            str(end_date) + 
+            "' ")
+    sql = ("""
+        SELECT *
+        FROM listens
+        WHERE user_id = """ +
+        str(user_id) +
+        str(dates) +
+        """ AND listened_to_end != 1
+        ORDER BY time_of_listen""")
+    results = models.engine.execute(sql)
+    rows = results.fetchall()
+    if rows:
+        sunday = datetime.datetime.strptime('2015-12-06 00:00:00',
+                                            "%Y-%m-%d %H:%M:%S")
+        first_listen = rows[0][5]
+        difference = first_listen - sunday
+        difference = difference.days
+        days_past_sunday = difference % 7
+        first_sunday = first_listen - datetime.timedelta(days=days_past_sunday)
+        first_sunday = first_sunday.replace(hour=00, minute=00, second=00)
+        start_week = first_sunday
+        end_week = start_week + datetime.timedelta(days=7)
+        weekly_count = 0
+        for row in rows:
+            found_week = False
+            while (not found_week):
+                if start_week <= row[5] < end_week:
+                    weekly_count = weekly_count + 1
+                    found_week = True
+                else:
+                    count_by_week.append({
+                        'Week': str(
+                            datetime.datetime.strftime(start_week,
+                                                       "%Y-%m-%d %H:%M:%S")),
+                        'Listens': weekly_count
+                    })
+                    start_week = end_week
+                    end_week = start_week + datetime.timedelta(days=7)
+                    weekly_count = 0
+        count_by_week.append({
+            'Week':
+            str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")),
+            'Listens': weekly_count
+        })
+
+    return count_by_week
+
 def get_regression_line(array_of_points): # Fix: divides by 0
     if array_of_points[0][0] == 0 and array_of_points[0][1] == 0:
         regression_line = {'m': 0, 'b': 0}
         return regression_line
     else:
+        m = 0 
+        b = 0
         n = 0
         sumx = 0
         sumy = 0
@@ -157,18 +203,15 @@ def get_regression_line(array_of_points): # Fix: divides by 0
                 sumy = sumy + point[1]
                 sumxsquared = sumxsquared + point[0] * point[0]
                 sumxy = sumxy + point[0] * point[1]
-        m_top = float(sumxy - (sumy * (sumx / n)))
-        m_bottom = float(sumxsquared - (sumx * (sumx / n)))
-        if m_bottom == 0 and m_top == 0:
-            m = 0
-        else:
-            m = float(m_top / m_bottom)
-        b_top = float(sumy - m * sumx)
-        b_bottom = float(n)
-        if b_bottom == 0 and b_top == 0:
-            b = 0
-        else:
-            b = float(b_top / b_bottom)
+        if n > 0:
+            m_top = float(sumxy - (sumy * (sumx / n)))
+            m_bottom = float(sumxsquared - (sumx * (sumx / n)))
+            if m_bottom != 0 and m_top != 0:
+                m = float(m_top / m_bottom)
+            b_top = float(sumy - m * sumx)
+            b_bottom = float(n)
+            if b_bottom != 0 and b_top != 0:
+                b = float(b_top / b_bottom)
         # where y = m * x + b
         regression_line = {'m': m, 'b': b}
         return regression_line
@@ -273,7 +316,7 @@ def get_genre_regression_data(user_id,
         i = i + 1
     return regression_data
 
-def get_top_listened_genres(
+def get_genre_top_listened(
         user_id, start_date=None, 
         end_date=None, 
         limit=10):
@@ -310,58 +353,6 @@ def get_top_listened_genres(
         top_genres.append(genre)
     return top_genres
     return None
-
-def count_listens_by_week(user_id, start_date=None, end_date=None):
-    dates = ""
-    count_by_week = []
-    if start_date and end_date:
-        dates = (" AND listens.time_of_listen >= '" + 
-            str(start_date) + 
-            "' AND listens.time_of_listen <= '" + 
-            str(end_date) + 
-            "' ")
-    sql = ("""SELECT *
-    FROM listens
-    WHERE user_id = """ + str(user_id) + str(dates) + """
-    AND listened_to_end != 1
-    ORDER BY time_of_listen""")
-    results = models.engine.execute(sql)
-    rows = results.fetchall()
-    if rows:
-        sunday = datetime.datetime.strptime('2015-12-06 00:00:00',
-                                            "%Y-%m-%d %H:%M:%S")
-        first_listen = rows[0][5]
-        difference = first_listen - sunday
-        difference = difference.days
-        days_past_sunday = difference % 7
-        first_sunday = first_listen - datetime.timedelta(days=days_past_sunday)
-        first_sunday = first_sunday.replace(hour=00, minute=00, second=00)
-        start_week = first_sunday
-        end_week = start_week + datetime.timedelta(days=7)
-        weekly_count = 0
-        for row in rows:
-            found_week = False
-            while (not found_week):
-                if start_week <= row[5] < end_week:
-                    weekly_count = weekly_count + 1
-                    found_week = True
-                else:
-                    count_by_week.append({
-                        'Week': str(
-                            datetime.datetime.strftime(start_week,
-                                                       "%Y-%m-%d %H:%M:%S")),
-                        'Listens': weekly_count
-                    })
-                    start_week = end_week
-                    end_week = start_week + datetime.timedelta(days=7)
-                    weekly_count = 0
-        count_by_week.append({
-            'Week':
-            str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")),
-            'Listens': weekly_count
-        })
-
-    return count_by_week
 
 # NEW FUNCTIONS
 # Albums
