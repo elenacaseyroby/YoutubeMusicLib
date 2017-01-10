@@ -1,18 +1,16 @@
 #!/usr/bin/python
 import datetime
-import re
 from json import loads
 
 from app import app, models, sql_session
 from app.views_model import get_playlist_titles as model_get_playlist_titles
 from app.views_model import get_playlist_tracks as model_get_playlist_tracks
-from app.views_model import (count_listens_by_week, get_artists, get_cities,
-                             get_top_listened_genres,
+from app.views_model import (count_listens_by_week, get_genre_top_listened,
                              get_video_data, get_regression_line, 
-                             get_genre_regression_data,
-                             post_listen, post_video, update_album_name,
+                             get_genre_regression_data, post_listen, post_video,
                              update_artist_info, update_artist_similar_artists,
                              update_video_genres, update_artist_name)
+
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
 from sqlalchemy import func
@@ -187,7 +185,7 @@ def trends():
             return jsonify(data)
         if (request.args.get('data_type') == 'genres' and 
                 request.args.get('chart_type') == 'top list'):
-            data = get_top_listened_genres(
+            data = get_genre_top_listened(
                 user_id=session['session_user_id'],
                 start_date=request.args.get('start_date'),
                 end_date=request.args.get('end_date'))
