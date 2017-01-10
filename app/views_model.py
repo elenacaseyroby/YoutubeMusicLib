@@ -92,40 +92,176 @@ def get_video_data(user_id, video_scope, search_start_date, search_end_date,
     return videos
 
 def get_playlist_titles(user_id):
-    playlisttitles = []
-    sql = text("""SELECT playlists.title, playlists.id
-                FROM playlists
-                WHERE user_id = '""" + str(user_id) + "';")
+    sql = text("""
+        SELECT playlists.title, playlists.id
+        FROM playlists
+        WHERE user_id = '""" +
+        str(user_id) +
+        "' ORDER BY playlists.title;")
     results = models.engine.execute(sql)
     rows = results.fetchall()
-    if len(rows) > 0:
+    playlist_titles = []
+    if rows:
         for row in rows:
-            playlist_title = row[0]
-            playlisttitles.append(playlist_title)
-    return playlisttitles
+            playlist_titles.append(row[0])
+    return playlist_titles
 
-def get_playlist_tracks(playlist_id):
-    playlist_tracks = []
-    sql = text("""SELECT playlist_tracks.*
-    , videos.title
-    , artists.artist_name
+def playlist_in_database(user_id, playlist_title):
+    playlist = sql_session.query(models.Playlist).filter_by(
+        title=playlist_title, user_id=user_id).first()
+    if playlist:
+        return playlist
+
+def get_playlist_tracks(user_id, playlist_title):
+    playlist = playlist_in_database(
+        user_id=user_id, playlist_title=playlist_title)
+    if playlist:
+        sql = text("""
+            SELECT playlist_tracks.*,
+            videos.title,
+            artists.artist_name
             FROM playlist_tracks
             JOIN playlists ON playlist_tracks.playlist_id = playlists.id
             JOIN videos ON playlist_tracks.youtube_id = videos.youtube_id
             JOIN artists ON videos.artist_id = artists.id
-            WHERE playlists.id = '""" + str(playlist_id) + """"'
-            ORDER BY playlist_tracks.track_num;""")
-    results = models.engine.execute(sql)
-    rows = results.fetchall()
-    for row in rows:
-        track = {
-            'youtube_id': row[2],
-            'title': row[5],
-            'artist': row[6],
-            'track_num': row[3]
-        }
-        playlist_tracks.append(track)
-    return playlist_tracks
+            WHERE playlists.id = '""" +
+            str(playlist.id) +
+            "' AND playlists.user_id = " +
+            str(user_id) +
+            " ORDER BY playlist_tracks.track_num;")
+        results = models.engine.execute(sql)
+        rows = results.fetchall()
+        playlist_tracks = []
+        for row in rows:
+            track = {
+                'youtube_id': row[2],
+                'title': row[5],
+                'artist': row[6],
+                'track_num': row[3]
+            }
+            playlist_tracks.append(track)
+        return playlist_tracks
+
+def post_new_playlist(user_id, playlist_title, playlist_tracks):
+    playlist = playlist_in_database(
+        user_id=user_id, playlist_title=playlist_title)
+    if not playlist:
+        # Add new playlist
+        sql_session.rollback()
+        new_playlist = models.Playlist(
+            user_id=user_id, title=playlist_title
+        ) 
+        sql_session.add(new_playlist)
+        sql_session.commit()
+        if playlist_tracks:
+            # Add new tracks
+            track_num = 1
+            playlist = playlist_in_database(
+                user_id=user_id, playlist_title=playlist_title)
+            for track in playlist_tracks:
+                sql_session.rollback()
+                new_track = models.PlaylistTracks(
+                    playlist_id=playlist.id,
+                    youtube_id=track,
+                    track_num=track_num) 
+                sql_session.add(new_track)
+                sql_session.commit() 
+                track_num += 1
+    else:
+        update_playlist(
+            user_id=user_id,
+            playlist_title=playlist_title,
+            playlist_tracks=playlist_tracks)
+    return "success"
+
+def update_playlist(user_id, playlist_title, playlist_tracks):
+    playlist = playlist_in_database(
+        user_id=user_id, playlist_title=playlist_title)
+    if playlist:
+        # Set track_num = -1 for all existing playlist tracks
+        sql_session.rollback()
+        old_tracks = sql_session.query(
+            models.PlaylistTracks).filter_by(playlist_id=playlist.id)
+        for track in old_tracks:
+            track.track_num = -1
+            sql_session.commit()
+        new_track_num = 1
+        # Set assigned track_num to each track in playlist_tracks
+        for track in playlist_tracks:
+            sql_session.rollback()
+            instances_of_track_in_playlist = sql_session.query(
+                    models.PlaylistTracks).filter_by(
+                        playlist_id=playlist.id,
+                        youtube_id=track)
+            # If multiple instances of a video, make sure not to 
+            # reassign track_num of an updated instance.
+            can_update_track = None
+            if instances_of_track_in_playlist:
+                for instance in instances_of_track_in_playlist:
+                    if instance.track_num >= new_track_num:
+                        can_update_track = instance
+                        break
+            if can_update_track:
+                can_update_track.track_num = new_track_num
+                sql_session.commit()
+            else:
+                new_track = models.PlaylistTracks(
+                    playlist_id=playlist.id,
+                    youtube_id=track,
+                    track_num=new_track_num)  
+                sql_session.add(new_track)
+                sql_session.commit()
+            new_track_num += 1
+        # Delete tracks still assigned track_num = -1
+        sql_session.rollback()
+        deleted_tracks = sql_session.query(models.PlaylistTracks).filter_by(
+                playlist_id=playlist.id).filter(
+                    models.PlaylistTracks.track_num == -1)
+        deleted_tracks.delete()
+        sql_session.commit()  
+    else:
+        post_new_playlist(
+            user_id=user_id,
+            playlist_title=playlist_title,
+            playlist_tracks=playlist_tracks)
+    return "success"
+
+def delete_playlist(user_id, playlist_title):
+    playlist = playlist_in_database(
+        user_id=user_id, playlist_title=playlist_title)
+    if playlist:
+        delete_all_playlist_tracks(
+            user_id=user_id, playlist_title=playlist_title)
+        if playlist_empty(user_id=user_id, playlist_title=playlist_title):
+            sql_session.rollback()
+            playlist = sql_session.query(models.Playlist).filter_by(
+                id=playlist.id)
+            playlist.delete()
+            sql_session.commit()
+            return "success"
+
+def playlist_empty(user_id, playlist_title):
+    playlist = playlist_in_database(
+        user_id=user_id, playlist_title=playlist_title)
+    if playlist:
+        first_track = sql_session.query(models.PlaylistTracks).filter_by(
+                id=playlist.id).first()
+        if first_track:
+            return False
+        else:
+            return True
+
+def delete_all_playlist_tracks(user_id, playlist_title):
+    playlist = playlist_in_database(
+        user_id=user_id, playlist_title=playlist_title)
+    if playlist:
+        sql_session.rollback()
+        deleted_tracks = sql_session.query(models.PlaylistTracks).filter_by(
+                playlist_id=playlist.id)
+        deleted_tracks.delete()
+        sql_session.commit()
+        return "success"
+
 
 # NEW FUNCTIONS
 # Albums
@@ -134,8 +270,6 @@ def album_in_database(album_name):
         name=album_name).first()
     if album:
         return album
-    else:
-        return None
 
 def update_album_name(album_name):
     album = album_in_database(album_name)
@@ -156,16 +290,12 @@ def artist_has_similar_artist(artist1_name, artist2_name):
         artist_id1=artist1.id, artist_id2=artist2.id).first()
     if similar_artist:
         return similar_artist
-    else:
-        return None
 
 def artist_in_database(artist_name):
     artist = sql_session.query(models.Artist).filter_by(
         artist_name=artist_name).first()
     if artist:
         return artist
-    else:
-        return None
 
 def update_artist_name(artist_name):
     artist = artist_in_database(artist_name)
@@ -251,8 +381,6 @@ def genre_in_database(genre_name):
         name=genre_name).first()
     if genre:
         return genre
-    else:
-        return None
 
 # Listens
 def post_listen(user_id, youtube_id, listened_to_end):
@@ -269,7 +397,6 @@ def post_listen(user_id, youtube_id, listened_to_end):
 # Trends
 def count_listens_by_week(user_id, start_date=None, end_date=None):
     dates = ""
-    count_by_week = []
     if start_date and end_date:
         dates = (" AND listens.time_of_listen >= '" + 
             str(start_date) + 
@@ -295,11 +422,14 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
         difference = first_listen - sunday
         difference = difference.days
         days_past_sunday = difference % 7
-        first_sunday = first_listen - datetime.timedelta(days=days_past_sunday)
-        first_sunday = first_sunday.replace(hour=00, minute=00, second=00)
+        first_sunday = (first_listen -
+            datetime.timedelta(days=days_past_sunday))
+        first_sunday = first_sunday.replace(
+            hour=00, minute=00, second=00)
         start_week = first_sunday
         end_week = start_week + datetime.timedelta(days=7)
         weekly_count = 0
+        count_by_week = []
         for row in rows:
             found_week = False
             while (not found_week):
@@ -355,12 +485,10 @@ def get_regression_line(array_of_points): # Fix: divides by 0
         regression_line = {'m': m, 'b': b}
         return regression_line
 
-def get_genre_regression_data(user_id,
+def get_genre_regression_data(
+        user_id,
         start_date,
         end_date):
-    regression_data = []
-    data = []
-    top_genres = []
     sql = text("""
         SELECT genres.id,
         genres.name,
@@ -449,6 +577,7 @@ def get_genre_regression_data(user_id,
     results = models.engine.execute(sql)
     rows = results.fetchall()
     i = 0
+    regression_data = []
     for row in rows:
         track = (row[2], row[4]) # (count played, count liked)
         regression_data.append(track)
@@ -459,7 +588,6 @@ def get_genre_top_listened(
         user_id, start_date=None, 
         end_date=None, 
         limit=10):
-    top_genres = []
     if start_date and end_date:
         dates = (" AND listens.time_of_listen >= '" + 
             str(start_date) + 
@@ -485,13 +613,13 @@ def get_genre_top_listened(
         str(limit) + ";")
     results = models.engine.execute(sql)
     rows = results.fetchall()
+    top_genres = []
     for row in rows:
         genre = {
             'name': row[0],
             'listens': row[1]}
         top_genres.append(genre)
     return top_genres
-    return None
 
 # Videos
 def video_in_database(youtube_id):
@@ -499,11 +627,8 @@ def video_in_database(youtube_id):
         youtube_id=youtube_id).first()
     if video:
         return video
-    else:
-        return None
 
 def video_has_genre(youtube_id, genre):
-    video_genres = []
     video = video_in_database(youtube_id)
     if video_in_database:
         sql = text(
@@ -515,6 +640,7 @@ def video_has_genre(youtube_id, genre):
             ORDER BY genres.name;""")
         results = models.engine.execute(sql)
         rows = results.fetchall()
+        video_genres = []
         if rows:
             for row in rows:
                 video_genres.append(row[0])
@@ -536,7 +662,8 @@ def update_video_genres(youtube_id, genres):
                 sql_session.commit()
         return "success"
 
-def post_video(youtube_id, 
+def post_video(
+        youtube_id, 
         youtube_title,  
         channel_id, 
         description,
@@ -570,23 +697,3 @@ def post_video(youtube_id,
         sql_session.add(new_video)
         sql_session.commit()
         return "success"
-
-"""
-def update_video(youtube_id,
-        artist=None, 
-        album=None, 
-        release_date=None, 
-        music=1):
-    video = video_in_database(youtube_id)
-    if video:
-"""
-
-
-
-
-
-
-
-
-
-

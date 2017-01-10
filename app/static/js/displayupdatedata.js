@@ -85,10 +85,10 @@ $(function(){
 			    i++;
 			});
 			$.ajax({
-				type: "POST",
-		    	url: '/postplaylist',
-		    	data: {playlist_title: playlist_title, 
-		    		tracks: JSON.stringify(playlist_tracks)
+				type: 'POST',
+		    	url: '/playlists',
+		    	data: {'playlist_title': playlist_title, 
+		    		'playlist_tracks': JSON.stringify(playlist_tracks)
 		    	}
 		    });
 		    getPlaylistTitlesAndRender($selected_playlist = playlist_title);
@@ -99,11 +99,10 @@ $(function(){
 			var playlist_title = $("#playlist-name").val();
 			var playlist_tracks = [];
 			$.ajax({
-				type: "POST",
-		    	url: '/postplaylist',
-		    	data: {playlist_title: playlist_title, 
-		    		tracks: JSON.stringify(playlist_tracks)
-		    	}
+				type: "DELETE",
+		    	url: '/playlists',
+		    	data: {'playlist_title': playlist_title
+		        }
 		    }).done(function(){
 		    	getPlaylistTitlesAndRender();
 		    	$("#sortable").empty();
@@ -311,7 +310,7 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 function getPlaylistData(playlist_title){
 	var results = $.ajax({
 		type: "GET",
-	    url: '/get-playlist-tracks',
+	    url: '/playlists',
 	    data: {playlist_title: playlist_title
 	    }
 	    ,dataType: 'json'
@@ -351,7 +350,7 @@ function renderPlaylistTrack(playlist_tracks){
 function getPlaylistTitlesAndRender(selected_playlist = null){
 	var results = $.ajax({
 		type: "GET",
-	    url: '/get-playlist-titles',
+	    url: '/playlists',
 	    dataType: 'json'
     }).done(function(results){ 
     	renderPlaylistDropDown(results, selected_playlist);

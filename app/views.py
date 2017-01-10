@@ -3,13 +3,14 @@ import datetime
 from json import loads
 
 from app import app, models, sql_session
-from app.views_model import get_playlist_titles as model_get_playlist_titles
-from app.views_model import get_playlist_tracks as model_get_playlist_tracks
+from app.views_model import get_playlist_titles, get_playlist_tracks
 from app.views_model import (count_listens_by_week, get_genre_top_listened,
-                             get_video_data, get_regression_line, 
-                             get_genre_regression_data, post_listen, post_video,
-                             update_artist_info, update_artist_similar_artists,
-                             update_video_genres, update_artist_name)
+                             get_video_data, get_regression_line,
+                             get_genre_regression_data,
+                             post_listen, post_video, delete_playlist,
+                             update_playlist, update_artist_info,
+                             update_artist_similar_artists, update_video_genres,
+                             update_artist_name)
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
@@ -105,7 +106,7 @@ def subtract_days_from_today(x=7):
 @app.route('/saved-videos', methods=['GET'])
 def saved_videos():
     if 'google_token' in session:
-        playlist_titles = model_get_playlist_titles(session['session_user_id'])
+        playlist_titles = get_playlist_titles(session['session_user_id'])
         if request.args.get("search_start_date"):
             search_start_date = request.args.get("search_start_date")
         else:
@@ -162,6 +163,33 @@ def listens():
                 listened_to_end=request.form['listened_to_end'])
     return "success"
 
+@app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
+def playlists():
+    if request.method == 'GET':
+        if request.args.get('playlist_title'):
+            playlist_tracks = get_playlist_tracks(
+                user_id=session['session_user_id'],
+                playlist_title=request.args.get('playlist_title'))
+            return jsonify(playlist_tracks)
+        else:
+            playlist_titles = get_playlist_titles(session['session_user_id'])
+            return jsonify(playlist_titles)
+    elif request.method == 'POST':
+        if ('playlist_title' in request.form and
+                'playlist_tracks' in request.form):
+            playlist_tracks = loads(request.form['playlist_tracks'])
+            update_playlist(
+                user_id=session['session_user_id'],
+                playlist_title=request.form['playlist_title'],
+                playlist_tracks=playlist_tracks)
+            return "success"
+    elif request.method == 'DELETE':
+        if 'playlist_title' in request.form:
+            delete_playlist(
+                user_id=session['session_user_id'],
+                playlist_title=request.form['playlist_title'])
+            return "success"
+
 @app.route('/trends', methods=['GET']) 
 def trends():
     if request.method == 'GET':
@@ -172,7 +200,7 @@ def trends():
                 start_date=request.args.get('start_date'),
                 end_date=request.args.get('end_date'))
             return jsonify(data)
-        if (request.args.get('data_type') == 'genres' and 
+        elif (request.args.get('data_type') == 'genres' and 
                 request.args.get('chart_type') == 'linear regression'):
             regression_data = get_genre_regression_data(
                 user_id=session['session_user_id'],
@@ -183,7 +211,7 @@ def trends():
                 'regression_data':regression_data, 
                 'regression_line':regression_line}
             return jsonify(data)
-        if (request.args.get('data_type') == 'genres' and 
+        elif (request.args.get('data_type') == 'genres' and 
                 request.args.get('chart_type') == 'top list'):
             data = get_genre_top_listened(
                 user_id=session['session_user_id'],
@@ -201,7 +229,7 @@ def videos():
                 update_video_genres(
                     youtube_id=youtube_id, 
                     genres=genres)
-            if ('youtube_id' in request.form and
+            elif ('youtube_id' in request.form and
                     'youtube_title' in request.form and
                     'channel_id' in request.form and
                     'description' in request.form and
@@ -299,99 +327,6 @@ def update_video_data():
     return "success"
 
 
-@app.route('/get-playlist-titles', methods=['GET'])
-def get_playlist_titles():
-    user_id = session['session_user_id']
-    playlist_titles = model_get_playlist_titles(user_id)
-    return jsonify(playlist_titles)
-
-
-@app.route('/get-playlist-tracks', methods=['GET'])
-def get_playlist_tracks():
-    user_id = session['session_user_id']
-    playlist_title = request.args.get('playlist_title')
-    playlist_tracks = []
-    if playlist_title:
-        playlist = sql_session.query(models.Playlist).filter_by(
-            user_id=user_id, title=playlist_title).first()
-        if playlist:
-            selected_playlist_id = playlist.id
-            playlist_tracks = model_get_playlist_tracks(
-                playlist_id=selected_playlist_id)
-    return jsonify(playlist_tracks)
-
-
-@app.route('/postplaylist', methods=['POST'])
-def postplay():
-    user_id = session['session_user_id']
-    title = request.form['playlist_title']
-    tracks = loads(request.form['tracks'])
-    track_num = 1
-    sql_session.rollback()
-    playlist_in_db = sql_session.query(models.Playlist).filter_by(
-        user_id=user_id, title=title).first()
-    if len(tracks) == 0:
-        if playlist_in_db:
-            sql_session.rollback()
-            delete_playlist_tracks = sql_session.query(
-                models.PlaylistTracks).filter_by(playlist_id=playlist_in_db.id)
-            delete_playlist_tracks.delete()
-            sql_session.commit()
-            delete_playlist = sql_session.query(models.Playlist).filter_by(
-                id=playlist_in_db.id)
-            delete_playlist.delete()
-            sql_session.commit()
-    else:
-        if playlist_in_db:
-            sql_session.rollback()
-            set_temp_track_nums = sql_session.query(
-                models.PlaylistTracks).filter_by(playlist_id=playlist_in_db.id)
-            for set_temp_track_num in set_temp_track_nums:
-                set_temp_track_num.track_num = -1
-                sql_session.commit()
-            for track in tracks:
-                sql_session.rollback()
-                track_update = sql_session.query(
-                    models.PlaylistTracks).filter_by(
-                        playlist_id=playlist_in_db.id,
-                        youtube_id=track).first()
-                if track_update:
-                    track_update.track_num = track_num
-                    sql_session.commit()
-                else:
-                    new_track = models.PlaylistTracks(
-                        playlist_id=playlist_in_db.id,
-                        youtube_id=track,
-                        track_num=track_num
-                    )  
-                    sql_session.add(new_track)
-                    sql_session.commit()
-                track_num = track_num + 1
-            track_update = sql_session.query(models.PlaylistTracks).filter_by(
-                playlist_id=playlist_in_db.id).filter(
-                    models.PlaylistTracks.track_num == -1)
-            track_update.delete()
-            sql_session.commit()
-        else:
-            sql_session.rollback()
-            new_playlist = models.Playlist(
-                user_id=user_id, title=str(title)
-            ) 
-            sql_session.add(new_playlist)
-            sql_session.commit()
-            new_playlist_id = sql_session.query(models.Playlist).filter_by(
-                user_id=user_id, title=title).first()
-            for track in tracks:
-                sql_session.rollback()
-                new_track = models.PlaylistTracks(
-                    playlist_id=new_playlist_id.id,
-                    youtube_id=track,
-                    track_num=track_num
-                )  
-                sql_session.add(new_track)
-                sql_session.commit()
-                track_num = track_num + 1
-    return "success"
 
 
 
