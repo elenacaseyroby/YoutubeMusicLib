@@ -89,17 +89,26 @@ def get_video_data(user_id, video_scope, search_start_date, search_end_date,
         videos.append(video)
     return videos
 
-def get_listens(user_id, search_start_date=None, search_end_date=None, search_artist=None):
+def get_listens(
+        user_id,
+        search_start_date=None,
+        search_end_date=None,
+        search_artist=None):
     start_date = ""
     if search_start_date:
-        start_date = " AND listens.time_of_listen >= '" + str(search_start_date) + "' "
+        start_date = (" AND listens.time_of_listen >= '" +
+        str(search_start_date) +
+        "' ")
     end_date = ""
     if search_end_date:
-        end_date = " AND listens.time_of_listen <= '" + str(search_end_date) + "' "
+        end_date = (" AND listens.time_of_listen <= '" +
+        str(search_end_date) +
+        "' ")
     artist = ""
     if search_artist:
-        artist = " AND artists.artist_name LIKE '%" + search_artist + "%' "
-
+        artist = (" AND artists.artist_name LIKE '%" +
+        search_artist +
+        "%' ")
     sql = text("""
         SELECT videos.youtube_title,
         videos.title,
