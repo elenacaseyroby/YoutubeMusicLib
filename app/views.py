@@ -26,6 +26,10 @@ google = oauth.remote_app('google',
   consumer_key=GOOGLE_CLIENT_ID,
   consumer_secret=GOOGLE_CLIENT_SECRET)
 
+@app.route('/test')
+def test():
+  return render_template('test.html')
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -98,6 +102,11 @@ def getgetgenredata():
 @app.route('/getlistensbydate')
 def getlistensbydate():
   data = viewsModel.countlistensbyweek(user_id = session['session_user_id'], start_date = request.args.get('start_date'), end_date = request.args.get('end_date'))
+  return jsonify(data)
+
+@app.route('/getgenres')
+def getgenres():
+  data = viewsModel.getgenres();
   return jsonify(data)
 
 

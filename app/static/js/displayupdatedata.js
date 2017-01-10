@@ -1,6 +1,9 @@
 $.getScript("static/js/playvideo.js", function(){
 	console.log("javascript loaded");
 });
+$.getScript("static/js/myfunctions.js", function(){
+	console.log("javascript loaded");
+});
 
 var current_playlist_tracks = [];
 var current_data_rows = [];
@@ -174,8 +177,43 @@ $(function(){
     search_end_date = $("#search_end_date").val();
     getRowData(video_scope = video_scope, search_artist = search_artist, search_start_date = search_start_date, search_end_date = search_end_date);
     getPlaylistTitlesAndRender();
+    var results = $.ajax({
+		type: "GET",
+	    url: '/getgenres',
+	    dataType: 'json'
+    }).done(function(results){
+    	$.each(results, function(index, item){//hide any genres past first ten
+    		if(index<10){
+    			$("#genre-dropdown").append("<option value='"+item['id']+"'>"+item['name']+"</option>");
+    		}else{
+    			$("#genre-dropdown").append("<option value='"+item['id']+"' hidden>"+item['name']+"</option>");
+    		}
+    	});
+    	document.getElementById('genre-dropdown').id = 'insightList';
+    	/*
+    	$('#insightList').multiselect({
+		  enableClickableOptGroups: true
+		});*/
+    });
+    //on .scrolling-dropdown option mouseover make only surrounding 8 options not hidden. on mouse off set back to original 10
+    $(".scrolling-dropdown").click(function(){
+
+		//figure out why it isn't working
+		console.log("hi!!");
+		$.each($(".scrolling-dropdown option"), function(index, option){
+			console.log(option);
+		});
+	});
 
 });
+
+
+/*could prob do scroll with the below calling a javascript function that takes in the index
+ of the moused over option elemnt and the select element so it can go through and set all option elements 
+ to hidden if they are not within 4 rows of the input option element
+onmouseover="document.getElementById('div1').style.display = 'block';"
+
+BUT i would prefer to make a javascript script that can make any select element scroll so i can reuse the code*/
 function getRowData(video_scope, search_artist=null, search_start_date=null, search_end_date=null){
 	//video_scope = "listens", "library", or "all"
 	if(video_scope != "library" && video_scope != "listens" && video_scope != "all"){
@@ -394,6 +432,8 @@ $(document).on('dblclick', 'li', function() {
 	var youtube_id = this.id.replace("playlist-", "");
 	playVideo(youtube_id, current_playlist_tracks);
 });
+
+
 
 
 

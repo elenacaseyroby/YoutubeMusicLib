@@ -29,7 +29,7 @@ def getcities(select = "*", artist_id=None):
   return result
 
 #query not in use yet
-def getgenres(youtube_id):
+def getgenresbyvideo(youtube_id):
   sql = text("""SELECT 
 genres.name
 ,videos.youtube_title
@@ -43,6 +43,23 @@ JOIN artists ON videos.artist_id = artists.id
 WHERE videos.youtube_id ='"""+youtube_id+"';")
   result = models.engine.execute(sql)
   return result
+
+def getgenres():
+  sql = text("""SELECT genres.id, genres.name
+    FROM vids_genres 
+    JOIN genres ON vids_genres.genre_id = genres.id
+    GROUP BY vids_genres.genre_id
+    ORDER BY genres.name;""");
+  results = models.engine.execute(sql)
+  genres = []
+  for result in results:
+    genre = {'id': result[0]
+        ,'name': result[1]
+    }
+    genres.append(genre)
+
+  return genres
+
 
 
 #get listens data for listens page
@@ -58,7 +75,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
   sql_select = ",videos.youtube_id"
 
   if search_artist:
-    artist = "AND artists.artist_name LIKE '"+search_artist+"'"
+    artist = "AND artists.artist_name LIKE '%"+search_artist+"%'"
 
   if video_scope == "listens":
     sql_select = """,listens.youtube_id
@@ -102,6 +119,7 @@ def getvideodata(user_id, video_scope, search_start_date, search_end_date, searc
    """+artist+"""
    """+order+"""
    LIMIT 1500;""")
+  print(sql)
 
   results = models.engine.execute(sql)
   
