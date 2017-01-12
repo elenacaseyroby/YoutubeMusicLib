@@ -3,16 +3,17 @@ import datetime
 from json import loads
 
 from app import app, models, sql_session
-from app.views_model import get_playlist_titles, get_playlist_tracks
-from app.views_model import (count_listens_by_week, get_genre_top_listened,
-                            get_regression_line,
-                            get_genre_regression_data, get_saved_videos, 
-                            post_saved_video,
-                            delete_saved_video, get_listens, get_videos,
-                            post_listen, post_video, delete_playlist,
-                            update_playlist, update_artist_info,
-                            update_artist_similar_artists, update_video_genres,
-                            update_artist_name)
+
+from app.Artist import update_artist_similar_artists, update_artist_info
+from app.Listen import post_listen, get_listens
+from app.Playlist import (delete_playlist, get_playlist_titles,
+                        get_playlist_tracks, update_playlist)
+from app.SavedVideo import (delete_saved_video, get_saved_videos,
+                        post_saved_video)
+from app.Trends import (count_listens_by_week, get_genre_regression_data,
+                        get_genre_top_listened, get_regression_line)
+from app.Video import (get_videos, post_video, update_video_genres,
+                        update_video)
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
@@ -150,13 +151,28 @@ def trends():
                 end_date=request.args.get('end_date'))
             return jsonify(data)
 
-@app.route('/videos', methods=['GET','POST']) 
+@app.route('/videos', methods=['GET','PUT','POST']) 
 def videos():
     if request.method == 'GET':
         videos = get_videos(
             user_id=session['session_user_id'],
             search_artist=request.args.get('search_artist'))
         return jsonify(videos)
+    elif request.method == 'PUT':
+        if ('youtube_id' in request.form and
+                'title' in request.form and
+                'artist' in request.form and
+                'album' in request.form and
+                'release_date' in request.form and
+                'music' in request.form):
+            update_video(
+                youtube_id=request.form['youtube_id'],
+                title=request.form['title'],
+                artist=request.form['artist'],
+                album=request.form['album'],
+                release_date=request.form['release_date'],
+                music=request.form['music'])
+            return "success"
     elif request.method == 'POST': 
         if 'youtube_id' in request.form:
             if 'genres' in request.form:
@@ -172,7 +188,8 @@ def videos():
                     'title' in request.form and
                     'artist' in request.form and
                     'album' in request.form and
-                    'release_date' in request.form):
+                    'release_date' in request.form and
+                    'music' in request.form):
                 post_video(youtube_id=request.form['youtube_id'],
                     youtube_title=request.form['youtube_title'], 
                     channel_id=request.form['channel_id'],
@@ -180,7 +197,8 @@ def videos():
                     title=request.form['title'],
                     artist=request.form['artist'],
                     album=request.form['album'],
-                    release_date=request.form['release_date'])
+                    release_date=request.form['release_date'],
+                    music=request.form['music'])
         return "success"
         
 def subtract_days_from_today(num_days=7):

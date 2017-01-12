@@ -39,17 +39,32 @@ $(function(){
 				dataupdated = true;
 			}	
 			if(dataupdated){
+				if(library_value == 1){
+			    	$.ajax({
+						type: 'POST',
+					    url: '/saved-videos',
+					    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")}
+				    });
+			    }
+			    if(library_value == 0){
+			    	$.ajax({
+						type: 'DELETE',
+					    url: '/saved-videos',
+					    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")}
+				    });
+			    }
+			    // For now release_date cannot be changed on this page.  
+			    // By setting null, it will not update that Video property at all.
+				var release_date = null;
 				$.ajax({
-					type: "POST",
-				    url: '/updatevideodata',
-				    data: {youtube_id: $("#youtube_id" + i.toString()).attr("value")
-				    , library: library_value
-				    , music: music_value
-				    , title: $("#title" + i.toString()).val()
-				    , artist: $("#artist" + i.toString()).val()
-				    , album: $("#album" + i.toString()).val()
-					, artist_id: $("#artist_id" + i.toString()).attr("value")
-					, album_id: $("#album_id" + i.toString()).attr("value")
+					type: 'PUT',
+				    url: '/videos',
+				    data: {'youtube_id': $("#youtube_id" + i.toString()).attr("value"),
+				    'title': $("#title" + i.toString()).val(),
+				    'artist': $("#artist" + i.toString()).val(),
+				    'album': $("#album" + i.toString()).val(),
+				    'release_date': release_date,
+					'music': music_value
 					}
 			    });
 			    //update array when you update db so that table pages reflect 
@@ -242,10 +257,9 @@ function renderDataRow(video_scope = "listens", table_page = 0, $display_data_ro
 	}
 	index = vid_range_start;
 	while(index < vid_range_end){
+		var listens_index = '';
 		if(video_scope == "listens"){
 			listens_index = '<td>'+$display_data_rows[index]['index']+'</td>';
-		}else{
-			listens_index = '';
 		}
 		var checkedIfPlaylist = (($display_data_rows[index]['playlist']==1) ? "checked" : "");
 		var checkedIfMusic = (($display_data_rows[index]['music']==1) ? "checked" : "");
