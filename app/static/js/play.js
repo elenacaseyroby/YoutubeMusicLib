@@ -216,26 +216,26 @@ function savePlay(event, end = false) {
 		$.ajax({
 			type: 'POST',
 			url: '/videos',
-			data: {youtube_id: youtube_id
-				, youtube_title: youtube_title
-				, channel_id: channel_id
-				, description: description
-				, title: title
-				, artist: artist
-				, album : album
-				, release_date: year}
+			data: {'youtube_id': youtube_id
+				, 'youtube_title': youtube_title
+				, 'channel_id': channel_id
+				, 'description': description
+				, 'title': title
+				, 'artist': artist
+				, 'album': album
+				, 'release_date': year}
 		});
 		$.ajax({
 			type: 'PUT',
 			url: '/artists',
-			data: {artist: artist
-				, similar_artists: JSON.stringify(similar_artists)}
+			data: {'artist': artist,
+				 'similar_artists': JSON.stringify(similar_artists)}
 		});
 		$.ajax({
 			type: 'POST',
 			url: '/listens',
-			data: {youtube_id: youtube_id
-				, listened_to_end: listened_to_end}
+			data: {'youtube_id': youtube_id,
+				 'listened_to_end': listened_to_end}
 	    });
 		if(!end){
 			played_video = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
@@ -253,8 +253,8 @@ function savePlay(event, end = false) {
 					type: 'POST',
 					dataType: 'json',
 			    	url: '/videos',
-			    	data: {youtube_id: youtube_id, 
-			    	    genres: JSON.stringify(tags)}
+			    	data: {'youtube_id': youtube_id, 
+			    	    'genres': JSON.stringify(tags)}
 			    });
 			   	
 			}else{
@@ -263,8 +263,8 @@ function savePlay(event, end = false) {
 						type: 'POST',
 						dataType: 'json',
 				    	url: '/videos',
-				    	data: {youtube_id: youtube_id, 
-				    	    genres: JSON.stringify(tags)}
+				    	data: {'youtube_id': youtube_id, 
+				    	    'genres': JSON.stringify(tags)}
 				    });
 				});
 			}
@@ -277,8 +277,8 @@ function savePlay(event, end = false) {
 					type: 'POST',
 					dataType: 'json',
 			    	url: '/videos',
-			    	data: {youtube_id: youtube_id, 
-			    	    genres: JSON.stringify(tags)}
+			    	data: {'youtube_id': youtube_id, 
+			    	    'genres': JSON.stringify(tags)}
 			    });
 			    
 			}else{
@@ -287,8 +287,8 @@ function savePlay(event, end = false) {
 						type: 'POST',
 						dataType: 'json',
 				    	url: '/videos',
-				    	data: {youtube_id: youtube_id, 
-				    	    genres: JSON.stringify(tags)}
+				    	data: {'youtube_id': youtube_id, 
+				    	    'genres': JSON.stringify(tags)}
 				    	
 				    });
 				});

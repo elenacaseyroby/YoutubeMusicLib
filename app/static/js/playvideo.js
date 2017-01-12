@@ -64,7 +64,6 @@ function onPlayerReady(event){
 }
 
 function onPlayerStateChange(event) { 
-	
 	//if vid is playing from first 2 secs, save to list after 1 second this avoids tracking pauses
 	if(event.data == YT.PlayerState.PLAYING && event.target.j.currentTime <= 2.0){
 		setTimeout(savePlay(event), 1000);
@@ -104,7 +103,7 @@ function savePlay(event, end = false){
 		$.ajax({
 			type: 'POST',
 			url: '/listens',
-			data: {youtube_id: youtube_id
-				, listened_to_end: listened_to_end}
+			data: {'youtube_id': youtube_id,
+				 'listened_to_end': listened_to_end}
 	    });
 }
