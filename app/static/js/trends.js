@@ -124,7 +124,6 @@ function topGenresList(start_date = null, end_date = null){
       , 'end_date': end_date}
     ,dataType: 'json'
   }).done(function(top_genres){
-    console.log(top_genres)
     $("#genre-list").empty();
     $("#genre-list-overview").empty();
     $("#genre-list-header").empty();
