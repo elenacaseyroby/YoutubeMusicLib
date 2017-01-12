@@ -90,18 +90,6 @@ def get_genre_regression_data(
             ) > 0
         ) AS num_vids_listened,
         (SELECT COUNT(*) 
-            FROM listens 
-            JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id 
-            WHERE listens.listened_to_end = 0 
-            AND listens.user_id = """ +
-            str(user_id) +
-            " AND listens.time_of_listen > '" +
-            start_date +
-            "' AND listens.time_of_listen < '" +
-            end_date +
-            """' AND vids_genres.genre_id = genres.id
-        ) AS plays_per_genre,
-        (SELECT COUNT(*) 
             FROM videos 
             JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
             WHERE vids_genres.genre_id = genres.id 
@@ -113,48 +101,15 @@ def get_genre_regression_data(
                 """ AND youtube_id = videos.youtube_id 
                 AND listened_to_end = 0 
             ) > 2
-        ) AS num_vids_relistened,
-        (
-            (SELECT COUNT(*) 
-                FROM videos 
-                JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-                WHERE vids_genres.genre_id = genres.id 
-                AND 
-                (SELECT COUNT(*) 
-                    FROM listens 
-                    WHERE user_id = """ +
-                    str(user_id) +
-                    """ AND youtube_id = videos.youtube_id 
-                    AND listens.time_of_listen > '""" +
-                    start_date +
-                    """' AND listens.time_of_listen < '""" +
-                    end_date +
-                    """' AND listened_to_end = 0
-                ) > 1
-            )/(SELECT COUNT(*) 
-                FROM videos 
-                JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-                WHERE vids_genres.genre_id = genres.id 
-                AND (SELECT COUNT(*) 
-                FROM listens WHERE user_id = """ +
-                str(user_id) +
-                """ AND youtube_id = videos.youtube_id 
-                AND listens.time_of_listen > '""" +
-                start_date + 
-                """' AND listens.time_of_listen < '""" +
-                end_date +
-                """' AND listened_to_end = 0
-                ) > 0
-            )
-        )*100 AS percentage_vids_relistened
-      FROM genres
-      ORDER BY num_vids_listened DESC, genres.name ASC;""")
+        ) AS num_vids_relistened
+        FROM genres
+        ORDER BY num_vids_listened DESC, genres.name ASC;""")
     results = models.engine.execute(sql)
     rows = results.fetchall()
     i = 0
     regression_data = []
     for row in rows:
-        track = (row[2], row[4]) # (count played, count liked)
+        track = (row[2], row[3]) # (count played, count liked)
         regression_data.append(track)
         i = i + 1
     return regression_data
