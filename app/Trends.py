@@ -112,11 +112,6 @@ def get_genre_regression_data(
                 str(user_id) +
                 """ AND youtube_id = videos.youtube_id 
                 AND listened_to_end = 0 
-                AND listens.time_of_listen > '""" +
-                start_date +
-                """' AND listens.time_of_listen < '""" +
-                end_date +
-                """'
             ) > 2
         ) AS num_vids_relistened,
         (
@@ -188,6 +183,7 @@ def get_genre_top_listened(
             """' AND vids_genres.genre_id = genres.id
         ) AS genre_plays
         FROM genres
+        WHERE genres.id != 1
         ORDER BY genre_plays DESC
         LIMIT """ +
         str(limit) + ";")
