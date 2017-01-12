@@ -57,15 +57,8 @@ def artists():
                 artist=request.form['artist'], similar_artists=similar_artists)
     return "success"
 
-@app.route('/listens', methods=['POST', 'GET'])
+@app.route('/listens', methods=['GET','POST'])
 def listens():
-    if request.method == 'POST':
-        if 'youtube_id' in request.form and 'listened_to_end' in request.form:
-            post_listen(
-                user_id=session['session_user_id'],
-                youtube_id=request.form['youtube_id'], 
-                listened_to_end=request.form['listened_to_end'])
-            return "success"
     if request.method == 'GET':
         listens = get_listens(
             user_id=session['session_user_id'],
@@ -73,6 +66,13 @@ def listens():
             search_end_date=request.args.get('search_end_date'),
             search_artist=request.args.get('search_artist'))
         return jsonify(listens)
+    elif request.method == 'POST':
+        if 'youtube_id' in request.form and 'listened_to_end' in request.form:
+            post_listen(
+                user_id=session['session_user_id'],
+                youtube_id=request.form['youtube_id'], 
+                listened_to_end=request.form['listened_to_end'])
+            return "success" 
     
 @app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
 def playlists():
@@ -150,9 +150,14 @@ def trends():
                 end_date=request.args.get('end_date'))
             return jsonify(data)
 
-@app.route('/videos', methods=['POST', 'GET']) 
+@app.route('/videos', methods=['GET','POST']) 
 def videos():
-    if request.method == 'POST': 
+    if request.method == 'GET':
+        videos = get_videos(
+            user_id=session['session_user_id'],
+            search_artist=request.args.get('search_artist'))
+        return jsonify(videos)
+    elif request.method == 'POST': 
         if 'youtube_id' in request.form:
             if 'genres' in request.form:
                 genres = loads(request.form['genres']) 
@@ -177,12 +182,7 @@ def videos():
                     album=request.form['album'],
                     release_date=request.form['release_date'])
         return "success"
-    if request.method == 'GET':
-        videos = get_videos(
-            user_id=session['session_user_id'],
-            search_artist=request.args.get('search_artist'))
-        return jsonify(videos)
-
+        
 def subtract_days_from_today(num_days=7):
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d %H:%M:%S")
