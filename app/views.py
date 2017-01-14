@@ -6,18 +6,22 @@ from app import app, models, sql_session
 
 from app.Artist import update_artist_similar_artists, update_artist_info
 from app.Listen import post_listen, get_listens
-from app.Playlist import (delete_playlist, get_playlist_titles,
+from app.Playlist import (
+                        delete_playlist, get_playlist_titles,
                         get_playlist_tracks, update_playlist)
-from app.SavedVideo import (delete_saved_video, get_saved_videos,
-                        post_saved_video)
-from app.Trends import (count_listens_by_week, get_genre_regression_data,
+from app.SavedVideo import (
+                            delete_saved_video, get_saved_videos,
+                            post_saved_video)
+from app.Trends import (
+                        count_listens_by_week, get_genre_regression_data,
                         get_genre_top_listened, get_regression_line)
-from app.Video import (get_videos, post_video, update_video_genres,
+from app.Video import (
+                        get_videos, post_video, update_video_genres,
                         update_video)
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
-from sqlalchemy import func
+
 
 @app.route('/')
 @app.route('/index')
@@ -26,6 +30,7 @@ def play():
     if 'google_token' in session:
         return render_template('play.html')
     return redirect(url_for('login'))
+
 
 @app.route('/my-saved-videos')
 def my_saved_videos():
@@ -40,11 +45,13 @@ def my_saved_videos():
             playlist_titles=playlist_titles)
     return redirect(url_for('login'))
 
+
 @app.route('/my-trends')
 def my_trends():
     if 'google_token' in session:
         return render_template('trends.html')
     return redirect(url_for('login'))
+
 
 @app.route('/artists', methods=['PUT'])
 def artists():
@@ -53,12 +60,13 @@ def artists():
             update_artist_info(
                 artist=request.form['artist'], bio=request.form['bio'])
         if 'artist' in request.form and 'similar_artists' in request.form:
-            similar_artists = loads(request.form['similar_artists']) 
+            similar_artists = loads(request.form['similar_artists'])
             update_artist_similar_artists(
                 artist=request.form['artist'], similar_artists=similar_artists)
     return "success"
 
-@app.route('/listens', methods=['GET','POST'])
+
+@app.route('/listens', methods=['GET', 'POST'])
 def listens():
     if request.method == 'GET':
         listens = get_listens(
@@ -71,10 +79,11 @@ def listens():
         if 'youtube_id' in request.form and 'listened_to_end' in request.form:
             post_listen(
                 user_id=session['session_user_id'],
-                youtube_id=request.form['youtube_id'], 
+                youtube_id=request.form['youtube_id'],
                 listened_to_end=request.form['listened_to_end'])
-            return "success" 
-    
+            return "success"
+
+
 @app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
 def playlists():
     if request.method == 'GET':
@@ -102,6 +111,7 @@ def playlists():
                 playlist_title=request.form['playlist_title'])
             return "success"
 
+
 @app.route('/saved-videos', methods=['GET', 'POST', 'DELETE'])
 def saved_videos():
     if request.method == 'GET':
@@ -122,28 +132,29 @@ def saved_videos():
                 youtube_id=request.form['youtube_id'])
             return "success"
 
-@app.route('/trends', methods=['GET']) 
+
+@app.route('/trends', methods=['GET'])
 def trends():
     if request.method == 'GET':
-        if (request.args.get('data_type') == 'listens' and 
+        if (request.args.get('data_type') == 'listens' and
                 request.args.get('chart_type') == 'time'):
             data = count_listens_by_week(
                 user_id=session['session_user_id'],
                 start_date=request.args.get('start_date'),
                 end_date=request.args.get('end_date'))
             return jsonify(data)
-        elif (request.args.get('data_type') == 'genres' and 
+        elif (request.args.get('data_type') == 'genres' and
                 request.args.get('chart_type') == 'linear regression'):
             regression_data = get_genre_regression_data(
                 user_id=session['session_user_id'],
                 start_date=request.args.get('start_date'),
                 end_date=request.args.get('end_date'))
             regression_line = get_regression_line(regression_data)
-            data ={
-                'regression_data':regression_data, 
-                'regression_line':regression_line}
+            data = {
+                'regression_data': regression_data,
+                'regression_line': regression_line}
             return jsonify(data)
-        elif (request.args.get('data_type') == 'genres' and 
+        elif (request.args.get('data_type') == 'genres' and
                 request.args.get('chart_type') == 'top list'):
             data = get_genre_top_listened(
                 user_id=session['session_user_id'],
@@ -151,7 +162,8 @@ def trends():
                 end_date=request.args.get('end_date'))
             return jsonify(data)
 
-@app.route('/videos', methods=['GET','PUT','POST']) 
+
+@app.route('/videos', methods=['GET', 'PUT', 'POST'])
 def videos():
     if request.method == 'GET':
         videos = get_videos(
@@ -173,13 +185,13 @@ def videos():
                 release_date=request.form['release_date'],
                 music=request.form['music'])
             return "success"
-    elif request.method == 'POST': 
+    elif request.method == 'POST':
         if 'youtube_id' in request.form:
             if 'genres' in request.form:
-                genres = loads(request.form['genres']) 
+                genres = loads(request.form['genres'])
                 youtube_id = request.form['youtube_id']
                 update_video_genres(
-                    youtube_id=youtube_id, 
+                    youtube_id=youtube_id,
                     genres=genres)
             elif ('youtube_id' in request.form and
                     'youtube_title' in request.form and
@@ -190,8 +202,9 @@ def videos():
                     'album' in request.form and
                     'release_date' in request.form and
                     'music' in request.form):
-                post_video(youtube_id=request.form['youtube_id'],
-                    youtube_title=request.form['youtube_title'], 
+                post_video(
+                    youtube_id=request.form['youtube_id'],
+                    youtube_title=request.form['youtube_title'],
                     channel_id=request.form['channel_id'],
                     description=request.form['description'],
                     title=request.form['title'],
@@ -200,7 +213,8 @@ def videos():
                     release_date=request.form['release_date'],
                     music=request.form['music'])
         return "success"
-        
+
+
 def subtract_days_from_today(num_days=7):
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -211,9 +225,10 @@ def subtract_days_from_today(num_days=7):
     else:
         return today
 
-# User Auth code below
 
-GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
+# User Auth code below
+GOOGLE_CLIENT_ID = (
+    '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com')
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
 
 oauth = OAuth(app)
@@ -229,9 +244,11 @@ google = oauth.remote_app(
     consumer_key=GOOGLE_CLIENT_ID,
     consumer_secret=GOOGLE_CLIENT_SECRET)
 
+
 @app.route('/login')
 def login():
     return google.authorize(callback=url_for('authorized', _external=True))
+
 
 @app.route('/logout')
 def revoke_token():
@@ -242,6 +259,7 @@ def revoke_token():
         session.pop('google_token', None)
         return redirect('/')
     return redirect(url_for('login'))
+
 
 @app.route('/oauth2callback')
 @google.authorized_handler
@@ -257,8 +275,6 @@ def authorized(resp):
         sql_session.rollback()
         email_in_db = sql_session.query(models.User).filter_by(
             email=session['user_email']).first()
-        last_id_query = sql_session.query(func.max(models.User.id))
-        last_id = last_id_query.one()
 
         if not email_in_db:
             new_user = models.User(
@@ -272,6 +288,7 @@ def authorized(resp):
         else:
             session['session_user_id'] = email_in_db.id
     return redirect('/play')
+
 
 @google.tokengetter
 def get_access_token(token=None):
