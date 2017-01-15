@@ -94,7 +94,7 @@ function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
     var points = {
       x: [],
       y: [],
-      name: 'Played V. Liked',
+      name: 'Played, Liked',
       mode: 'markers'
     };
     $.each(genres['regression_data'], function(index, genre){
