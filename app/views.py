@@ -136,30 +136,30 @@ def saved_videos():
 @app.route('/trends', methods=['GET'])
 def trends():
     if request.method == 'GET':
-        if (request.args.get('data_type') == 'listens' and
-                request.args.get('chart_type') == 'time'):
+        if (request.args.get('data-type') == 'listens' and
+                request.args.get('chart-type') == 'time'):
             data = count_listens_by_week(
                 user_id=session['session_user_id'],
-                start_date=request.args.get('start_date'),
-                end_date=request.args.get('end_date'))
+                start_date=request.args.get('start-date'),
+                end_date=request.args.get('end-date'))
             return jsonify(data)
-        elif (request.args.get('data_type') == 'genres' and
-                request.args.get('chart_type') == 'linear regression'):
+        elif (request.args.get('data-type') == 'genres' and
+                request.args.get('chart-type') == 'linear regression'):
             regression_data = get_genre_regression_data(
                 user_id=session['session_user_id'],
-                start_date=request.args.get('start_date'),
-                end_date=request.args.get('end_date'))
+                start_date=request.args.get('start-date'),
+                end_date=request.args.get('end-date'))
             regression_line = get_regression_line(regression_data)
             data = {
                 'regression_data': regression_data,
                 'regression_line': regression_line}
             return jsonify(data)
-        elif (request.args.get('data_type') == 'genres' and
-                request.args.get('chart_type') == 'top list'):
+        elif (request.args.get('data-type') == 'genres' and
+                request.args.get('chart-type') == 'top list'):
             data = get_genre_top_listened(
                 user_id=session['session_user_id'],
-                start_date=request.args.get('start_date'),
-                end_date=request.args.get('end_date'))
+                start_date=request.args.get('start-date'),
+                end_date=request.args.get('end-date'))
             return jsonify(data)
 
 
@@ -227,8 +227,7 @@ def subtract_days_from_today(num_days=7):
 
 
 # User Auth code below
-GOOGLE_CLIENT_ID = (
-    '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com')
+GOOGLE_CLIENT_ID = '273956341734-jhk5ekhmrbeebqfef7d6f3vfeqf0aprg.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = 'ORbZWAUlZRk9Ixi5OjU-izDZ'
 
 oauth = OAuth(app)
