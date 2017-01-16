@@ -45,6 +45,9 @@ $(function(){
           end_date = convertSlidertoMySQLDate(
             ui_value=ui.values[1],
             end_of_day=true);
+          loadGenreTopTen(
+            start_date = start_date,
+            end_date = end_date);
           loadListensChart(
             start_date = start_date,
             end_date = end_date,
@@ -53,9 +56,6 @@ $(function(){
             start_date = start_date,
             end_date = end_date,
             redraw = true);
-          loadGenreTopTen(
-            start_date = start_date,
-            end_date = end_date);
         }
       }); 
       // Set date label and load charts on page load.
@@ -73,9 +73,10 @@ $(function(){
       let end_date = convertSlidertoMySQLDate(
         ui_value=$("#slider-range").slider("values", 1 ), 
         end_of_day=true);
+      loadGenreTopTen(start_date=start_date, end_date=end_date);
       loadListensChart(start_date=start_date, end_date=end_date);
       loadGenreScatterPlot(start_date=start_date, end_date=end_date);
-      loadGenreTopTen(start_date=start_date, end_date=end_date);
+      
     }
   });
 });
@@ -125,7 +126,7 @@ function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
     // Set regression line start and end points for plotly chart.
     const regression_line = {
       x: [0, regression_line_x],
-      y: [0, regression_line_y],
+      y: [genres['regression_line']['b'], regression_line_y],
       name: 'Correlation' + strength_label,
       mode: 'lines'
     };
@@ -167,7 +168,7 @@ function loadGenreTopTen(start_date=null, end_date=null){
     $("#overview-genre-top-ten").append(
       "<b>Your most listened genres for this date range are:</b> ");
     $.each(top_genres, function(index, genre){
-      if(genre['listens'] > 0){
+      if(genre['played-videos-count'] > 0){
         // Render top 10 list.
         $("#genre-top-ten").append('<li>'+genre['name']+'</li>')
         // Set overview text.
@@ -232,18 +233,18 @@ function loadListensChart(start_date=null, end_date=null, redraw=false){
 }
 
 function convertSlidertoMySQLDate(ui_value, end_of_day=false){
-  const year = (new Date(ui_value *1000).getFullYear()).toString();
-  let month = (Number((new Date(ui_value *1000).getMonth()))+1).toString();
-  if (month.length <2){
-    month = "0"+month;
+  const year = (new Date(ui_value * 1000).getFullYear()).toString();
+  let month = (Number((new Date(ui_value * 1000).getMonth())) + 1).toString();
+  if (month.length < 2){
+    month = "0" + month;
   }
-  let day = (new Date(ui_value *1000).getDate()).toString();
-  if (day.length <2){
-    day = "0"+day;
+  let day = (new Date(ui_value * 1000).getDate()).toString();
+  if (day.length < 2){
+    day = "0" + day;
   }
   if(end_of_day){
-    return year+"-"+month+"-"+day+" 23:59:59";
+    return year + "-" + month + "-" + day + " 23:59:59";
   }else{
-    return year+"-"+month+"-"+day+" 00:00:00";
+    return year + "-" + month + "-" + day + " 00:00:00";
   }
 }
