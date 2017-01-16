@@ -92,8 +92,19 @@ def get_genre_regression_data(
         (SELECT COUNT(*) 
             FROM videos 
             JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-            WHERE vids_genres.genre_id = genres.id 
-            AND 
+            WHERE vids_genres.genre_id = genres.id AND 
+            (SELECT COUNT(*) 
+                FROM listens 
+                WHERE user_id = """ +
+                str(user_id) +
+                """ AND youtube_id = videos.youtube_id 
+                AND listened_to_end = 0 
+                AND listens.time_of_listen > '""" +
+                start_date +
+                "' AND listens.time_of_listen < '" +
+                end_date +
+                """'
+            ) > 0 AND
             (SELECT COUNT(*) 
                 FROM listens 
                 WHERE user_id = """ +
@@ -109,7 +120,7 @@ def get_genre_regression_data(
     i = 0
     regression_data = []
     for row in rows:
-        track = (row[2], row[3]) # (count played, count liked)
+        track = (row[2], row[3])
         regression_data.append(track)
         i = i + 1
     return regression_data
@@ -124,35 +135,42 @@ def get_genre_top_listened(
             "' AND listens.time_of_listen <= '" + 
             str(end_date) + 
             "' ")
-    sql = ("""
-        SELECT genres.name,
-        (SELECT COUNT(*)
-            FROM listens
-            JOIN vids_genres ON vids_genres.youtube_id = listens.youtube_id
-            WHERE listens.listened_to_end = 0 AND
-            listens.user_id = """ + str(user_id) +
-            """ AND listens.time_of_listen >= '""" +
-            start_date +
-            """' AND listens.time_of_listen <= '""" +
-            end_date +
-            """' AND vids_genres.genre_id = genres.id
-        ) AS genre_plays
+    sql = text("""
+        SELECT genres.id,
+        genres.name,
+        (SELECT COUNT(*) 
+            FROM videos 
+            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
+            WHERE vids_genres.genre_id = genres.id AND 
+            (SELECT COUNT(*) 
+                FROM listens 
+                WHERE user_id = """ +
+                str(user_id) +
+                """ AND youtube_id = videos.youtube_id 
+                AND listened_to_end = 0 
+                AND listens.time_of_listen > '""" +
+                start_date +
+                "' AND listens.time_of_listen < '" +
+                end_date +
+                """'
+            ) > 0
+        ) AS num_vids_listened
         FROM genres
-        WHERE genres.id != 1
-        ORDER BY genre_plays DESC
+        ORDER BY num_vids_listened DESC, genres.name ASC
         LIMIT """ +
-        str(limit) + ";")
+        str(limit) +
+        ";");
     results = models.engine.execute(sql)
     rows = results.fetchall()
     top_genres = []
     for row in rows:
         genre = {
-            'name': row[0],
-            'listens': row[1]}
+            'name': row[1],
+            'played-videos-count': row[2]}
         top_genres.append(genre)
     return top_genres
 
-def get_regression_line(array_of_points): # Fix: divides by 0
+def get_regression_line(array_of_points):
     if array_of_points[0][0] == 0 and array_of_points[0][1] == 0:
         regression_line = {'m': 0, 'b': 0}
         return regression_line
