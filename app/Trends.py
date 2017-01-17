@@ -157,12 +157,10 @@ def get_genre_regression_data(user_id, start_date, end_date):
 
 
 def get_regression_line(list_of_points):
-    if not list_of_points:
+    if len(list_of_points) == 0:
         regression_line = {'m': 0, 'b': 0}
         return regression_line
     else:
-        m = 0
-        b = 0
         n = 0
         sumx = 0
         sumy = 0
@@ -175,15 +173,14 @@ def get_regression_line(list_of_points):
                 sumy = sumy + point[1]
                 sumxsquared = sumxsquared + point[0] * point[0]
                 sumxy = sumxy + point[0] * point[1]
-        if n > 0:
-            m_top = float(sumxy - (sumy * (sumx / n)))
-            m_bottom = float(sumxsquared - (sumx * (sumx / n)))
-            if m_bottom != 0 and m_top != 0:
-                m = float(m_top / m_bottom)
-            b_top = float(sumy - m * sumx)
-            b_bottom = float(n)
-            if b_bottom != 0 and b_top != 0:
-                b = float(b_top / b_bottom)
+        m_top = float((n * sumxy) - (sumy * sumx))
+        m_bottom = float((n * sumxsquared) - (sumx * sumx))
+        m = 0
+        if m_bottom != 0:
+            m = float(m_top / m_bottom)
+        b_top = float(sumy - m * sumx)
+        b_bottom = float(n)
+        b = float(b_top / b_bottom)
         # Where y = m * x + b
         regression_line = {'m': m, 'b': b}
         return regression_line
