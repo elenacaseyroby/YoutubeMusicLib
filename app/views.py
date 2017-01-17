@@ -10,7 +10,7 @@ from app.Playlist import (
     delete_playlist, get_playlist_titles, get_playlist_tracks, update_playlist)
 from app.SavedVideo import (
     delete_saved_video, get_saved_videos, post_saved_video)
-from app.trends import (
+from app.Trends import (
     count_listens_by_week, get_genre_regression_data, get_genre_top_listened,
     get_regression_line)
 from app.Video import (

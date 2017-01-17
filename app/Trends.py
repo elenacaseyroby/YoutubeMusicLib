@@ -66,27 +66,23 @@ def get_genre_likes(user_id, start_date, end_date):
             AND genres.name != 'music' AND
             (SELECT COUNT(*)
                 FROM listens
-                WHERE user_id = """ +
-                str(user_id) +
-                """ AND youtube_id = videos.youtube_id
+                WHERE user_id = :user_id 
+                AND youtube_id = videos.youtube_id
                 AND listened_to_end = 0
-                AND listens.time_of_listen > '""" +
-                start_date +
-                "' AND listens.time_of_listen < '" +
-                end_date +
-                """'
+                AND listens.time_of_listen > :start_date 
+                AND listens.time_of_listen < :end_date
             ) > 0 AND
             (SELECT COUNT(*)
                 FROM listens
-                WHERE user_id = """ +
-                str(user_id) +
-                """ AND youtube_id = videos.youtube_id
+                WHERE user_id = :user_id 
+                AND youtube_id = videos.youtube_id
                 AND listened_to_end = 0
             ) > 2
         ) AS count_videos_relistened
         FROM genres
         ORDER BY count_videos_relistened DESC, genres.name ASC;""")
-    results = models.engine.execute(sql)
+    results = models.engine.execute(
+        sql, user_id=str(user_id), start_date=start_date, end_date=end_date)
     rows = results.fetchall()
     genre_likes = {}
     for row in rows:
@@ -106,20 +102,17 @@ def get_genre_listens(user_id, start_date, end_date):
             AND genres.name != 'music' AND
             (SELECT COUNT(*)
                 FROM listens
-                WHERE user_id = """ +
-                str(user_id) +
-                """ AND youtube_id = videos.youtube_id
+                WHERE user_id = :user_id 
+                AND youtube_id = videos.youtube_id
                 AND listened_to_end = 0
-                AND listens.time_of_listen > '""" +
-                start_date +
-                "' AND listens.time_of_listen < '" +
-                end_date +
-                """'
+                AND listens.time_of_listen > :start_date 
+                AND listens.time_of_listen < :end_date
             ) > 0
         ) AS count_videos_listened
         FROM genres
         ORDER BY count_videos_listened DESC, genres.name ASC;""")
-    results = models.engine.execute(sql)
+    results = models.engine.execute(
+        sql, user_id=str(user_id), start_date=start_date, end_date=end_date)
     rows = results.fetchall()
     genre_listens = {}
     for row in rows:
