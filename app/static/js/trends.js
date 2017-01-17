@@ -69,108 +69,6 @@ $(function(){
 });
 
 
-function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
-  const genres = $.ajax({
-    type: 'GET',
-    url: '/trends',
-    data: {'data-type': 'genres',
-      'chart-type': 'linear regression',
-      'start-date': start_date,
-      'end-date': end_date},
-    dataType: 'json'
-  }).done(function(genres){
-    // Format points and regression line for plotly chart.
-    const chart_data = prepareRegressionDataForPlotly(data=genres, point_label='Played, Liked');
-    var layout = {
-      height: 400,
-      width: 480
-    };
-    // If redrawing chart (ex. after changing date range), 
-    // clear old chart and render new chart.
-    if(redraw){
-      Plotly.purge('genre-scatter-plot');
-      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
-    }else{
-      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
-    }
-    const correlation_coefficient = Math.abs(genres['regression_line']['m']);
-    setGenreCorrelationOverviewText(correlation_coefficient)
-  }); 
-}
-
-
-function prepareRegressionDataForPlotly(data, point_label){
-  // Create points object for plotly chart.
-  const points = {
-    x: [],
-    y: [],
-    name: point_label,
-    mode: 'markers'
-  };
-  let max_x_value = 0;
-  $.each(data['regression_data'], function(index, genre){
-    // Find biggest x value to calculate end point of regression line.
-    if(genre[0] > max_x_value){
-      max_x_value = genre[0];
-    }
-    // Set points by genre, where x is the listens count and y is the likes count.
-    points.x.push(genre[0]);
-    points.y.push(genre[1]);
-  });
-  // Find start and end points of regression line.
-  const start_x = 0;
-  const start_y = data['regression_line']['b'];
-  const end_x = max_x_value;
-  const end_y = (
-    data['regression_line']['m'] * end_x +
-    data['regression_line']['b']);
-  // Set correlation strength label for plotly chart legend 
-  // based on correlation coefficient.
-  const correlation_coefficient = Math.abs(data['regression_line']['m']);
-  const strength_label = getCorrelationStrengthLabel(correlation_coefficient);
-  // Set regression line start and end points for plotly chart.
-  const regression_line = {
-    x: [start_x, end_x],
-    y: [start_y, end_y],
-    name: 'Correlation (' + strength_label + ')',
-    mode: 'lines'
-  };
-  // Format data for plotly chart.
-  const chart_data = [points, regression_line];
-  return chart_data;
-}
-
-
-function setGenreCorrelationOverviewText(correlation_coefficient){
-  if(correlation_coefficient >= .7){
-    strength_overview = "a great";
-  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
-    strength_overview = "a good";
-  }else if(correlation_coefficient <= .3 && correlation_coefficient > .05){
-    strength_overview = "an okay";
-  }else{
-    strength_overview = "a poor";
-  }
-  // Set overview text.
-  $("#overview-genre-correlation").empty();
-  $("#overview-genre-correlation").append(
-    "For this date range, <b>genre is " +
-    strength_overview +
-    " indicator</b> of whether you will like a video.");
-}
-
-
-function getCorrelationStrengthLabel(correlation_coefficient){
-  let strength_label = "Weak"
-  if(correlation_coefficient >= .7){
-    strength_label = "Strong";
-  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
-    strength_label = "Moderate";
-  }
-  return strength_label;
-}
-
-
 function loadGenreTopTen(start_date=null, end_date=null){
   const top_genres = $.ajax({
     type: 'GET',
@@ -247,6 +145,7 @@ function loadListensChart(start_date=null, end_date=null, redraw=false){
   });
 }
 
+
 function setTotalListensOverviewText(total_listens){
   // Set overview text.
   $("#overview-total-listens").empty();
@@ -258,6 +157,107 @@ function setTotalListensOverviewText(total_listens){
   if(total_listens < 100){
     $('#insufficient-data-message').show();
   }
+}
+
+
+function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
+  const genres = $.ajax({
+    type: 'GET',
+    url: '/trends',
+    data: {'data-type': 'genres',
+      'chart-type': 'linear regression',
+      'start-date': start_date,
+      'end-date': end_date},
+    dataType: 'json'
+  }).done(function(genres){
+    // Format points and regression line for plotly chart.
+    const chart_data = prepareRegressionDataForPlotly(data=genres, point_label='Played, Liked');
+    var layout = {
+      height: 400,
+      width: 480
+    };
+    // If redrawing chart (ex. after changing date range), 
+    // clear old chart and render new chart.
+    if(redraw){
+      Plotly.purge('genre-scatter-plot');
+      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
+    }else{
+      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
+    }
+    const correlation_coefficient = Math.abs(genres['regression_line']['m']);
+    setGenreCorrelationOverviewText(correlation_coefficient)
+  }); 
+}
+
+
+function prepareRegressionDataForPlotly(data, point_label){
+  // Create points object for plotly chart.
+  const points = {
+    x: [],
+    y: [],
+    name: point_label,
+    mode: 'markers'
+  };
+  let max_x_value = 0;
+  $.each(data['regression_data'], function(index, genre){
+    // Find biggest x value to calculate end point of regression line.
+    if(genre[0] > max_x_value){
+      max_x_value = genre[0];
+    }
+    // Set points by genre, where x is the listens count and y is the likes count.
+    points.x.push(genre[0]);
+    points.y.push(genre[1]);
+  });
+  // Calculate start and end points of regression line.
+  const start_x = 0;
+  const start_y = data['regression_line']['b'];
+  const end_x = max_x_value;
+  const end_y = (
+    data['regression_line']['m'] * end_x +
+    data['regression_line']['b']);
+  // Set correlation strength label for plotly chart legend.
+  const correlation_coefficient = Math.abs(data['regression_line']['m']);
+  const strength_label = getCorrelationStrengthLabel(correlation_coefficient);
+  // Set regression line start and end points for plotly chart.
+  const regression_line = {
+    x: [start_x, end_x],
+    y: [start_y, end_y],
+    name: 'Correlation (' + strength_label + ')',
+    mode: 'lines'
+  };
+  // Format data for plotly chart.
+  const chart_data = [points, regression_line];
+  return chart_data;
+}
+
+
+function setGenreCorrelationOverviewText(correlation_coefficient){
+  if(correlation_coefficient >= .7){
+    strength_overview = "a great";
+  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
+    strength_overview = "a good";
+  }else if(correlation_coefficient <= .3 && correlation_coefficient > .05){
+    strength_overview = "an okay";
+  }else{
+    strength_overview = "a poor";
+  }
+  // Set overview text.
+  $("#overview-genre-correlation").empty();
+  $("#overview-genre-correlation").append(
+    "For this date range, <b>genre is " +
+    strength_overview +
+    " indicator</b> of whether you will like a video.");
+}
+
+
+function getCorrelationStrengthLabel(correlation_coefficient){
+  let strength_label = "Weak"
+  if(correlation_coefficient >= .7){
+    strength_label = "Strong";
+  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
+    strength_label = "Moderate";
+  }
+  return strength_label;
 }
 
 
