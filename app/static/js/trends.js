@@ -11,7 +11,7 @@ $(function(){
   }).done(function(listens){
     // If no listens, hide data visualizations and show no data message.
     $('#data-visualization').hide();
-    if(listens.length > 1){
+    if(listens.length > 0){
       $('#data-visualization').show();
       $('#no-data-message').hide();
       // Get date range slider start_date.
