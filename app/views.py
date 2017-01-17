@@ -5,7 +5,7 @@ from json import loads
 from app import app, models, sql_session
 
 from app.Artist import update_artist_similar_artists, update_artist_info
-from app.Listen import post_listen, get_listens
+from app.Listen import post_listen, get_listens_videos
 from app.Playlist import (
                         delete_playlist, get_playlist_titles,
                         get_playlist_tracks, update_playlist)
@@ -69,7 +69,7 @@ def artists():
 @app.route('/listens', methods=['GET', 'POST'])
 def listens():
     if request.method == 'GET':
-        listens = get_listens(
+        listens = get_listens_videos(
             user_id=session['session_user_id'],
             search_start_date=request.args.get('search_start_date'),
             search_end_date=request.args.get('search_end_date'),

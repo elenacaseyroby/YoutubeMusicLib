@@ -1,98 +1,70 @@
 #!/usr/bin/python
 # -*- mode: python -*-
 
-import datetime
-
+from datetime import datetime, timedelta
 from sqlalchemy import text
-
+from app.Listen import get_listens
 from app import models, sql_session
 
+def sunday_before_date(date):
+    # Find the Sunday before the input date.
+    known_sunday = datetime.strptime(
+            '2015-12-06 00:00:00',
+            '%Y-%m-%d %H:%M:%S')
+    difference = date - known_sunday
+    difference = difference.days
+    days_past_sunday = difference % 7
+    previous_sunday = (date -
+        timedelta(days=days_past_sunday))
+    previous_sunday = previous_sunday.replace(
+        hour=00, minute=00, second=00)
+    return previous_sunday
+
+
 def count_listens_by_week(user_id, start_date=None, end_date=None):
-    dates = ""
-    if start_date and end_date:
-        dates = (" AND listens.time_of_listen >= '" + 
-            str(start_date) + 
-            "' AND listens.time_of_listen <= '" + 
-            str(end_date) + 
-            "' ")
-    sql = ("""
-        SELECT *
-        FROM listens
-        WHERE user_id = """ +
-        str(user_id) +
-        str(dates) +
-        """ AND listened_to_end != 1
-        ORDER BY time_of_listen""")
-    results = models.engine.execute(sql)
-    rows = results.fetchall()
-    if rows:
+    listens = get_listens(
+        user_id=user_id, start_date=start_date, end_date=end_date)
+    count_by_week = []
+    if listens:
         # Find the Sunday before the selected start_date 
         # and count listens by week from that date.
-        sunday = datetime.datetime.strptime('2015-12-06 00:00:00',
-                                            "%Y-%m-%d %H:%M:%S")
-        first_listen = rows[0][5]
-        difference = first_listen - sunday
-        difference = difference.days
-        days_past_sunday = difference % 7
-        first_sunday = (first_listen -
-            datetime.timedelta(days=days_past_sunday))
-        first_sunday = first_sunday.replace(
-            hour=00, minute=00, second=00)
-        start_week = first_sunday
-        end_week = start_week + datetime.timedelta(days=7)
-        weekly_count = 0
-        count_by_week = []
-        for row in rows:
-            found_week = False
-            while (not found_week):
-                if start_week <= row[5] < end_week:
-                    weekly_count = weekly_count + 1
+        date_of_first_listen = listens[0]['time_of_listen']
+        start_week = sunday_before_date(date_of_first_listen)
+        end_week = start_week + timedelta(days=7)
+        listens_counter = 0
+        for listen in listens:
+            if (listen['time_of_listen'] < end_week):
+                    listens_counter += 1
                     found_week = True
-                else:
-                    count_by_week.append({
-                        'Week': str(
-                            datetime.datetime.strftime(start_week,
-                                                       "%Y-%m-%d %H:%M:%S")),
-                        'Listens': weekly_count
-                    })
-                    start_week = end_week
-                    end_week = start_week + datetime.timedelta(days=7)
-                    weekly_count = 0
+            else:
+                count_by_week.append({
+                    'Week': str(
+                        datetime.strftime(
+                            start_week,'%Y-%m-%d %H:%M:%S')),
+                    'Listens': listens_counter
+                })
+                start_week = end_week
+                end_week = start_week + timedelta(days=7)
+                listens_counter = 0
         count_by_week.append({
             'Week':
-            str(datetime.datetime.strftime(start_week, "%Y-%m-%d %H:%M:%S")),
-            'Listens': weekly_count
+            str(datetime.strftime(start_week, '%Y-%m-%d %H:%M:%S')),
+            'Listens': listens_counter
         })
     return count_by_week
 
-def get_genre_regression_data(
-        user_id,
-        start_date,
-        end_date):
+
+def get_genre_likes(user_id, start_date, end_date):
+    ### Count number of videos that user has liked by genre,
+    ### For now, a video is "liked" if it has 3+ listens ever.
     sql = text("""
         SELECT genres.id,
         genres.name,
         (SELECT COUNT(*) 
             FROM videos 
             JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-            WHERE vids_genres.genre_id = genres.id AND 
-            (SELECT COUNT(*) 
-                FROM listens 
-                WHERE user_id = """ +
-                str(user_id) +
-                """ AND youtube_id = videos.youtube_id 
-                AND listened_to_end = 0 
-                AND listens.time_of_listen > '""" +
-                start_date +
-                "' AND listens.time_of_listen < '" +
-                end_date +
-                """'
-            ) > 0
-        ) AS num_vids_listened,
-        (SELECT COUNT(*) 
-            FROM videos 
-            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-            WHERE vids_genres.genre_id = genres.id AND 
+            WHERE vids_genres.genre_id = genres.id
+            AND genres.name != 'music' AND
             (SELECT COUNT(*) 
                 FROM listens 
                 WHERE user_id = """ +
@@ -112,36 +84,27 @@ def get_genre_regression_data(
                 """ AND youtube_id = videos.youtube_id 
                 AND listened_to_end = 0 
             ) > 2
-        ) AS num_vids_relistened
+        ) AS count_videos_relistened
         FROM genres
-        ORDER BY num_vids_listened DESC, genres.name ASC;""")
+        ORDER BY count_videos_relistened DESC, genres.name ASC;""")
     results = models.engine.execute(sql)
     rows = results.fetchall()
-    i = 0
-    regression_data = []
+    genre_likes = {}
     for row in rows:
-        track = (row[2], row[3])
-        regression_data.append(track)
-        i = i + 1
-    return regression_data
+        genre_likes[row[1]] = row[2]
+    return genre_likes
 
-def get_genre_top_listened(
-        user_id, start_date=None, 
-        end_date=None, 
-        limit=10):
-    if start_date and end_date:
-        dates = (" AND listens.time_of_listen >= '" + 
-            str(start_date) + 
-            "' AND listens.time_of_listen <= '" + 
-            str(end_date) + 
-            "' ")
+
+def get_genre_listens(user_id, start_date, end_date):
+    # Count number of videos that user has listened to by genre.
     sql = text("""
         SELECT genres.id,
         genres.name,
         (SELECT COUNT(*) 
             FROM videos 
             JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-            WHERE vids_genres.genre_id = genres.id AND 
+            WHERE vids_genres.genre_id = genres.id 
+            AND genres.name != 'music' AND
             (SELECT COUNT(*) 
                 FROM listens 
                 WHERE user_id = """ +
@@ -154,24 +117,56 @@ def get_genre_top_listened(
                 end_date +
                 """'
             ) > 0
-        ) AS num_vids_listened
+        ) AS count_videos_listened
         FROM genres
-        ORDER BY num_vids_listened DESC, genres.name ASC
-        LIMIT """ +
-        str(limit) +
-        ";");
+        ORDER BY count_videos_listened DESC, genres.name ASC;""")
     results = models.engine.execute(sql)
     rows = results.fetchall()
-    top_genres = []
+    genre_listens = {}
     for row in rows:
-        genre = {
-            'name': row[1],
-            'played-videos-count': row[2]}
-        top_genres.append(genre)
+        genre_listens[row[1]] = row[2]
+    return genre_listens
+
+
+
+def get_genre_top_listened(user_id, start_date, end_date, limit=10):
+    video_listens_by_genre = get_genre_listens(
+        user_id=user_id, start_date=start_date, end_date=end_date)
+    # Sort by played video count descending.
+    video_listens_by_genre = sorted(
+        ((count, genre) for genre, count in video_listens_by_genre.iteritems()),
+        reverse=True)
+    top_genres = []
+    for i in range(10):
+        if i < len(video_listens_by_genre):
+            name = video_listens_by_genre[i][1]
+            count = video_listens_by_genre[i][0]
+            genre = {
+                'name': name,
+                'played-videos-count': count
+            }
+            top_genres.append(genre)
     return top_genres
 
-def get_regression_line(array_of_points):
-    if array_of_points[0][0] == 0 and array_of_points[0][1] == 0:
+
+def get_genre_regression_data(user_id, start_date, end_date):
+    # Pair genre likes and genre listens into x, y values by genre.
+    video_listens_by_genre = get_genre_listens(
+        user_id=user_id, start_date=start_date, end_date=end_date)
+    video_likes_by_genre = get_genre_likes(
+        user_id=user_id, start_date=start_date, end_date=end_date)
+    regression_data = []
+    for genre in video_listens_by_genre:
+        if video_listens_by_genre[genre] > 0:
+            track = (
+                video_listens_by_genre[genre],
+                video_likes_by_genre[genre])
+            regression_data.append(track)
+    return regression_data
+
+
+def get_regression_line(list_of_points):
+    if not list_of_points:
         regression_line = {'m': 0, 'b': 0}
         return regression_line
     else:
@@ -182,7 +177,7 @@ def get_regression_line(array_of_points):
         sumy = 0
         sumxsquared = 0
         sumxy = 0
-        for point in array_of_points:
+        for point in list_of_points:
             if point[0] > 0:
                 n = n + 1
                 sumx = sumx + point[0]
@@ -198,6 +193,6 @@ def get_regression_line(array_of_points):
             b_bottom = float(n)
             if b_bottom != 0 and b_top != 0:
                 b = float(b_top / b_bottom)
-        # where y = m * x + b
+        # Where y = m * x + b
         regression_line = {'m': m, 'b': b}
         return regression_line

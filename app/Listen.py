@@ -7,7 +7,41 @@ from app.Video import video_in_database
 
 from app import models, sql_session
 
-def get_listens(
+def get_listens(user_id, start_date=None, end_date=None):
+    dates = ""
+    if start_date:
+        dates = (
+            " AND listens.time_of_listen >= '" + 
+            str(start_date) + 
+            "'")
+    if end_date:
+        dates = (
+            dates +
+            " AND listens.time_of_listen <= '" + 
+            str(end_date) + 
+            "' ")
+    sql = ("""
+        SELECT
+        youtube_id,
+        time_of_listen
+        FROM listens
+        WHERE user_id = """ +
+        str(user_id) +
+        str(dates) +
+        """ AND listened_to_end != 1
+        ORDER BY time_of_listen""")
+    results = models.engine.execute(sql)
+    rows = results.fetchall()
+    listens = []
+    for row in rows:
+        listen = {
+            'youtube_id': row[0],
+            'time_of_listen': row[1]
+        }
+        listens.append(listen)
+    return listens
+
+def get_listens_videos(
         user_id,
         search_start_date=None,
         search_end_date=None,
