@@ -1,5 +1,4 @@
 $.getScript("static/js/lastfm.js", function(){
-	console.log("lastfm.js loaded");
 });
 var number_of_plays = 0;
 var vids_up_next = [];
@@ -65,7 +64,6 @@ function onPlayerReady(event){
 }
 
 function onPlayerStateChange(event) { 
-	
 	//if vid is playing from first 2 secs, save to list after 1 second this avoids tracking pauses
 	if(event.data == YT.PlayerState.PLAYING && event.target.j.currentTime <= 2.0){
 		setTimeout(savePlay(event), 1000);
@@ -103,65 +101,9 @@ function savePlay(event, end = false){
 			listened_to_end = 1;
 		}
 		$.ajax({
-			type: "POST",
-	    	url: '/postlistens',
-	    	data: {youtube_title: ""
-	    		, youtube_id: current_iframe_video.id
-	    		, listened_to_end: listened_to_end
-	    		, channel_id: ""
-	    		, description: ""
-	    		, similarartiststring: ""
-	    		, album : ""
-	    		, title: ""
-	    		, artist: ""
-	    		, year: ""}
+			type: 'POST',
+			url: '/listens',
+			data: {'youtube_id': youtube_id,
+				 'listened_to_end': listened_to_end}
 	    });
 }
-/* don't use yet
-//get and render related videos
-function getRelatedVideos(youtube_id){
-	var related_videos = [];
-
-	var request = gapi.client.youtube.search.list({
-			part: "snippet",
-			type: "video",
-			relatedToVideoId: youtube_id,
-			maxResults: 10
-			
-	});
-	request.execute(function(response){
-		
-		var results = response.result;
-		i = 0;
-		$.each(results.items, function(index, item){
-			related_videos [i] = new YoutubeVideo(item.id.videoId, item.snippet.title, item.snippet.channelId, item.snippet.description);
-			i++;
-		});
-		renderList(related_videos, $('#relatedvideos'), false);	
-		if(search_page == true){
-			vids_up_next = related_videos;
-		}
-	});
-}
-
-//takes array of YoutubeVideo objects and an element 
-//object and appends a playable list of 
-//youtube videos to the specified element
-function renderList(vid_list = selected_videos, $element_object = $('#selectedvideos'), empty_element = true){
-	if(empty_element){
-		$element_object.empty();
-	}
-	length = vid_list.length;
-	$.each(vid_list, function(length, vid){
-		play_button = '<li><a id="'+vid.id+'" value="'+vid.id+','+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'" onclick=\'playVideo("'+vid.id+'","'+encodeURIComponent(vid.title.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'", "'+vid.channel_id+'", "'+encodeURIComponent(vid.description.replace(/'/g, "&apos;").replace(/"/g, "&quot;"))+'")\'> '+vid.title+'</a></li><br>';
-		if(empty_element){
-			$element_object.append(play_button);
-		}else{
-			$element_object.prepend(play_button);//todo: remove elements at bottom of list after reaches certain sizes
-		}
-		//can post descriptions with quotes to db and 
-		//can play most vids with single quotes in title but 
-		//double quotes in title prevent plays
-	});
-	
-}*/

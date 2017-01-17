@@ -1,194 +1,287 @@
 $(function(){
-  //fill listens over time graph
-  var listens = $.ajax({
-    type: 'GET'
-    , url: '/getlistensbydate'
-    ,dataType: 'json'
+  // Get user's listens over time.
+  const listens = $.ajax({
+    type: 'GET',
+    url: '/trends',
+    data: {
+      'data-type': 'listens',
+      'chart-type': 'time'
+    },
+    dataType: 'json'
   }).done(function(listens){
-    $("#range-slider-header").empty();
-    $("#range-slider-header").append("You haven't listened to any videos yet!<br><br>  Listen <a href='/play'>here</a> to track trends in your listening habits :~)");
-    if(listens.length > 0){
-      $("#range-slider-header").empty();
-      $("#range-slider-header").append("<h4><b>Select Date Range To See Trends In Your Listening</b></h4>");
-      $("#overview-header").empty();
-      $("#overview-header").append("<h4><b>Overview</b></h4>");
-      var start_date = new Date(listens[0]['Week']).getTime();
-      var last_month = new Date()
-      last_month.setMonth(last_month.getMonth() - 1);
-      last_month = last_month.getTime();
-      if (start_date > last_month){
-        start_date = last_month;
+    // If no listens, hide data visualizations and show no data message.
+    $('#data-visualization').hide();
+    if(listens.length > 1){
+      $('#data-visualization').show();
+      $('#no-data-message').hide();
+      // Get date range slider start_date.
+      let start_date = new Date(listens[0]['Week']).getTime();
+      const one_month_ago = subtract_months_from_today(1)
+      if (start_date > one_month_ago){
+        start_date = one_month_ago;
       }
-      $( "#slider-range" ).slider({
+      // Set date range slider date range.
+      const today = new Date().getTime();
+      $("#slider-range").slider({
         range: true,
-        min: start_date/1000,
-        max: new Date().getTime()/1000,
+        min: start_date / 1000,
+        max: today / 1000,
         step: 86400,
-        values: [ last_month/1000, new Date().getTime() / 1000 ],
+        values: [ one_month_ago / 1000, today / 1000 ],
         slide: function(event,ui) {
-          $( "#date-range-text" ).val( (new Date(ui.values[ 0 ] *1000).toDateString() ) + " - " + (new Date(ui.values[ 1 ] *1000)).toDateString() );  
+          // Update date label on slide.
+          $("#date-range-label").val(
+            (new Date(ui.values[0] * 1000)).toDateString() +
+            " - " +
+            (new Date(ui.values[1] * 1000)).toDateString()
+          ); 
         },
         stop: function(event,ui){
-          start_date = convertSlidertoMySQLDate(ui.values[0]);
-          end_date = convertSlidertoMySQLDate(ui.values[1], end = true);
-          listensByWeekChart(start_date = start_date, end_date = end_date, redraw = true);
-          genresScatterPlot(start_date = start_date, end_date = end_date, redraw = true);
+          // Reload charts on stop.
+          start_date = convertSlidertoMySQLDate(
+            ui_value=ui.values[0]);
+          end_date = convertSlidertoMySQLDate(
+            ui_value=ui.values[1], end_of_day=true);
+          loadGenreTopTen(
+            start_date=start_date, end_date=end_date);
+          loadListensChart(
+            start_date=start_date, end_date=end_date, redraw=true);
+          loadGenreScatterPlot(
+            start_date=start_date, end_date=end_date, redraw=true);
         }
       }); 
-      $( "#date-range-text" ).val( (new Date($( "#slider-range" ).slider( "values", 0 )*1000).toDateString()) +
-        " - " + (new Date($( "#slider-range" ).slider( "values", 1 )*1000)).toDateString());
-      start_date = convertSlidertoMySQLDate($( "#slider-range" ).slider( "values", 0 ));
-      end_date = convertSlidertoMySQLDate($( "#slider-range" ).slider( "values", 1 ), end = true);
-      listensByWeekChart(start_date = start_date, end_date = end_date);
-      genresScatterPlot(start_date = start_date, end_date = end_date);
+      // Set date label and load charts on page load.
+      $("#date-range-label").val(
+        (new Date($("#slider-range").slider("values", 0) * 1000)).toDateString() +
+        " - " +
+        (new Date($("#slider-range").slider("values", 1) * 1000)).toDateString()
+      );
+      start_date = convertSlidertoMySQLDate(
+        ui_value=$("#slider-range").slider("values", 0 ));
+      let end_date = convertSlidertoMySQLDate(
+        ui_value=$("#slider-range").slider("values", 1 ), 
+        end_of_day=true);
+      loadGenreTopTen(start_date=start_date, end_date=end_date);
+      loadListensChart(start_date=start_date, end_date=end_date);
+      loadGenreScatterPlot(start_date=start_date, end_date=end_date);  
     }
   });
 });
 
-function genresScatterPlot(start_date = null, end_date = null, redraw = false){
-  //fill scatter plot
-  var correlation_coefficient = 0;
-  var data = $.ajax({//can add morning, afternoon, night later
-    type: 'GET'
-    ,url: '/getgenredata'
-    ,data: {'start_date': start_date
-      ,'end_date': end_date
-    }
-    ,dataType: 'json'
-  }).done(function(genres){
-    var points = {
-      x: [],
-      y: [],
-      name: 'Likes v. Listens',
-      mode: 'markers'
-    };
-    $.each(genres['regression_data'], function(index, item){
-      points.x.push(item[0]);
-      points.y.push(item[1]);
-      
-    });
 
-    //find start and end points of regression line
-    var x = genres['regression_data'][0][0]
-    var y = genres['line_best_fit']['m']*genres['regression_data'][0][0]+genres['line_best_fit']['b']
-    correlation_coefficient = Math.abs(genres['line_best_fit']['m']);
-    if(correlation_coefficient<.05){
-      strength = " (Weak)";
-      overview_strength = "For this date range, <b>genre is a poor indicator</b> of whether you will like a video.";
-    }
-    else if(correlation_coefficient >= .7){
-      strength = " (Strong)";
-      overview_strength = "For this date range, <b>genre is a great indicator</b> of whether you will like a video.";
-    }else if(correlation_coefficient<.7 && correlation_coefficient>.3){
-      strength = " (Moderate)";
-      overview_strength = "For this date range, <b>genre is a good indicator</b> of whether you will like a video.";
-    }else{
-      strength = " (Weak)";
-      overview_strength = "For this date range, <b>genre is an ok indicator</b> of whether you will like a video.";
-    }
-
-    var regression_line = {
-      x: [0, x],
-      y: [0, y],
-      name: 'Correlation'+strength,
-      mode: 'lines'
-    };
-    var data = [points, regression_line];
-
-    var layout = {
-      title:'Genres',
-      height: 400,
-      width: 480
-    };
-    if(redraw){
-      Plotly.purge('genre-chart');
-      Plotly.newPlot('genre-chart', data, layout);
-    }else{
-      Plotly.newPlot('genre-chart', data, layout);
-    }
-    $("#genre-list").empty();
-    $("#genre-list-overview").empty();
-    $("#genre-list-header").empty();
-    if (genres['top_genres'].length ==0){
-      overview_strength = "We don't know enough to give detailed feedback on your listening habits.  Change the date range or <b>listen to more videos <a href='play'>here</a></b>!";
-    }
-    $.each(genres['top_genres'], function(index, item){
-      if(index == 0){
-        $("#genre-list-header").append("<h4><b>Most Listened Genres</b></h4>");
-        $("#genre-list-overview").append("<b>Your most listened genres for this date range are:</b> ");
+function loadGenreTopTen(start_date=null, end_date=null){
+  const top_genres = $.ajax({
+    type: 'GET',
+    url: '/trends',
+    data: {'data-type': 'genres',
+      'chart-type': 'top list',
+      'start-date': start_date,
+      'end-date': end_date
+    },
+    dataType: 'json'
+  }).done(function(top_genres){
+    // Clear previous top 10 and overview.
+    $("#genre-top-ten").empty();
+    $("#overview-genre-top-ten").empty();
+    $("#genre-top-ten-header").show();
+    $("#overview-genre-top-ten").append(
+      "<b>Your most listened genres for this date range are:</b> ");
+    $.each(top_genres, function(index, genre){
+      if(genre['played-videos-count'] > 0){
+        // Render top 10 list.
+        $("#genre-top-ten").append('<li>'+genre['name']+'</li>')
+        // Set overview text.
+        if(index > 0){
+          $("#overview-genre-top-ten").append(", ");
+        }
+        $("#overview-genre-top-ten").append(genre['name']);
+      }else{
+        $("#genre-top-ten-header").hide()
+        $("#overview-genre-top-ten").empty()
       }
-      $("#genre-list").append('<li>'+item+'</li>')
-      if(index>0){
-        $("#genre-list-overview").append(", ");
-      }
-      $("#genre-list-overview").append(item);
     });
-    $("#genre-correlation").empty();
-    $("#genre-correlation").append(overview_strength);
-  }); 
+  });
 }
 
-function listensByWeekChart(start_date = null, end_date = null, redraw = false){
-//fill listens over time graph
-  var total_listens = 0;
-  var listens = $.ajax({
-    type: 'GET'
-    , url: '/getlistensbydate'
-    ,data: {'start_date': start_date
-      ,'end_date': end_date
-    }
-    ,dataType: 'json'
-  }).done(function(listens){
-    var points = {
+
+function loadListensChart(start_date=null, end_date=null, redraw=false){
+  const listens_data = $.ajax({
+    type: 'GET',
+    url: '/trends',
+    data: {
+      'data-type': 'listens',
+      'chart-type': 'time',
+      'start-date': start_date,
+      'end-date': end_date
+    },
+    dataType: 'json'
+  }).done(function(listens_data){
+    // Create points object for plotly chart.
+    const points = {
       x: [],
       y: [],
       type: 'scatter'
     };
-    $.each(listens, function(index, item){
-      points.x.push(item['Week']); //make model return data in the same format for scatter as line plots. reduce confusion.
+    // Set points where x is the week and y is the listens count.
+    let total_listens = 0;
+    $.each(listens_data, function(index, item){
+      points.x.push(item['Week']); 
       points.y.push(item['Listens']);
       total_listens = item['Listens'] + total_listens;
     });
-    var data = [points];
-    var layout = {
-        title: 'Listens By Week',
+    const chart_data = [points];
+    const layout = {
         height: 400,
         width: 1000
     };
+    // Render plotly chart.
     if(redraw){
-      Plotly.purge('listens-by-week-graph');
-      Plotly.newPlot('listens-by-week-graph', data, layout);
+      Plotly.purge('listens-by-week-chart');
+      Plotly.newPlot('listens-by-week-chart', chart_data, layout);
     }else{
-      Plotly.plot('listens-by-week-graph', data, layout);
+      Plotly.plot('listens-by-week-chart', chart_data, layout);
     }
-    $("#total-listens").empty();
-    $("#total-listens").append("<b>Total listens:</b> "+total_listens.toString());
-    if(total_listens<100){
-      $("#overview-note").empty();
-      $("#overview-note").append('<i>Please note, "likes" are based on your listens. Listen to more music <a href="/play">here</a> for more detailed and accurate trends.</i>');
-    }else{
-      $("#overview-note").empty();
-    }
+    setTotalListensOverviewText(total_listens);
   });
 }
 
-function convertSlidertoMySQLDate(ui_value, end = false){
-  var year = (new Date(ui_value *1000).getFullYear()).toString();
-  var month = (Number((new Date(ui_value *1000).getMonth()))+1).toString();
-  if (month.length <2){
-    month = "0"+month;
+
+function setTotalListensOverviewText(total_listens){
+  // Set overview text.
+  $("#overview-total-listens").empty();
+  $("#overview-total-listens").append(
+    "<b>Total listens:</b> " +
+    total_listens.toString()
+  );
+  $('#insufficient-data-message').hide();
+  if(total_listens < 100){
+    $('#insufficient-data-message').show();
   }
-  var day = (new Date(ui_value *1000).getDate()).toString();
-  if (day.length <2){
-    day = "0"+day;
-  }
-  if(end){
-    var date = year+"-"+month+"-"+day+" 23:59:59";
-  }else{
-    var date = year+"-"+month+"-"+day+" 00:00:00";
-  }
-  return date;
 }
 
 
+function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
+  const genres = $.ajax({
+    type: 'GET',
+    url: '/trends',
+    data: {'data-type': 'genres',
+      'chart-type': 'linear regression',
+      'start-date': start_date,
+      'end-date': end_date},
+    dataType: 'json'
+  }).done(function(genres){
+    // Format points and regression line for plotly chart.
+    const chart_data = prepareRegressionDataForPlotly(data=genres, point_label='Played, Liked');
+    var layout = {
+      height: 400,
+      width: 480
+    };
+    // If redrawing chart (ex. after changing date range), 
+    // clear old chart and render new chart.
+    if(redraw){
+      Plotly.purge('genre-scatter-plot');
+      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
+    }else{
+      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
+    }
+    const correlation_coefficient = Math.abs(genres['regression_line']['m']);
+    setGenreCorrelationOverviewText(correlation_coefficient)
+  }); 
+}
 
+
+function prepareRegressionDataForPlotly(data, point_label){
+  // Create points object for plotly chart.
+  const points = {
+    x: [],
+    y: [],
+    name: point_label,
+    mode: 'markers'
+  };
+  let max_x_value = 0;
+  $.each(data['regression_data'], function(index, genre){
+    // Find biggest x value to calculate end point of regression line.
+    if(genre[0] > max_x_value){
+      max_x_value = genre[0];
+    }
+    // Set points by genre, where x is the listens count and y is the likes count.
+    points.x.push(genre[0]);
+    points.y.push(genre[1]);
+  });
+  // Calculate start and end points of regression line.
+  const start_x = 0;
+  const start_y = data['regression_line']['b'];
+  const end_x = max_x_value;
+  const end_y = (
+    data['regression_line']['m'] * end_x +
+    data['regression_line']['b']);
+  // Set correlation strength label for plotly chart legend.
+  const correlation_coefficient = Math.abs(data['regression_line']['m']);
+  const strength_label = getCorrelationStrengthLabel(correlation_coefficient);
+  // Set regression line start and end points for plotly chart.
+  const regression_line = {
+    x: [start_x, end_x],
+    y: [start_y, end_y],
+    name: 'Correlation (' + strength_label + ')',
+    mode: 'lines'
+  };
+  // Format data for plotly chart.
+  const chart_data = [points, regression_line];
+  return chart_data;
+}
+
+
+function setGenreCorrelationOverviewText(correlation_coefficient){
+  if(correlation_coefficient >= .7){
+    strength_overview = "a great";
+  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
+    strength_overview = "a good";
+  }else if(correlation_coefficient <= .3 && correlation_coefficient > .05){
+    strength_overview = "an okay";
+  }else{
+    strength_overview = "a poor";
+  }
+  // Set overview text.
+  $("#overview-genre-correlation").empty();
+  $("#overview-genre-correlation").append(
+    "For this date range, <b>genre is " +
+    strength_overview +
+    " indicator</b> of whether you will like a video.");
+}
+
+
+function getCorrelationStrengthLabel(correlation_coefficient){
+  let strength_label = "Weak"
+  if(correlation_coefficient >= .7){
+    strength_label = "Strong";
+  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
+    strength_label = "Moderate";
+  }
+  return strength_label;
+}
+
+
+function convertSlidertoMySQLDate(ui_value, end_of_day=false){
+  const year = (new Date(ui_value * 1000).getFullYear()).toString();
+  let month = (Number(new Date(ui_value * 1000).getMonth()) + 1).toString();
+  if (month.length < 2){
+    month = "0" + month;
+  }
+  let day = (new Date(ui_value * 1000).getDate()).toString();
+  if (day.length < 2){
+    day = "0" + day;
+  }
+  if(end_of_day){
+    return year + "-" + month + "-" + day + " 23:59:59";
+  }else{
+    return year + "-" + month + "-" + day + " 00:00:00";
+  }
+}
+
+
+function subtract_months_from_today(number_of_months){
+  let new_date = new Date();
+  new_date.setMonth(new Date().getMonth() - number_of_months);
+  new_date = new_date.getTime();
+  return new_date
+}

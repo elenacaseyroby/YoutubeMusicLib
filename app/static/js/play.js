@@ -1,5 +1,4 @@
 $.getScript("static/js/lastfm.js", function(){
-	console.log("lastfm.js loaded");
 });
 
 function YoutubeVideo(id, title = "", channel_id = "", description = ""){
@@ -139,10 +138,10 @@ function parseArtistTitleYear(youtubeTitle) {
     
     var years = trackInfo.title.match(/\d{4}/g);
 	if(years == null){
-		trackInfo.year="1900-01-01";
+		trackInfo.year="1100-01-01";
 	}else{
-		trackInfo.title = trackInfo.title.replace(years[0].toString(), '');
-		trackInfo.year = years[0].toString()+"-01-01";
+	trackInfo.title = trackInfo.title.replace(years[0].toString(), '');
+	trackInfo.year = years[0].toString()+"-01-01";
 	}
 	title_with_fullalbum = trackInfo.title;
 	trackInfo.title = trackInfo.title.replace(/full album/i, '');
@@ -213,20 +212,30 @@ function savePlay(event, end = false) {
 		listened_to_end = 1;
 	}
 	//send data to view.py
-	lastFMGetSimilarArtists(encodeURIComponent(trackInfo.artistName), function(similarartiststring) {
+	lastFMGetSimilarArtists(encodeURIComponent(trackInfo.artistName), function(similar_artists) {
 		$.ajax({
-			type: "POST",
-	    	url: '/postlistens',
-	    	data: {youtube_title: youtube_title
-	    		, youtube_id: youtube_id
-	    		, listened_to_end: listened_to_end
-	    		, channel_id: channel_id
-	    		, description: description
-	    		, similarartiststring: JSON.stringify(similarartiststring)
-	    		, album : album
-	    		, title: title
-	    		, artist: artist
-	    		, year: year}
+			type: 'POST',
+			url: '/videos',
+			data: {'youtube_id': youtube_id
+				, 'youtube_title': youtube_title
+				, 'channel_id': channel_id
+				, 'description': description
+				, 'title': title
+				, 'artist': artist
+				, 'album': album
+				, 'release_date': year}
+		});
+		$.ajax({
+			type: 'PUT',
+			url: '/artists',
+			data: {'artist': artist,
+				 'similar_artists': JSON.stringify(similar_artists)}
+		});
+		$.ajax({
+			type: 'POST',
+			url: '/listens',
+			data: {'youtube_id': youtube_id,
+				 'listened_to_end': listened_to_end}
 	    });
 		if(!end){
 			played_video = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
@@ -241,21 +250,23 @@ function savePlay(event, end = false) {
 			
 			if (tags.length >0){
 				$.ajax({
-					type: "POST",
-			    	url: '/postgenres',
-			    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+					type: 'POST',
+					dataType: 'json',
+			    	url: '/videos',
+			    	data: {'youtube_id': youtube_id, 
+			    	    'genres': JSON.stringify(tags)}
 			    });
 			   	
 			}else{
 				lastFMGetGenresByArtist(encodeURIComponent(artist), function(tags){
 					$.ajax({
-						type: "POST",
-				    	url: '/postgenres',
-				    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+						type: 'POST',
+						dataType: 'json',
+				    	url: '/videos',
+				    	data: {'youtube_id': youtube_id, 
+				    	    'genres': JSON.stringify(tags)}
 				    });
-
 				});
-
 			}
 		});
 	}else{
@@ -263,21 +274,24 @@ function savePlay(event, end = false) {
 			
 			if (tags.lenth >0){
 				$.ajax({
-					type: "POST",
-			    	url: '/postgenres',
-			    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+					type: 'POST',
+					dataType: 'json',
+			    	url: '/videos',
+			    	data: {'youtube_id': youtube_id, 
+			    	    'genres': JSON.stringify(tags)}
 			    });
 			    
 			}else{
 				lastFMGetGenresByArtist(encodeURIComponent(artist), function(tags){
 					$.ajax({
-						type: "POST",
-				    	url: '/postgenres',
-				    	data: {youtube_id: youtube_id, genres: JSON.stringify(tags)}
+						type: 'POST',
+						dataType: 'json',
+				    	url: '/videos',
+				    	data: {'youtube_id': youtube_id, 
+				    	    'genres': JSON.stringify(tags)}
+				    	
 				    });
-
 				});
-
 			}
 		});
 
@@ -285,8 +299,8 @@ function savePlay(event, end = false) {
 
 	lastFMGetBioByArtist(encodeURIComponent(artist), function(bio) {
 			$.ajax({
-				type: "POST",
-		    	url: '/postartistinfo',
+				type: "PUT",
+		    	url: '/artists',
 		    	data: {artist: artist, bio: bio}
 		    });
 	});

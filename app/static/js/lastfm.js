@@ -1,4 +1,3 @@
-// Class to hold Last.fm API track
 function albumInfo(album, trackNumber, year) {
     this.album = album;
     this.trackNumber = trackNumber;
@@ -153,9 +152,3 @@ function lastFMGetBioByArtist(artistName, callBack) {
         }
     });
 }
-
-
-
-
-
-
