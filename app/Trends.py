@@ -4,7 +4,8 @@
 from datetime import datetime, timedelta
 from sqlalchemy import text
 from app.Listen import get_listens
-from app import models, sql_session
+from app import models
+
 
 def sunday_before_date(date):
     # Find the Sunday before the input date.
@@ -14,8 +15,7 @@ def sunday_before_date(date):
     difference = date - known_sunday
     difference = difference.days
     days_past_sunday = difference % 7
-    previous_sunday = (date -
-        timedelta(days=days_past_sunday))
+    previous_sunday = (date - timedelta(days=days_past_sunday))
     previous_sunday = previous_sunday.replace(
         hour=00, minute=00, second=00)
     return previous_sunday
@@ -26,7 +26,7 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
         user_id=user_id, start_date=start_date, end_date=end_date)
     count_by_week = []
     if listens:
-        # Find the Sunday before the selected start_date 
+        # Find the Sunday before the selected start_date
         # and count listens by week from that date.
         date_of_first_listen = listens[0]['time_of_listen']
         start_week = sunday_before_date(date_of_first_listen)
@@ -35,12 +35,11 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
         for listen in listens:
             if (listen['time_of_listen'] < end_week):
                     listens_counter += 1
-                    found_week = True
             else:
                 count_by_week.append({
                     'Week': str(
                         datetime.strftime(
-                            start_week,'%Y-%m-%d %H:%M:%S')),
+                            start_week, '%Y-%m-%d %H:%M:%S')),
                     'Listens': listens_counter
                 })
                 start_week = end_week
@@ -55,34 +54,34 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
 
 
 def get_genre_likes(user_id, start_date, end_date):
-    ### Count number of videos that user has liked by genre,
-    ### For now, a video is "liked" if it has 3+ listens ever.
+    # Count number of videos that user has liked by genre,
+    # For now, a video is "liked" if it has 3+ listens ever.
     sql = text("""
         SELECT genres.id,
         genres.name,
-        (SELECT COUNT(*) 
-            FROM videos 
-            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
+        (SELECT COUNT(*)
+            FROM videos
+            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
             WHERE vids_genres.genre_id = genres.id
             AND genres.name != 'music' AND
-            (SELECT COUNT(*) 
-                FROM listens 
+            (SELECT COUNT(*)
+                FROM listens
                 WHERE user_id = """ +
                 str(user_id) +
-                """ AND youtube_id = videos.youtube_id 
-                AND listened_to_end = 0 
+                """ AND youtube_id = videos.youtube_id
+                AND listened_to_end = 0
                 AND listens.time_of_listen > '""" +
                 start_date +
                 "' AND listens.time_of_listen < '" +
                 end_date +
                 """'
             ) > 0 AND
-            (SELECT COUNT(*) 
-                FROM listens 
+            (SELECT COUNT(*)
+                FROM listens
                 WHERE user_id = """ +
                 str(user_id) +
-                """ AND youtube_id = videos.youtube_id 
-                AND listened_to_end = 0 
+                """ AND youtube_id = videos.youtube_id
+                AND listened_to_end = 0
             ) > 2
         ) AS count_videos_relistened
         FROM genres
@@ -100,17 +99,17 @@ def get_genre_listens(user_id, start_date, end_date):
     sql = text("""
         SELECT genres.id,
         genres.name,
-        (SELECT COUNT(*) 
-            FROM videos 
-            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id 
-            WHERE vids_genres.genre_id = genres.id 
+        (SELECT COUNT(*)
+            FROM videos
+            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
+            WHERE vids_genres.genre_id = genres.id
             AND genres.name != 'music' AND
-            (SELECT COUNT(*) 
-                FROM listens 
+            (SELECT COUNT(*)
+                FROM listens
                 WHERE user_id = """ +
                 str(user_id) +
-                """ AND youtube_id = videos.youtube_id 
-                AND listened_to_end = 0 
+                """ AND youtube_id = videos.youtube_id
+                AND listened_to_end = 0
                 AND listens.time_of_listen > '""" +
                 start_date +
                 "' AND listens.time_of_listen < '" +
@@ -126,7 +125,6 @@ def get_genre_listens(user_id, start_date, end_date):
     for row in rows:
         genre_listens[row[1]] = row[2]
     return genre_listens
-
 
 
 def get_genre_top_listened(user_id, start_date, end_date, limit=10):
@@ -170,7 +168,7 @@ def get_regression_line(list_of_points):
         regression_line = {'m': 0, 'b': 0}
         return regression_line
     else:
-        m = 0 
+        m = 0
         b = 0
         n = 0
         sumx = 0

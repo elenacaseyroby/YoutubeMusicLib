@@ -7,17 +7,14 @@ from app import app, models, sql_session
 from app.Artist import update_artist_similar_artists, update_artist_info
 from app.Listen import post_listen, get_listens_videos
 from app.Playlist import (
-                        delete_playlist, get_playlist_titles,
-                        get_playlist_tracks, update_playlist)
+    delete_playlist, get_playlist_titles, get_playlist_tracks, update_playlist)
 from app.SavedVideo import (
-                            delete_saved_video, get_saved_videos,
-                            post_saved_video)
-from app.Trends import (
-                        count_listens_by_week, get_genre_regression_data,
-                        get_genre_top_listened, get_regression_line)
+    delete_saved_video, get_saved_videos, post_saved_video)
+from app.trends import (
+    count_listens_by_week, get_genre_regression_data, get_genre_top_listened,
+    get_regression_line)
 from app.Video import (
-                        get_videos, post_video, update_video_genres,
-                        update_video)
+    get_videos, post_video, update_video_genres, update_video)
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
@@ -39,10 +36,8 @@ def my_saved_videos():
         search_end_date = subtract_days_from_today(0)
         playlist_titles = get_playlist_titles(session['session_user_id'])
         return render_template(
-            'displayupdatedata.html',
-            search_start_date=search_start_date,
-            search_end_date=search_end_date,
-            playlist_titles=playlist_titles)
+            'displayupdatedata.html', search_start_date=search_start_date,
+            search_end_date=search_end_date, playlist_titles=playlist_titles)
     return redirect(url_for('login'))
 
 
