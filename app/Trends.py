@@ -2,6 +2,7 @@
 # -*- mode: python -*-
 
 from datetime import datetime, timedelta
+from math import sqrt
 from sqlalchemy import text
 from app.Listen import get_listens
 from app import models
@@ -162,25 +163,34 @@ def get_regression_line(list_of_points):
         return regression_line
     else:
         n = 0
-        sumx = 0
-        sumy = 0
-        sumxsquared = 0
-        sumxy = 0
+        sum_x = 0
+        sum_y = 0
+        sum_xsquared = 0
+        sum_ysquared = 0
+        sum_xy = 0
         for point in list_of_points:
             if point[0] > 0:
                 n = n + 1
-                sumx = sumx + point[0]
-                sumy = sumy + point[1]
-                sumxsquared = sumxsquared + point[0] * point[0]
-                sumxy = sumxy + point[0] * point[1]
-        m_top = float((n * sumxy) - (sumy * sumx))
-        m_bottom = float((n * sumxsquared) - (sumx * sumx))
+                sum_x = sum_x + point[0]
+                sum_y = sum_y + point[1]
+                sum_xsquared = sum_xsquared + point[0] * point[0]
+                sum_ysquared = sum_ysquared + point[1] * point[1]
+                sum_xy = sum_xy + point[0] * point[1]
+        m_top = float((n * sum_xy) - (sum_y * sum_x))
+        m_bottom = float((n * sum_xsquared) - (sum_x * sum_x))
         m = 0
         if m_bottom != 0:
             m = float(m_top / m_bottom)
-        b_top = float(sumy - m * sumx)
+        b_top = float(sum_y - m * sum_x)
         b_bottom = float(n)
         b = float(b_top / b_bottom)
-        # Where y = m * x + b
-        regression_line = {'m': m, 'b': b}
+        r_top = float((n * sum_xy) - (sum_x * sum_y))
+        r_bottom = float(sqrt(
+            ((n * sum_xsquared) - (sum_x * sum_x)) *
+            ((n * sum_ysquared) - (sum_y * sum_y))))
+        r = 0
+        if r_bottom !=0:
+            r = float(r_top / r_bottom)
+        # Where y = m * x + b and r is the correlation coefficient
+        regression_line = {'m': m, 'b': b, 'r': r}
         return regression_line

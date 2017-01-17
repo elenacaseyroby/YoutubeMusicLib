@@ -85,7 +85,7 @@ function loadGenreTopTen(start_date=null, end_date=null){
     $("#overview-genre-top-ten").empty();
     $("#genre-top-ten-header").show();
     $("#overview-genre-top-ten").append(
-      "<b>Your most listened genres for this date range are:</b> ");
+      "<b>Your most played genres for this date range are:</b> ");
     $.each(top_genres, function(index, genre){
       if(genre['played-videos-count'] > 0){
         // Render top 10 list.
@@ -184,8 +184,9 @@ function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
     }else{
       Plotly.newPlot('genre-scatter-plot', chart_data, layout);
     }
-    const correlation_coefficient = Math.abs(genres['regression_line']['m']);
-    setGenreCorrelationOverviewText(correlation_coefficient)
+    const correlation_coefficient = Math.abs(genres['regression_line']['r']);
+    console.log(correlation_coefficient);
+    setGenreCorrelationOverviewText(correlation_coefficient);
   }); 
 }
 
@@ -216,7 +217,7 @@ function prepareRegressionDataForPlotly(data, point_label){
     data['regression_line']['m'] * end_x +
     data['regression_line']['b']);
   // Set correlation strength label for plotly chart legend.
-  const correlation_coefficient = Math.abs(data['regression_line']['m']);
+  const correlation_coefficient = Math.abs(data['regression_line']['r']);
   const strength_label = getCorrelationStrengthLabel(correlation_coefficient);
   // Set regression line start and end points for plotly chart.
   const regression_line = {
