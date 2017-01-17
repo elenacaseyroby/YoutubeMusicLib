@@ -155,7 +155,6 @@ def trends():
                 user_id=session['session_user_id'],
                 start_date=request.args.get('start-date'),
                 end_date=request.args.get('end-date'))
-            print(data)
             return jsonify(data)
 
 

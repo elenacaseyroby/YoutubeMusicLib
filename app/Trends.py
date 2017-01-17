@@ -125,7 +125,7 @@ def get_genre_top_listened(user_id, start_date, end_date, limit=10):
         user_id=user_id, start_date=start_date, end_date=end_date)
     # Sort by played video count descending.
     video_listens_by_genre = sorted(
-        ((count, genre) for genre, count in video_listens_by_genre.iteritems()),
+        ((count, genre) for genre, count in video_listens_by_genre.items()),
         reverse=True)
     top_genres = []
     for i in range(10):
