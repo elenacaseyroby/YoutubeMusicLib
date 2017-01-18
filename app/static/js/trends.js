@@ -16,7 +16,7 @@ $(function(){
       $('#no-data-message').hide();
       // Get date range slider start_date.
       let start_date = new Date(listens[0]['Week']).getTime();
-      const one_month_ago = subtract_months_from_today(1)
+      const one_month_ago = subtractMonthsFromToday(1)
       if (start_date > one_month_ago){
         start_date = one_month_ago;
       }
@@ -69,6 +69,35 @@ $(function(){
 });
 
 
+function convertSlidertoMySQLDate(ui_value, end_of_day=false){
+  const year = (new Date(ui_value * 1000).getFullYear()).toString();
+  let month = (Number(new Date(ui_value * 1000).getMonth()) + 1).toString();
+  if (month.length < 2){
+    month = "0" + month;
+  }
+  let day = (new Date(ui_value * 1000).getDate()).toString();
+  if (day.length < 2){
+    day = "0" + day;
+  }
+  if(end_of_day){
+    return year + "-" + month + "-" + day + " 23:59:59";
+  }else{
+    return year + "-" + month + "-" + day + " 00:00:00";
+  }
+}
+
+
+function getCorrelationStrengthLabel(correlation_coefficient){
+  let strength_label = "weak"
+  if(correlation_coefficient >= .7){
+    strength_label = "strong";
+  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
+    strength_label = "moderate";
+  }
+  return strength_label;
+}
+
+
 function loadGenreTopTen(start_date=null, end_date=null){
   const top_genres = $.ajax({
     type: 'GET',
@@ -101,6 +130,36 @@ function loadGenreTopTen(start_date=null, end_date=null){
       }
     });
   });
+}
+
+
+function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
+  const genres = $.ajax({
+    type: 'GET',
+    url: '/trends',
+    data: {'data-type': 'genres',
+      'chart-type': 'linear regression',
+      'start-date': start_date,
+      'end-date': end_date},
+    dataType: 'json'
+  }).done(function(genres){
+    // Format points and regression line for plotly chart.
+    const chart_data = prepareRegressionDataForPlotly(data=genres, point_label='Played, Liked');
+    var layout = {
+      height: 400,
+      width: 480
+    };
+    // If redrawing chart (ex. after changing date range), 
+    // clear old chart and render new chart.
+    if(redraw){
+      Plotly.purge('genre-scatter-plot');
+      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
+    }else{
+      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
+    }
+    const correlation_coefficient = Math.abs(genres['regression_line']['r']);
+    setGenreCorrelationOverviewText(correlation_coefficient);
+  }); 
 }
 
 
@@ -146,51 +205,6 @@ function loadListensChart(start_date=null, end_date=null, redraw=false){
 }
 
 
-function setTotalListensOverviewText(total_listens){
-  // Set overview text.
-  $("#overview-total-listens").empty();
-  $("#overview-total-listens").append(
-    "<b>Total listens:</b> " +
-    total_listens.toString()
-  );
-  $('#insufficient-data-message').hide();
-  if(total_listens < 100){
-    $('#insufficient-data-message').show();
-  }
-}
-
-
-function loadGenreScatterPlot(start_date=null, end_date=null, redraw=false){
-  const genres = $.ajax({
-    type: 'GET',
-    url: '/trends',
-    data: {'data-type': 'genres',
-      'chart-type': 'linear regression',
-      'start-date': start_date,
-      'end-date': end_date},
-    dataType: 'json'
-  }).done(function(genres){
-    // Format points and regression line for plotly chart.
-    const chart_data = prepareRegressionDataForPlotly(data=genres, point_label='Played, Liked');
-    var layout = {
-      height: 400,
-      width: 480
-    };
-    // If redrawing chart (ex. after changing date range), 
-    // clear old chart and render new chart.
-    if(redraw){
-      Plotly.purge('genre-scatter-plot');
-      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
-    }else{
-      Plotly.newPlot('genre-scatter-plot', chart_data, layout);
-    }
-    const correlation_coefficient = Math.abs(genres['regression_line']['r']);
-    console.log(correlation_coefficient);
-    setGenreCorrelationOverviewText(correlation_coefficient);
-  }); 
-}
-
-
 function prepareRegressionDataForPlotly(data, point_label){
   // Create points object for plotly chart.
   const points = {
@@ -233,54 +247,31 @@ function prepareRegressionDataForPlotly(data, point_label){
 
 
 function setGenreCorrelationOverviewText(correlation_coefficient){
-  if(correlation_coefficient >= .7){
-    strength_overview = "a great";
-  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
-    strength_overview = "a good";
-  }else if(correlation_coefficient <= .3 && correlation_coefficient > .05){
-    strength_overview = "an okay";
-  }else{
-    strength_overview = "a poor";
-  }
+  strength_label = getCorrelationStrengthLabel(correlation_coefficient)
   // Set overview text.
   $("#overview-genre-correlation").empty();
   $("#overview-genre-correlation").append(
-    "For this date range, <b>genre is " +
-    strength_overview +
+    "For this date range, <b>genre is a " +
+    strength_label +
     " indicator</b> of whether you will like a video.");
 }
 
 
-function getCorrelationStrengthLabel(correlation_coefficient){
-  let strength_label = "Weak"
-  if(correlation_coefficient >= .7){
-    strength_label = "Strong";
-  }else if(correlation_coefficient < .7 && correlation_coefficient > .3){
-    strength_label = "Moderate";
-  }
-  return strength_label;
-}
-
-
-function convertSlidertoMySQLDate(ui_value, end_of_day=false){
-  const year = (new Date(ui_value * 1000).getFullYear()).toString();
-  let month = (Number(new Date(ui_value * 1000).getMonth()) + 1).toString();
-  if (month.length < 2){
-    month = "0" + month;
-  }
-  let day = (new Date(ui_value * 1000).getDate()).toString();
-  if (day.length < 2){
-    day = "0" + day;
-  }
-  if(end_of_day){
-    return year + "-" + month + "-" + day + " 23:59:59";
-  }else{
-    return year + "-" + month + "-" + day + " 00:00:00";
+function setTotalListensOverviewText(total_listens){
+  // Set overview text.
+  $("#overview-total-listens").empty();
+  $("#overview-total-listens").append(
+    "<b>Total listens:</b> " +
+    total_listens.toString()
+  );
+  $('#insufficient-data-message').hide();
+  if(total_listens < 100){
+    $('#insufficient-data-message').show();
   }
 }
 
 
-function subtract_months_from_today(number_of_months){
+function subtractMonthsFromToday(number_of_months){
   let new_date = new Date();
   new_date.setMonth(new Date().getMonth() - number_of_months);
   new_date = new_date.getTime();

@@ -56,10 +56,9 @@ def count_listens_by_week(user_id, start_date=None, end_date=None):
 
 def get_genre_likes(user_id, start_date, end_date):
     # Count number of videos that user has liked by genre,
-    # For now, a video is "liked" if it has 3+ listens ever.
+    # For now, a video is "liked" if it has 5+ listens ever.
     sql = text("""
-        SELECT genres.id,
-        genres.name,
+        SELECT genres.name,
         (SELECT COUNT(*)
             FROM videos
             JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
@@ -67,72 +66,65 @@ def get_genre_likes(user_id, start_date, end_date):
             AND genres.name != 'music' AND
             (SELECT COUNT(*)
                 FROM listens
-                WHERE user_id = :user_id 
+                WHERE user_id = :user_id
                 AND youtube_id = videos.youtube_id
                 AND listened_to_end = 0
-                AND listens.time_of_listen > :start_date 
-                AND listens.time_of_listen < :end_date
+                AND listens.time_of_listen >= :start_date
+                AND listens.time_of_listen <= :end_date
             ) > 0 AND
             (SELECT COUNT(*)
                 FROM listens
-                WHERE user_id = :user_id 
+                WHERE user_id = :user_id
                 AND youtube_id = videos.youtube_id
                 AND listened_to_end = 0
-            ) > 2
+            ) > 4
         ) AS count_videos_relistened
-        FROM genres
-        ORDER BY count_videos_relistened DESC, genres.name ASC;""")
+        FROM genres;""")
     results = models.engine.execute(
         sql, user_id=str(user_id), start_date=start_date, end_date=end_date)
     rows = results.fetchall()
     genre_likes = {}
     for row in rows:
-        genre_likes[row[1]] = row[2]
+        genre_likes[row[0]] = row[1]
     return genre_likes
 
 
 def get_genre_listens(user_id, start_date, end_date):
-    # Count number of videos that user has listened to by genre.
+    # Count user listens by genre.
     sql = text("""
-        SELECT genres.id,
-        genres.name,
+        SELECT genres.name,
         (SELECT COUNT(*)
-            FROM videos
-            JOIN vids_genres ON videos.youtube_id = vids_genres.youtube_id
+            FROM listens
+            JOIN vids_genres ON listens.youtube_id = vids_genres.youtube_id
             WHERE vids_genres.genre_id = genres.id
-            AND genres.name != 'music' AND
-            (SELECT COUNT(*)
-                FROM listens
-                WHERE user_id = :user_id 
-                AND youtube_id = videos.youtube_id
-                AND listened_to_end = 0
-                AND listens.time_of_listen > :start_date 
-                AND listens.time_of_listen < :end_date
-            ) > 0
-        ) AS count_videos_listened
-        FROM genres
-        ORDER BY count_videos_listened DESC, genres.name ASC;""")
+            AND genres.name != 'music'
+            AND listens.user_id = :user_id
+            AND listens.listened_to_end = 0
+            AND listens.time_of_listen >= :start_date
+            AND listens.time_of_listen <= :end_date
+        ) AS total_listens_count
+        FROM genres;""")
     results = models.engine.execute(
         sql, user_id=str(user_id), start_date=start_date, end_date=end_date)
     rows = results.fetchall()
     genre_listens = {}
     for row in rows:
-        genre_listens[row[1]] = row[2]
+        genre_listens[row[0]] = row[1]
     return genre_listens
 
 
 def get_genre_top_listened(user_id, start_date, end_date, limit=10):
-    video_listens_by_genre = get_genre_listens(
+    listens_by_genre = get_genre_listens(
         user_id=user_id, start_date=start_date, end_date=end_date)
     # Sort by played video count descending.
-    video_listens_by_genre = sorted(
-        ((count, genre) for genre, count in video_listens_by_genre.items()),
+    listens_by_genre = sorted(
+        ((count, genre) for genre, count in listens_by_genre.items()),
         reverse=True)
     top_genres = []
     for i in range(10):
-        if i < len(video_listens_by_genre):
-            name = video_listens_by_genre[i][1]
-            count = video_listens_by_genre[i][0]
+        if i < len(listens_by_genre):
+            name = listens_by_genre[i][1]
+            count = listens_by_genre[i][0]
             genre = {
                 'name': name,
                 'played-videos-count': count
@@ -143,23 +135,23 @@ def get_genre_top_listened(user_id, start_date, end_date, limit=10):
 
 def get_genre_regression_data(user_id, start_date, end_date):
     # Pair genre likes and genre listens into x, y values by genre.
-    video_listens_by_genre = get_genre_listens(
+    listens_by_genre = get_genre_listens(
         user_id=user_id, start_date=start_date, end_date=end_date)
     video_likes_by_genre = get_genre_likes(
         user_id=user_id, start_date=start_date, end_date=end_date)
     regression_data = []
-    for genre in video_listens_by_genre:
-        if video_listens_by_genre[genre] > 0:
+    for genre in listens_by_genre:
+        if listens_by_genre[genre] > 0:
             track = (
-                video_listens_by_genre[genre],
+                listens_by_genre[genre],
                 video_likes_by_genre[genre])
             regression_data.append(track)
     return regression_data
 
 
 def get_regression_line(list_of_points):
-    if len(list_of_points) == 0:
-        regression_line = {'m': 0, 'b': 0}
+    if not list_of_points:
+        regression_line = {'m': 0, 'b': 0, 'r': 0}
         return regression_line
     else:
         n = 0
@@ -189,8 +181,9 @@ def get_regression_line(list_of_points):
             ((n * sum_xsquared) - (sum_x * sum_x)) *
             ((n * sum_ysquared) - (sum_y * sum_y))))
         r = 0
-        if r_bottom !=0:
+        if r_bottom != 0:
             r = float(r_top / r_bottom)
-        # Where y = m * x + b and r is the correlation coefficient
+        # Where y = m * x + b is the regression line
+        # and r is the correlation coefficient.
         regression_line = {'m': m, 'b': b, 'r': r}
         return regression_line
