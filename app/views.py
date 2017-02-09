@@ -1,7 +1,4 @@
 #!/usr/bin/python
-import datetime
-from json import loads
-
 from app import app, models, sql_session
 
 from app.Artist import update_artist_similar_artists, update_artist_info
@@ -16,8 +13,12 @@ from app.Trends import (
 from app.Video import (
     get_videos, post_video, update_video_genres, update_video)
 
+from json import loads
+
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
+
+from operable_date import OperableDate
 
 
 @app.route('/')
@@ -32,8 +33,8 @@ def play():
 @app.route('/my-saved-videos')
 def my_saved_videos():
     if 'google_token' in session:
-        search_start_date = subtract_days_from_today(7)
-        search_end_date = subtract_days_from_today(0)
+        search_start_date = OperableDate().subtract_days(7)
+        search_end_date = OperableDate().subtract_days(0)
         playlist_titles = get_playlist_titles(session['session_user_id'])
         return render_template(
             'displayupdatedata.html', search_start_date=search_start_date,
@@ -208,17 +209,6 @@ def videos():
                     release_date=request.form['release_date'],
                     music=request.form['music'])
         return "success"
-
-
-def subtract_days_from_today(num_days=7):
-    now = datetime.datetime.now()
-    today = now.strftime("%Y-%m-%d %H:%M:%S")
-    if num_days > 0:
-        return_date = datetime.date.today() - datetime.timedelta(days=num_days)
-        return_date = return_date.strftime("%Y-%m-%d %H:%M:%S")
-        return return_date
-    else:
-        return today
 
 
 # User Auth code below
