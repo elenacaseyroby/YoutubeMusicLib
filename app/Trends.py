@@ -139,13 +139,8 @@ def get_genre_regression_data(user_id, start_date, end_date):
         user_id=user_id, start_date=start_date, end_date=end_date)
     video_likes_by_genre = get_genre_likes(
         user_id=user_id, start_date=start_date, end_date=end_date)
-    regression_data = []
-    for genre in listens_by_genre:
-        if listens_by_genre[genre] > 0:
-            track = (
-                listens_by_genre[genre],
-                video_likes_by_genre[genre])
-            regression_data.append(track)
+    regression_data = [(listens_by_genre[genre], video_likes_by_genre[genre])
+        for genre in listens_by_genre if listens_by_genre[genre] > 0]
     return regression_data
 
 
@@ -165,11 +160,11 @@ def get_regression_line(list_of_points):
                 n = n + 1
                 sum_x = sum_x + point[0]
                 sum_y = sum_y + point[1]
-                sum_xsquared = sum_xsquared + point[0] * point[0]
-                sum_ysquared = sum_ysquared + point[1] * point[1]
+                sum_xsquared = sum_xsquared + point[0] ** 2
+                sum_ysquared = sum_ysquared + point[1] ** 2
                 sum_xy = sum_xy + point[0] * point[1]
         m_top = float((n * sum_xy) - (sum_y * sum_x))
-        m_bottom = float((n * sum_xsquared) - (sum_x * sum_x))
+        m_bottom = float((n * sum_xsquared) - (sum_x ** 2))
         m = 0
         if m_bottom != 0:
             m = float(m_top / m_bottom)
@@ -178,8 +173,8 @@ def get_regression_line(list_of_points):
         b = float(b_top / b_bottom)
         r_top = float((n * sum_xy) - (sum_x * sum_y))
         r_bottom = float(sqrt(
-            ((n * sum_xsquared) - (sum_x * sum_x)) *
-            ((n * sum_ysquared) - (sum_y * sum_y))))
+            ((n * sum_xsquared) - (sum_x ** 2)) *
+            ((n * sum_ysquared) - (sum_y ** 2))))
         r = 0
         if r_bottom != 0:
             r = float(r_top / r_bottom)
