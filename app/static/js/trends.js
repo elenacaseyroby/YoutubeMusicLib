@@ -10,9 +10,10 @@ $(function(){
     dataType: 'json'
   }).done(function(listens){
     // If no listens, hide data visualizations and show no data message.
-    $('#data-visualization').hide();
+    $dataVisualization = $('#data-visualization');
+    $dataVisualization.hide();
     if(listens.length > 0){
-      $('#data-visualization').show();
+      $dataVisualization.show();
       $('#no-data-message').hide();
       // Get date range slider start_date.
       let start_date = new Date(listens[0]['Week']).getTime();
@@ -110,23 +111,26 @@ function loadGenreTopTen(start_date=null, end_date=null){
     dataType: 'json'
   }).done(function(top_genres){
     // Clear previous top 10 and overview.
-    $("#genre-top-ten").empty();
-    $("#overview-genre-top-ten").empty();
-    $("#genre-top-ten-header").show();
-    $("#overview-genre-top-ten").append(
+    $genreTopTen = $("#genre-top-ten");
+    $genreTopTen.empty();
+    $overviewGenreTopTen = $("#overview-genre-top-ten");
+    $overviewGenreTopTen.empty();
+    $genreTopTenHeader = $("#genre-top-ten-header");
+    $genreTopTenHeader.show();
+    $overviewGenreTopTen.append(
       "<b>Your most played genres for this date range are:</b> ");
     $.each(top_genres, function(index, genre){
       if(genre['played-videos-count'] > 0){
         // Render top 10 list.
-        $("#genre-top-ten").append('<li>'+genre['name']+'</li>')
+        $genreTopTen.append('<li>'+genre['name']+'</li>')
         // Set overview text.
         if(index > 0){
-          $("#overview-genre-top-ten").append(", ");
+          $overviewGenreTopTen.append(", ");
         }
-        $("#overview-genre-top-ten").append(genre['name']);
+        $overviewGenreTopTen.append(genre['name']);
       }else{
-        $("#genre-top-ten-header").hide()
-        $("#overview-genre-top-ten").empty()
+        $genreTopTenHeader.hide()
+        $overviewGenreTopTen.empty()
       }
     });
   });
@@ -249,8 +253,9 @@ function prepareRegressionDataForPlotly(data, point_label){
 function setGenreCorrelationOverviewText(correlation_coefficient){
   strength_label = getCorrelationStrengthLabel(correlation_coefficient)
   // Set overview text.
-  $("#overview-genre-correlation").empty();
-  $("#overview-genre-correlation").append(
+  $overviewGenreCorrelation = $("#overview-genre-correlation");
+  $overviewGenreCorrelation.empty();
+  $overviewGenreCorrelation.append(
     "For this date range, <b>genre is a " +
     strength_label +
     " indicator</b> of whether you will like a video.");
@@ -259,14 +264,16 @@ function setGenreCorrelationOverviewText(correlation_coefficient){
 
 function setTotalListensOverviewText(total_listens){
   // Set overview text.
-  $("#overview-total-listens").empty();
-  $("#overview-total-listens").append(
+  $overviewTotalListens = $("#overview-total-listens");
+  $overviewTotalListens.empty();
+  $overviewTotalListens.append(
     "<b>Total listens:</b> " +
     total_listens.toString()
   );
-  $('#insufficient-data-message').hide();
+  $insufficientDataMessage = $('#insufficient-data-message');
+  $insufficientDataMessage.hide();
   if(total_listens < 100){
-    $('#insufficient-data-message').show();
+    $insufficientDataMessage.show();
   }
 }
 
