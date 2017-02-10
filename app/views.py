@@ -5,6 +5,7 @@ from app.Artist import update_artist_similar_artists, update_artist_info
 from app.Listen import post_listen, get_listens_videos
 from app.Playlist import (
     delete_playlist, get_playlist_titles, get_playlist_tracks, update_playlist)
+from app.operable_date import OperableDate
 from app.SavedVideo import (
     delete_saved_video, get_saved_videos, post_saved_video)
 from app.Trends import (
@@ -17,8 +18,6 @@ from json import loads
 
 from flask import jsonify, redirect, render_template, request, session, url_for
 from flask_oauthlib.client import OAuth
-
-from operable_date import OperableDate
 
 
 @app.route('/')
