@@ -64,151 +64,156 @@ def artists():
 
 @app.route('/listens', methods=['GET', 'POST'])
 def listens():
-    if request.method == 'GET':
-        listens = get_listens_videos(
-            user_id=session['session_user_id'],
-            search_start_date=request.args.get('search_start_date'),
-            search_end_date=request.args.get('search_end_date'),
-            search_artist=request.args.get('search_artist'))
-        return jsonify(listens)
-    elif request.method == 'POST':
-        if 'youtube_id' in request.form and 'listened_to_end' in request.form:
-            post_listen(
+    if 'google_token' in session:
+        if request.method == 'GET':
+            listens = get_listens_videos(
                 user_id=session['session_user_id'],
-                youtube_id=request.form['youtube_id'],
-                listened_to_end=request.form['listened_to_end'])
-            return "success"
+                search_start_date=request.args.get('search_start_date'),
+                search_end_date=request.args.get('search_end_date'),
+                search_artist=request.args.get('search_artist'))
+            return jsonify(listens)
+        elif request.method == 'POST':
+            if 'youtube_id' in request.form and 'listened_to_end' in request.form:
+                post_listen(
+                    user_id=session['session_user_id'],
+                    youtube_id=request.form['youtube_id'],
+                    listened_to_end=request.form['listened_to_end'])
+                return "success"
 
 
 @app.route('/playlists', methods=['GET', 'POST', 'DELETE'])
 def playlists():
-    if request.method == 'GET':
-        if request.args.get('playlist_title'):
-            playlist_tracks = get_playlist_tracks(
-                user_id=session['session_user_id'],
-                playlist_title=request.args.get('playlist_title'))
-            return jsonify(playlist_tracks)
-        else:
-            playlist_titles = get_playlist_titles(session['session_user_id'])
-            return jsonify(playlist_titles)
-    elif request.method == 'POST':
-        if ('playlist_title' in request.form and
-                'playlist_tracks' in request.form):
-            playlist_tracks = loads(request.form['playlist_tracks'])
-            update_playlist(
-                user_id=session['session_user_id'],
-                playlist_title=request.form['playlist_title'],
-                playlist_tracks=playlist_tracks)
-            return "success"
-    elif request.method == 'DELETE':
-        if 'playlist_title' in request.form:
-            delete_playlist(
-                user_id=session['session_user_id'],
-                playlist_title=request.form['playlist_title'])
-            return "success"
+    if 'google_token' in session:
+        if request.method == 'GET':
+            if request.args.get('playlist_title'):
+                playlist_tracks = get_playlist_tracks(
+                    user_id=session['session_user_id'],
+                    playlist_title=request.args.get('playlist_title'))
+                return jsonify(playlist_tracks)
+            else:
+                playlist_titles = get_playlist_titles(session['session_user_id'])
+                return jsonify(playlist_titles)
+        elif request.method == 'POST':
+            if ('playlist_title' in request.form and
+                    'playlist_tracks' in request.form):
+                playlist_tracks = loads(request.form['playlist_tracks'])
+                update_playlist(
+                    user_id=session['session_user_id'],
+                    playlist_title=request.form['playlist_title'],
+                    playlist_tracks=playlist_tracks)
+                return "success"
+        elif request.method == 'DELETE':
+            if 'playlist_title' in request.form:
+                delete_playlist(
+                    user_id=session['session_user_id'],
+                    playlist_title=request.form['playlist_title'])
+                return "success"
 
 
 @app.route('/saved-videos', methods=['GET', 'POST', 'DELETE'])
 def saved_videos():
-    if request.method == 'GET':
-        saved_videos = get_saved_videos(
-            user_id=session['session_user_id'],
-            search_artist=request.args.get('search_artist'))
-        return jsonify(saved_videos)
-    elif request.method == 'POST':
-        if 'youtube_id' in request.form:
-            post_saved_video(
+    if 'google_token' in session:
+        if request.method == 'GET':
+            saved_videos = get_saved_videos(
                 user_id=session['session_user_id'],
-                youtube_id=request.form['youtube_id'])
-            return "success"
-    elif request.method == 'DELETE':
-        if 'youtube_id' in request.form:
-            delete_saved_video(
-                user_id=session['session_user_id'],
-                youtube_id=request.form['youtube_id'])
-            return "success"
+                search_artist=request.args.get('search_artist'))
+            return jsonify(saved_videos)
+        elif request.method == 'POST':
+            if 'youtube_id' in request.form:
+                post_saved_video(
+                    user_id=session['session_user_id'],
+                    youtube_id=request.form['youtube_id'])
+                return "success"
+        elif request.method == 'DELETE':
+            if 'youtube_id' in request.form:
+                delete_saved_video(
+                    user_id=session['session_user_id'],
+                    youtube_id=request.form['youtube_id'])
+                return "success"
 
 
 @app.route('/trends', methods=['GET'])
 def trends():
-    if request.method == 'GET':
-        if (request.args.get('data-type') == 'listens' and
-                request.args.get('chart-type') == 'time'):
-            data = count_listens_by_week(
-                user_id=session['session_user_id'],
-                start_date=request.args.get('start-date'),
-                end_date=request.args.get('end-date'))
-            return jsonify(data)
-        elif (request.args.get('data-type') == 'genres' and
-                request.args.get('chart-type') == 'linear regression'):
-            regression_data = get_genre_regression_data(
-                user_id=session['session_user_id'],
-                start_date=request.args.get('start-date'),
-                end_date=request.args.get('end-date'))
-            regression_line = get_regression_line(regression_data)
-            data = {
-                'regression_data': regression_data,
-                'regression_line': regression_line}
-            return jsonify(data)
-        elif (request.args.get('data-type') == 'genres' and
-                request.args.get('chart-type') == 'top list'):
-            data = get_genre_top_listened(
-                user_id=session['session_user_id'],
-                start_date=request.args.get('start-date'),
-                end_date=request.args.get('end-date'))
-            return jsonify(data)
+    if 'google_token' in session:
+        if request.method == 'GET':
+            if (request.args.get('data-type') == 'listens' and
+                    request.args.get('chart-type') == 'time'):
+                data = count_listens_by_week(
+                    user_id=session['session_user_id'],
+                    start_date=request.args.get('start-date'),
+                    end_date=request.args.get('end-date'))
+                return jsonify(data)
+            elif (request.args.get('data-type') == 'genres' and
+                    request.args.get('chart-type') == 'linear regression'):
+                regression_data = get_genre_regression_data(
+                    user_id=session['session_user_id'],
+                    start_date=request.args.get('start-date'),
+                    end_date=request.args.get('end-date'))
+                regression_line = get_regression_line(regression_data)
+                data = {
+                    'regression_data': regression_data,
+                    'regression_line': regression_line}
+                return jsonify(data)
+            elif (request.args.get('data-type') == 'genres' and
+                    request.args.get('chart-type') == 'top list'):
+                data = get_genre_top_listened(
+                    user_id=session['session_user_id'],
+                    start_date=request.args.get('start-date'),
+                    end_date=request.args.get('end-date'))
+                return jsonify(data)
 
 
 @app.route('/videos', methods=['GET', 'PUT', 'POST'])
 def videos():
-    if request.method == 'GET':
-        videos = get_videos(
-            user_id=session['session_user_id'],
-            search_artist=request.args.get('search_artist'))
-        return jsonify(videos)
-    elif request.method == 'PUT':
-        if ('youtube_id' in request.form and
-                'title' in request.form and
-                'artist' in request.form and
-                'album' in request.form and
-                'release_date' in request.form and
-                'music' in request.form):
-            update_video(
-                youtube_id=request.form['youtube_id'],
-                title=request.form['title'],
-                artist=request.form['artist'],
-                album=request.form['album'],
-                release_date=request.form['release_date'],
-                music=request.form['music'])
-            return "success"
-    elif request.method == 'POST':
-        if 'youtube_id' in request.form:
-            if 'genres' in request.form:
-                genres = loads(request.form['genres'])
-                youtube_id = request.form['youtube_id']
-                update_video_genres(
-                    youtube_id=youtube_id,
-                    genres=genres)
-            elif ('youtube_id' in request.form and
-                    'youtube_title' in request.form and
-                    'channel_id' in request.form and
-                    'description' in request.form and
+    if 'google_token' in session:
+        if request.method == 'GET':
+            videos = get_videos(
+                user_id=session['session_user_id'],
+                search_artist=request.args.get('search_artist'))
+            return jsonify(videos)
+        elif request.method == 'PUT':
+            if ('youtube_id' in request.form and
                     'title' in request.form and
                     'artist' in request.form and
                     'album' in request.form and
                     'release_date' in request.form and
                     'music' in request.form):
-                post_video(
+                update_video(
                     youtube_id=request.form['youtube_id'],
-                    youtube_title=request.form['youtube_title'],
-                    channel_id=request.form['channel_id'],
-                    description=request.form['description'],
                     title=request.form['title'],
                     artist=request.form['artist'],
                     album=request.form['album'],
                     release_date=request.form['release_date'],
                     music=request.form['music'])
-        return "success"
+                return "success"
+        elif request.method == 'POST':
+            if 'youtube_id' in request.form:
+                if 'genres' in request.form:
+                    genres = loads(request.form['genres'])
+                    youtube_id = request.form['youtube_id']
+                    update_video_genres(
+                        youtube_id=youtube_id,
+                        genres=genres)
+                elif ('youtube_id' in request.form and
+                        'youtube_title' in request.form and
+                        'channel_id' in request.form and
+                        'description' in request.form and
+                        'title' in request.form and
+                        'artist' in request.form and
+                        'album' in request.form and
+                        'release_date' in request.form and
+                        'music' in request.form):
+                    post_video(
+                        youtube_id=request.form['youtube_id'],
+                        youtube_title=request.form['youtube_title'],
+                        channel_id=request.form['channel_id'],
+                        description=request.form['description'],
+                        title=request.form['title'],
+                        artist=request.form['artist'],
+                        album=request.form['album'],
+                        release_date=request.form['release_date'],
+                        music=request.form['music'])
+            return "success"
 
 
 # User Auth code below
