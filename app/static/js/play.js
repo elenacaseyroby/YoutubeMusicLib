@@ -224,19 +224,17 @@ function savePlay(event, end = false) {
 				, 'artist': artist
 				, 'album': album
 				, 'release_date': year}
-		});
-		$.ajax({
+		}).done( $.ajax({
 			type: 'PUT',
 			url: '/artists',
 			data: {'artist': artist,
 				 'similar_artists': JSON.stringify(similar_artists)}
-		});
-		$.ajax({
+		})).done( $.ajax({
 			type: 'POST',
 			url: '/listens',
 			data: {'youtube_id': youtube_id,
 				 'listened_to_end': listened_to_end}
-	    });
+	    }));
 		if(!end){
 			played_video = new YoutubeVideo(youtube_id, youtube_title, channel_id, description);
 			played_videos = [];

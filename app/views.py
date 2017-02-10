@@ -193,15 +193,13 @@ def videos():
                     update_video_genres(
                         youtube_id=youtube_id,
                         genres=genres)
-                elif ('youtube_id' in request.form and
-                        'youtube_title' in request.form and
+                elif ('youtube_title' in request.form and
                         'channel_id' in request.form and
                         'description' in request.form and
                         'title' in request.form and
                         'artist' in request.form and
                         'album' in request.form and
-                        'release_date' in request.form and
-                        'music' in request.form):
+                        'release_date' in request.form):
                     post_video(
                         youtube_id=request.form['youtube_id'],
                         youtube_title=request.form['youtube_title'],
@@ -210,8 +208,7 @@ def videos():
                         title=request.form['title'],
                         artist=request.form['artist'],
                         album=request.form['album'],
-                        release_date=request.form['release_date'],
-                        music=request.form['music'])
+                        release_date=request.form['release_date'])
             return "success"
 
 
