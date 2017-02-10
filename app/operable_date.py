@@ -10,4 +10,4 @@ class OperableDate():
 			new_date = self.date - datetime.timedelta(days=days)
 			return new_date.strftime("%Y-%m-%d %H:%M:%S")
 		else:
-			return self.date.strftime("%Y-%m-%d %H:%M:%S")
+			return self.date.strftime("%Y-%m-%d %H:%M:%S") 
